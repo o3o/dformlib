@@ -1,4 +1,5 @@
 # dformlib
+[![Build Status](https://travis-ci.org/o3o/dformlib.svg?branch=master)](https://travis-ci.org/o3o/dformlib)
 
 Yet another fork of Christopher Miller [D Form Library](http://www.dprogramming.com/), based on [Rayerd work](https://github.com/Rayerd/dfl).
 
