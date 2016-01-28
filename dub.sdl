@@ -1,0 +1,8 @@
+name "dformlib"
+description "Yet another DFL fork"
+copyright "Copyright © 2016, Orfeo Da Viá"
+authors "Christopher E. Miller" "Orfeo Da Viá"
+license "Boost"
+targetPath "bin"
+targetType "library"
+libs	"ole32" "oleAut32" "gdi32" "Comctl32" "Comdlg32"

@@ -1,0 +1,11 @@
+name "tutorial"
+description "Dfl hello workd"
+copyright "Copyright © 2016, o3o"
+authors "o3o"
+sourcePaths "."
+
+dependency "dformlib"  version="~master" path="../../"
+/*buildOptions "releaseMode" "optimize"*/
+
+/*lflags-windows "/subsystem:windows"*/
+/*cflags "-m32"*/
