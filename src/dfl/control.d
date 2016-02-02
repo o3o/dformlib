@@ -1,29 +1,32 @@
 // Written by Christopher E. Miller
 // See the included license.txt for copyright and license details.
-
-
-
 module dfl.control;
 
-private import dfl.internal.dlib, dfl.internal.clib;
-
-private import dfl.base, dfl.form, dfl.drawing;
-private import dfl.internal.winapi, dfl.application, dfl.event, dfl.label;
-private import dfl.internal.wincom, dfl.internal.utf, dfl.collections, dfl.internal.com;
-private import core.memory;
+import dfl.internal.dlib;
+import dfl.internal.clib;
+import dfl.base;
+import dfl.form;
+import dfl.drawing;
+import dfl.internal.winapi;
+import dfl.application;
+import dfl.event;
+import dfl.label;
+import dfl.internal.wincom;
+import dfl.internal.utf;
+import dfl.collections;
+import dfl.internal.com;
+import core.memory;
 
 version(NO_DRAG_DROP)
 version = DFL_NO_DRAG_DROP;
 
 version(DFL_NO_DRAG_DROP) {
-}
-else {
+} else {
    private import dfl.data;
 }
 
 version(DFL_NO_MENUS) {
-}
-else {
+} else {
    private import dfl.menu;
 }
 
@@ -34,10 +37,10 @@ version = DFL_NO_ZOMBIE_FORM;
 
 enum AnchorStyles: ubyte {
    NONE = 0, ///
-   TOP = 1, /// ditto
-   BOTTOM = 2, /// ditto
-   LEFT = 4, /// ditto
-   RIGHT = 8, /// ditto
+   TOP = 1,
+   BOTTOM = 2,
+   LEFT = 4,
+   RIGHT = 8,
 
    /+
    // Extras:
@@ -56,13 +59,13 @@ enum AnchorStyles: ubyte {
 /// Flags for setting control bounds.
 enum BoundsSpecified: ubyte {
    NONE = 0, ///
-   X = 1, /// ditto
-   Y = 2, /// ditto
-   LOCATION = 1 | 2, /// ditto
-   WIDTH = 4, /// ditto
-   HEIGHT = 8, /// ditto
-   SIZE = 4 | 8, /// ditto
-   ALL = 1 | 2 | 4 | 8, /// ditto
+   X = 1,
+   Y = 2,
+   LOCATION = 1 | 2,
+   WIDTH = 4,
+   HEIGHT = 8,
+   SIZE = 4 | 8,
+   ALL = 1 | 2 | 4 | 8,
 }
 
 
@@ -107,19 +110,19 @@ private {
 /// Effect flags for drag/drop operations.
 enum DragDropEffects: DWORD {
    NONE = 0, ///
-   COPY = 1, /// ditto
-   MOVE = 2, /// ditto
-   LINK = 4, /// ditto
-   SCROLL = 0x80000000, /// ditto
-   ALL = COPY | MOVE | LINK | SCROLL, /// ditto
+   COPY = 1,
+   MOVE = 2,
+   LINK = 4,
+   SCROLL = 0x80000000,
+   ALL = COPY | MOVE | LINK | SCROLL,
 }
 
 
 /// Drag/drop action.
 enum DragAction: HRESULT {
    CONTINUE = S_OK, ///
-   CANCEL = DRAGDROP_S_CANCEL, /// ditto
-   DROP = DRAGDROP_S_DROP, /// ditto
+   CANCEL = DRAGDROP_S_CANCEL,
+   DROP = DRAGDROP_S_DROP,
 }
 
 
@@ -140,25 +143,25 @@ deprecated enum UICues: uint {
 enum ControlStyles: uint {
    NONE = 0, ///
 
-   CONTAINER_CONTROL =                0x1, /// ditto
+   CONTAINER_CONTROL =                0x1,
 
    // TODO: implement.
-   USER_PAINT =                       0x2, /// ditto
+   USER_PAINT =                       0x2,
 
-   OPAQUE =                           0x4, /// ditto
-   RESIZE_REDRAW =                    0x10, /// ditto
+   OPAQUE =                           0x4,
+   RESIZE_REDRAW =                    0x10,
    //FIXED_WIDTH =                      0x20, // TODO: implement.
    //FIXED_HEIGHT =                     0x40, // TODO: implement.
-   STANDARD_CLICK =                   0x100, /// ditto
-   SELECTABLE =                       0x200, /// ditto
+   STANDARD_CLICK =                   0x100,
+   SELECTABLE =                       0x200,
 
    // TODO: implement.
-   USER_MOUSE =                       0x400, ///  ditto
+   USER_MOUSE =                       0x400,
 
    //SUPPORTS_TRANSPARENT_BACK_COLOR =  0x800, // Only if USER_PAINT and parent is derived from Control. TODO: implement.
-   STANDARD_DOUBLE_CLICK =            0x1000, /// ditto
-   ALL_PAINTING_IN_WM_PAINT =         0x2000, /// ditto
-   CACHE_TEXT =                       0x4000, /// ditto
+   STANDARD_DOUBLE_CLICK =            0x1000,
+   ALL_PAINTING_IN_WM_PAINT =         0x2000,
+   CACHE_TEXT =                       0x4000,
    ENABLE_NOTIFY_MESSAGE =            0x8000, // deprecated. Calls onNotifyMessage() for every message.
    //DOUBLE_BUFFER =                    0x10000, // TODO: implement.
 
@@ -170,18 +173,18 @@ enum ControlStyles: uint {
 /// Control creation parameters.
 struct CreateParams {
    Dstring className; ///
-   Dstring caption; /// ditto
-   void* param; /// ditto
-   HWND parent; /// ditto
-   HMENU menu; /// ditto
-   HINSTANCE inst; /// ditto
-   int x; /// ditto
-   int y; /// ditto
-   int width; /// ditto
-   int height; /// ditto
-   DWORD classStyle; /// ditto
-   DWORD exStyle; /// ditto
-   DWORD style; /// ditto
+   Dstring caption;
+   void* param;
+   HWND parent;
+   HMENU menu;
+   HINSTANCE inst;
+   int x;
+   int y;
+   int width;
+   int height;
+   DWORD classStyle;
+   DWORD exStyle;
+   DWORD style;
 }
 
 
@@ -193,7 +196,7 @@ deprecated class UICuesEventArgs: EventArgs {
    }
 
 
-   final UICues changed() { // getter
+   final UICues changed() {
       return chg;
    }
 
@@ -232,7 +235,7 @@ class ControlEventArgs: EventArgs {
 
 
 
-   final @property Control control() { // getter
+   final @property Control control() {
       return ctrl;
    }
 
@@ -251,18 +254,18 @@ class HelpEventArgs: EventArgs {
 
 
 
-   final @property void handled(bool byes) { // setter
+   final @property void handled(bool byes) {
       hand = byes;
    }
 
-   /// ditto
-   final @property bool handled() { // getter
+
+   final @property bool handled() {
       return hand;
    }
 
 
 
-   final @property Point mousePos() { // getter
+   final @property Point mousePos() {
       return mpos;
    }
 
@@ -282,7 +285,7 @@ class InvalidateEventArgs: EventArgs {
 
 
 
-   final @property Rect invalidRect() { // getter
+   final @property Rect invalidRect() {
       return ir;
    }
 
@@ -305,23 +308,23 @@ deprecated class BeforeResizeEventArgs: EventArgs {
 
 
 
-   void width(int cx) { // setter
+   void width(int cx) {
       w = cx;
    }
 
-   /// ditto
-   int width() { // getter
+
+   int width() {
       return w;
    }
 
 
 
-   void height(int cy) { // setter
+   void height(int cy) {
       h = cy;
    }
 
-   /// ditto
-   int height() { // getter
+
+   int height() {
       return h;
    }
 
@@ -340,7 +343,7 @@ class LayoutEventArgs: EventArgs {
 
 
 
-   final @property Control affectedControl() { // getter
+   final @property Control affectedControl() {
       return ac;
    }
 
@@ -366,44 +369,44 @@ version(DFL_NO_DRAG_DROP) {} else {
 
 
 
-      final @property DragDropEffects allowedEffect() { // getter
+      final @property DragDropEffects allowedEffect() {
          return _allowedEffect;
       }
 
 
 
-      final @property void effect(DragDropEffects newEffect) { // setter
+      final @property void effect(DragDropEffects newEffect) {
          _effect = newEffect;
       }
 
 
-      /// ditto
-      final @property DragDropEffects effect() { // getter
+
+      final @property DragDropEffects effect() {
          return _effect;
       }
 
 
 
-      final @property dfl.data.IDataObject data() { // getter
+      final @property dfl.data.IDataObject data() {
          return _dobj;
       }
 
 
 
       // State of ctrl, alt, shift, and mouse buttons.
-      final @property int keyState() { // getter
+      final @property int keyState() {
          return _keyState;
       }
 
 
 
-      final @property int x() { // getter
+      final @property int x() {
          return _x;
       }
 
 
 
-      final @property int y() { // getter
+      final @property int y() {
          return _y;
       }
 
@@ -426,18 +429,18 @@ version(DFL_NO_DRAG_DROP) {} else {
 
 
 
-      final @property DragDropEffects effect() { // getter
+      final @property DragDropEffects effect() {
          return _effect;
       }
 
 
 
-      final @property void useDefaultCursors(bool byes) { // setter
+      final @property void useDefaultCursors(bool byes) {
          udefcurs = byes;
       }
 
-      /// ditto
-      final @property bool useDefaultCursors() { // getter
+
+      final @property bool useDefaultCursors() {
          return udefcurs;
       }
 
@@ -459,25 +462,25 @@ version(DFL_NO_DRAG_DROP) {} else {
 
 
 
-      final @property void action(DragAction newAction) { // setter
+      final @property void action(DragAction newAction) {
          _action = newAction;
       }
 
-      /// ditto
-      final @property DragAction action() { // getter
+
+      final @property DragAction action() {
          return _action;
       }
 
 
 
-      final @property bool escapePressed() { // getter
+      final @property bool escapePressed() {
          return escp;
       }
 
 
 
       // State of ctrl, alt and shift.
-      final @property int keyState() { // getter
+      final @property int keyState() {
          return _keyState;
       }
 
@@ -589,8 +592,8 @@ package BOOL enumFirstChildWindows(HWND hwParent, EnumWindowsCallback dg) {
 
 enum ControlFont: ubyte {
    COMPATIBLE, ///
-   OLD, /// ditto
-   NATIVE, /// ditto
+   OLD,
+   NATIVE,
 }
 
 
@@ -611,7 +614,7 @@ class Control: DObject, IWindow { // docmain
       deprecated alias length count;
 
 
-      @property int length() { // getter
+      @property int length() {
          if(_owner.isHandleCreated) {
             // Inefficient :(
             uint len = 0;
@@ -626,7 +629,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-      @property Control opIndex(int i) { // getter
+      @property Control opIndex(int i) {
          if(_owner.isHandleCreated) {
             int oni = 0;
             foreach(Control ctrl; this) {
@@ -744,7 +747,7 @@ class Control: DObject, IWindow { // docmain
       }
 
 
-      protected final @property Control owner() { // getter
+      protected final @property Control owner() {
          return _owner;
       }
 
@@ -911,7 +914,7 @@ class Control: DObject, IWindow { // docmain
 
    version(DFL_NO_DRAG_DROP) {} else {
 
-      @property void allowDrop(bool byes) { // setter
+      @property void allowDrop(bool byes) {
          /+
          if(dyes) {
             _exStyle(_exStyle() | WS_EX_ACCEPTFILES);
@@ -942,8 +945,8 @@ class Control: DObject, IWindow { // docmain
          }
       }
 
-      /// ditto
-      @property bool allowDrop() { // getter
+
+      @property bool allowDrop() {
          /+
          return (_exStyle() & WS_EX_ACCEPTFILES) != 0;
          +/
@@ -954,7 +957,7 @@ class Control: DObject, IWindow { // docmain
 
 
    /+
-   deprecated void anchor(AnchorStyles a) { // setter
+   deprecated void anchor(AnchorStyles a) {
       /+
       anch = a;
       if(!(anch & (AnchorStyles.LEFT | AnchorStyles.RIGHT))) {
@@ -969,7 +972,7 @@ class Control: DObject, IWindow { // docmain
    }
 
 
-   deprecated AnchorStyles anchor() { // getter
+   deprecated AnchorStyles anchor() {
       //return anch;
       return cast(AnchorStyles)(AnchorStyles.LEFT | AnchorStyles.TOP);
    }
@@ -1010,7 +1013,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   @property void backColor(Color c) { // setter
+   @property void backColor(Color c) {
       if(backc == c) {
          return;
       }
@@ -1025,8 +1028,8 @@ class Control: DObject, IWindow { // docmain
       }
    }
 
-   /// ditto
-   @property Color backColor() { // getter
+
+   @property Color backColor() {
       if(Color.empty == backc) {
          if(parent) {
             return parent.backColor;
@@ -1038,18 +1041,18 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   final @property int bottom() { // getter
+   final @property int bottom() {
       return wrect.bottom;
    }
 
 
 
-   final @property void bounds(Rect r) { // setter
+   final @property void bounds(Rect r) {
       setBoundsCore(r.x, r.y, r.width, r.height, BoundsSpecified.ALL);
    }
 
-   /// ditto
-   final @property Rect bounds() { // getter
+
+   final @property Rect bounds() {
       return wrect;
    }
 
@@ -1124,7 +1127,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   final @property bool canFocus() { // getter
+   final @property bool canFocus() {
       /+
       LONG wl = _style();
       return /+ hwnd && +/ (wl & WS_VISIBLE) && !(wl & WS_DISABLED);
@@ -1136,7 +1139,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   final @property bool canSelect() // getter
+   final @property bool canSelect()
    out(result) {
       if(result) {
          assert(isHandleCreated);
@@ -1157,12 +1160,12 @@ class Control: DObject, IWindow { // docmain
 
 
    // Returns true if this control has the mouse capture.
-   final @property bool capture() { // getter
+   final @property bool capture() {
       return isHandleCreated && hwnd == GetCapture();
    }
 
-   /// ditto
-   final @property void capture(bool cyes) { // setter
+
+   final @property void capture(bool cyes) {
       if(cyes) {
          SetCapture(hwnd);
       } else {
@@ -1174,7 +1177,7 @@ class Control: DObject, IWindow { // docmain
    // When true, validating and validated events are fired when the control
    // receives focus. Typically set to false for controls such as a Help button.
    // Default is true.
-   deprecated final bool causesValidation() { // getter
+   deprecated final bool causesValidation() {
       //return cvalidation;
       return false;
    }
@@ -1185,7 +1188,7 @@ class Control: DObject, IWindow { // docmain
    }
 
 
-   deprecated final void causesValidation(bool vyes) { // setter
+   deprecated final void causesValidation(bool vyes) {
       /+
       if(cvalidation == vyes) {
          return;
@@ -1199,7 +1202,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   final @property Rect clientRectangle() { // getter
+   final @property Rect clientRectangle() {
       return Rect(Point(0, 0), wclientsz);
    }
 
@@ -1212,12 +1215,12 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   final @property Size clientSize() { // getter
+   final @property Size clientSize() {
       return wclientsz;
    }
 
-   /// ditto
-   final @property void clientSize(Size sz) { // setter
+
+   final @property void clientSize(Size sz) {
       setClientSizeCore(sz.width, sz.height);
    }
 
@@ -1247,7 +1250,7 @@ class Control: DObject, IWindow { // docmain
 
 
    // This window or one of its children has focus.
-   final @property bool containsFocus() { // getter
+   final @property bool containsFocus() {
       if(!isHandleCreated) {
          return false;
       }
@@ -1267,7 +1270,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-      @property void contextMenu(ContextMenu menu) { // setter
+      @property void contextMenu(ContextMenu menu) {
          if(cmenu is menu) {
             return;
          }
@@ -1279,22 +1282,22 @@ class Control: DObject, IWindow { // docmain
          }
       }
 
-      /// ditto
-      @property ContextMenu contextMenu() { // getter
+
+      @property ContextMenu contextMenu() {
          return cmenu;
       }
    }
 
 
 
-   final @property ControlCollection controls() { // getter
+   final @property ControlCollection controls() {
       //return new ControlCollection(this);
       return ccollection;
    }
 
 
 
-   final @property bool created() { // getter
+   final @property bool created() {
       // To-do: only return true when createHandle finishes.
       // Will also need to update uses of created/isHandleCreated.
       // Return false again when disposing/killing.
@@ -1351,7 +1354,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   @property void cursor(Cursor cur) { // setter
+   @property void cursor(Cursor cur) {
       if(cur is wcurs) {
          return;
       }
@@ -1362,8 +1365,8 @@ class Control: DObject, IWindow { // docmain
       _propagateCursorAmbience();
    }
 
-   /// ditto
-   @property Cursor cursor() { // getter
+
+   @property Cursor cursor() {
       if(!wcurs) {
          if(parent) {
             return parent.cursor;
@@ -1375,13 +1378,13 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   static @property Color defaultBackColor() { // getter
+   static @property Color defaultBackColor() {
       return Color.systemColor(COLOR_BTNFACE);
    }
 
 
 
-   static @property Color defaultForeColor() { //getter
+   static @property Color defaultForeColor() {
       return Color.systemColor(COLOR_BTNTEXT);
    }
 
@@ -1454,23 +1457,23 @@ class Control: DObject, IWindow { // docmain
    deprecated alias defaultFont controlFont;
 
 
-   static @property void defaultFont(ControlFont cf) { // setter
+   static @property void defaultFont(ControlFont cf) {
       if(_deffont) {
          throw new DflException("Control font already selected");
       }
       _setDeffont(cf);
    }
 
-   /// ditto
-   static @property void defaultFont(Font f) { // setter
+
+   static @property void defaultFont(Font f) {
       if(_deffont) {
          throw new DflException("Control font already selected");
       }
       _deffont = f;
    }
 
-   /// ditto
-   static @property Font defaultFont() { // getter
+
+   static @property Font defaultFont() {
       if(!_deffont) {
          _setDeffont(ControlFont.COMPATIBLE);
       }
@@ -1497,7 +1500,7 @@ class Control: DObject, IWindow { // docmain
    }
 
 
-   package static @property Cursor _defaultCursor() { // getter
+   package static @property Cursor _defaultCursor() {
       static Cursor def = null;
 
       if(!def) {
@@ -1513,7 +1516,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   @property Rect displayRectangle() { // getter
+   @property Rect displayRectangle() {
       return clientRectangle;
    }
 
@@ -1538,12 +1541,12 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   @property DockStyle dock() { // getter
+   @property DockStyle dock() {
       return sdock;
    }
 
-   /// ditto
-   @property void dock(DockStyle ds) { // setter
+
+   @property void dock(DockStyle ds) {
       if(ds == sdock) {
          return;
       }
@@ -1577,15 +1580,15 @@ class Control: DObject, IWindow { // docmain
 
 
    /// Get or set whether or not this control currently has its bounds managed. Fires onHasLayoutChanged as needed.
-   final @property bool hasLayout() { // getter
+   final @property bool hasLayout() {
       if(cbits & CBits.HAS_LAYOUT) {
          return true;
       }
       return false;
    }
 
-   /// ditto
-   final @property void hasLayout(bool byes) { // setter
+
+   final @property void hasLayout(bool byes) {
       //if(byes == hasLayout)
       // return; // No! setting this property again must trigger onHasLayoutChanged again.
 
@@ -1618,7 +1621,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   final @property void enabled(bool byes) { // setter
+   final @property void enabled(bool byes) {
       if(byes) {
          cbits |= CBits.ENABLED;
       } else {
@@ -1641,7 +1644,7 @@ class Control: DObject, IWindow { // docmain
    }
 
 
-   final @property bool enabled() { // getter
+   final @property bool enabled() {
       /*
       return IsWindowEnabled(hwnd) ? true : false;
       */
@@ -1678,21 +1681,21 @@ class Control: DObject, IWindow { // docmain
       enabled = true;
    }
 
-   /// ditto
+
    final void disable() {
       enabled = false;
    }
 
 
 
-   @property bool focused() { // getter
+   @property bool focused() {
       //return isHandleCreated && hwnd == GetFocus();
       return created && fromChildHandle(GetFocus()) is this;
    }
 
 
 
-   @property void font(Font f) { // setter
+   @property void font(Font f) {
       if(wfont is f) {
          return;
       }
@@ -1706,8 +1709,8 @@ class Control: DObject, IWindow { // docmain
       _propagateFontAmbience();
    }
 
-   /// ditto
-   @property Font font() { // getter
+
+   @property Font font() {
       if(!wfont) {
          if(parent) {
             return parent.font;
@@ -1751,7 +1754,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   @property void foreColor(Color c) { // setter
+   @property void foreColor(Color c) {
       if(c == forec) {
          return;
       }
@@ -1765,8 +1768,8 @@ class Control: DObject, IWindow { // docmain
       }
    }
 
-   /// ditto
-   @property Color foreColor() { // getter
+
+   @property Color foreColor() {
       if(Color.empty == forec) {
          if(parent) {
             return parent.foreColor;
@@ -1780,7 +1783,7 @@ class Control: DObject, IWindow { // docmain
 
    // Doesn't cause a ControlCollection to be constructed so
    // it could improve performance when walking through children.
-   final @property bool hasChildren() { // getter
+   final @property bool hasChildren() {
       //return isHandleCreated && GetWindow(hwnd, GW_CHILD) != HWND.init;
 
       if(isHandleCreated) {
@@ -1792,7 +1795,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   final @property void height(int h) { // setter
+   final @property void height(int h) {
       /*
       RECT rect;
       GetWindowRect(hwnd, &rect);
@@ -1802,20 +1805,20 @@ class Control: DObject, IWindow { // docmain
       setBoundsCore(0, 0, 0, h, BoundsSpecified.HEIGHT);
    }
 
-   /// ditto
-   final @property int height() { // getter
+
+   final @property int height() {
       return wrect.height;
    }
 
 
 
-   final @property bool isHandleCreated() { // getter
+   final @property bool isHandleCreated() {
       return hwnd != HWND.init;
    }
 
 
 
-   final @property void left(int l) { // setter
+   final @property void left(int l) {
       /*
       RECT rect;
       GetWindowRect(hwnd, &rect);
@@ -1825,14 +1828,14 @@ class Control: DObject, IWindow { // docmain
       setBoundsCore(l, 0, 0, 0, BoundsSpecified.X);
    }
 
-   /// ditto
-   final @property int left() { // getter
+
+   final @property int left() {
       return wrect.x;
    }
 
 
    /// Property: get or set the X and Y location of the control.
-   final @property void location(Point pt) { // setter
+   final @property void location(Point pt) {
       /*
       SetWindowPos(hwnd, HWND.init, pt.x, pt.y, 0, 0, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
       */
@@ -1840,14 +1843,14 @@ class Control: DObject, IWindow { // docmain
       setBoundsCore(pt.x, pt.y, 0, 0, BoundsSpecified.LOCATION);
    }
 
-   /// ditto
-   final @property Point location() { // getter
+
+   final @property Point location() {
       return wrect.location;
    }
 
 
    /// Currently depressed modifier keys.
-   static @property Keys modifierKeys() { // getter
+   static @property Keys modifierKeys() {
       // Is there a better way to do this?
       Keys ks = Keys.NONE;
       if(GetAsyncKeyState(VK_SHIFT) & 0x8000) {
@@ -1864,7 +1867,7 @@ class Control: DObject, IWindow { // docmain
 
 
    /// Currently depressed mouse buttons.
-   static @property MouseButtons mouseButtons() { // getter
+   static @property MouseButtons mouseButtons() {
       MouseButtons result;
 
       result = MouseButtons.NONE;
@@ -1892,7 +1895,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   static @property Point mousePosition() { // getter
+   static @property Point mousePosition() {
       Point pt;
       GetCursorPos(&pt.point);
       return pt;
@@ -1900,12 +1903,12 @@ class Control: DObject, IWindow { // docmain
 
 
    /// Property: get or set the name of this control used in code.
-   final @property void name(Dstring txt) { // setter
+   final @property void name(Dstring txt) {
       _ctrlname = txt;
    }
 
-   /// ditto
-   final @property Dstring name() { // getter
+
+   final @property Dstring name() {
       return _ctrlname;
    }
 
@@ -1949,7 +1952,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   final @property void parent(Control c) { // setter
+   final @property void parent(Control c) {
       if(c is wparent) {
          return;
       }
@@ -2037,8 +2040,8 @@ class Control: DObject, IWindow { // docmain
       }
    }
 
-   /// ditto
-   final @property Control parent() { // getter
+
+   final @property Control parent() {
       return wparent;
    }
 
@@ -2058,7 +2061,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   final @property void region(Region rgn) { // setter
+   final @property void region(Region rgn) {
       if(isHandleCreated) {
          // Need to make a copy of the region.
          SetWindowRgn(hwnd, dupHrgn(rgn.handle), true);
@@ -2067,8 +2070,8 @@ class Control: DObject, IWindow { // docmain
       wregion = rgn;
    }
 
-   /// ditto
-   final @property Region region() { // getter
+
+   final @property Region region() {
       return wregion;
    }
 
@@ -2081,13 +2084,13 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   final @property int right() { // getter
+   final @property int right() {
       return wrect.right;
    }
 
 
    /+
-   @property void rightToLeft(bool byes) { // setter
+   @property void rightToLeft(bool byes) {
       LONG wl = _exStyle();
       if(byes) {
          wl |= WS_EX_RTLREADING;
@@ -2098,13 +2101,13 @@ class Control: DObject, IWindow { // docmain
    }
 
 
-   @property bool rightToLeft() { // getter
+   @property bool rightToLeft() {
       return (_exStyle() & WS_EX_RTLREADING) != 0;
    }
    +/
 
 
-   deprecated @property void rightToLeft(bool byes) { // setter
+   deprecated @property void rightToLeft(bool byes) {
       rightToLeft = byes ? RightToLeft.YES : RightToLeft.NO;
    }
 
@@ -2158,7 +2161,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   @property void rightToLeft(RightToLeft val) { // setter
+   @property void rightToLeft(RightToLeft val) {
       if(rtol != val) {
          rtol = val;
          onRightToLeftChanged(EventArgs.empty);
@@ -2166,9 +2169,9 @@ class Control: DObject, IWindow { // docmain
       }
    }
 
-   /// ditto
+
    // Returns YES or NO; if inherited, returns parent's setting.
-   @property RightToLeft rightToLeft() { // getter
+   @property RightToLeft rightToLeft() {
       if(RightToLeft.INHERIT == rtol) {
          return parent ? parent.rightToLeft : RightToLeft.NO;
       }
@@ -2276,7 +2279,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   final @property void size(Size sz) { // setter
+   final @property void size(Size sz) {
       /*
       SetWindowPos(hwnd, HWND.init, 0, 0, sz.width, sz.height, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOMOVE);
       */
@@ -2284,19 +2287,19 @@ class Control: DObject, IWindow { // docmain
       setBoundsCore(0, 0, sz.width, sz.height, BoundsSpecified.SIZE);
    }
 
-   /// ditto
-   final @property Size size() { // getter
+
+   final @property Size size() {
       return wrect.size; // struct Size, not sizeof.
    }
 
 
    /+
-   final @property void tabIndex(int i) { // setter
+   final @property void tabIndex(int i) {
       // TODO: ?
    }
 
 
-   final @property int tabIndex() { // getter
+   final @property int tabIndex() {
       return tabidx;
    }
    +/
@@ -2304,13 +2307,13 @@ class Control: DObject, IWindow { // docmain
 
    // Use -zIndex- instead.
    // -tabIndex- may return different values in the future.
-   deprecated int tabIndex() { // getter
+   deprecated int tabIndex() {
       return zIndex;
    }
 
 
 
-   final @property int zIndex() // getter
+   final @property int zIndex()
    out(result) {
       assert(result >= 0);
    }
@@ -2350,7 +2353,7 @@ class Control: DObject, IWindow { // docmain
 
 
    // True if control can be tabbed to.
-   final @property void tabStop(bool byes) { // setter
+   final @property void tabStop(bool byes) {
       LONG wl = _style();
       if(byes) {
          wl |= WS_TABSTOP;
@@ -2360,19 +2363,19 @@ class Control: DObject, IWindow { // docmain
       _style(wl);
    }
 
-   /// ditto
-   final @property bool tabStop() { // getter
+
+   final @property bool tabStop() {
       return (_style() & WS_TABSTOP) != 0;
    }
 
 
    /// Property: get or set additional data tagged onto the control.
-   final @property void tag(Object o) { // setter
+   final @property void tag(Object o) {
       otag = o;
    }
 
-   /// ditto
-   final @property Object tag() { // getter
+
+   final @property Object tag() {
       return otag;
    }
 
@@ -2383,7 +2386,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   @property void text(Dstring txt) { // setter
+   @property void text(Dstring txt) {
       if(isHandleCreated) {
          if(ctrlStyle & ControlStyles.CACHE_TEXT) {
             //if(wtext == txt)
@@ -2397,8 +2400,8 @@ class Control: DObject, IWindow { // docmain
       }
    }
 
-   /// ditto
-   @property Dstring text() { // getter
+
+   @property Dstring text() {
       if(isHandleCreated) {
          if(ctrlStyle & ControlStyles.CACHE_TEXT) {
             return wtext;
@@ -2412,12 +2415,12 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   final @property void top(int t) { // setter
+   final @property void top(int t) {
       setBoundsCore(0, t, 0, 0, BoundsSpecified.Y);
    }
 
-   /// ditto
-   final @property int top() { // getter
+
+   final @property int top() {
       return wrect.y;
    }
 
@@ -2425,7 +2428,7 @@ class Control: DObject, IWindow { // docmain
    /// Returns the topmost Control related to this control.
    // Returns the owner control that has no parent.
    // Returns this Control if no owner ?
-   final @property Control topLevelControl() { // getter
+   final @property Control topLevelControl() {
       if(isHandleCreated) {
          HWND hwCurrent = hwnd;
          HWND hwParent;
@@ -2461,12 +2464,12 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   final @property void visible(bool byes) { // setter
+   final @property void visible(bool byes) {
       setVisibleCore(byes);
    }
 
-   /// ditto
-   final @property bool visible() { // getter
+
+   final @property bool visible() {
       //if(isHandleCreated)
       // wstyle = GetWindowLongA(hwnd, GWL_STYLE); // ...
       //return (wstyle & WS_VISIBLE) != 0;
@@ -2475,12 +2478,12 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   final @property void width(int w) { // setter
+   final @property void width(int w) {
       setBoundsCore(0, 0, w, 0, BoundsSpecified.WIDTH);
    }
 
-   /// ditto
-   final @property int width() { // getter
+
+   final @property int width() {
       return wrect.width;
    }
 
@@ -2565,7 +2568,7 @@ class Control: DObject, IWindow { // docmain
 
 
    // Note: true if no children, even if this not created.
-   package final @property bool areChildrenCreated() { // getter
+   package final @property bool areChildrenCreated() {
       return !ccollection.children.length;
    }
 
@@ -2920,7 +2923,7 @@ class Control: DObject, IWindow { // docmain
          return cast(DragDropEffects)effect;
       }
 
-      /// ditto
+
       final DragDropEffects doDragDrop(Data obj, DragDropEffects allowedEffects) {
          dfl.data.IDataObject dd;
          dd = new DataObject;
@@ -3014,7 +3017,7 @@ class Control: DObject, IWindow { // docmain
       setVisibleCore(false);
    }
 
-   /// ditto
+
    final void show() {
       /*
       ShowWindow(hwnd, SW_SHOW);
@@ -3050,7 +3053,7 @@ class Control: DObject, IWindow { // docmain
       RedrawWindow(hwnd, null, HRGN.init, RDW_ERASE | RDW_INVALIDATE | RDW_NOCHILDREN);
    }
 
-   /// ditto
+
    final void invalidate(bool andChildren) {
       if(!hwnd) {
          return;
@@ -3059,7 +3062,7 @@ class Control: DObject, IWindow { // docmain
       RedrawWindow(hwnd, null, HRGN.init, RDW_ERASE | RDW_INVALIDATE | (andChildren ? RDW_ALLCHILDREN : RDW_NOCHILDREN));
    }
 
-   /// ditto
+
    final void invalidate(Rect r) {
       if(!hwnd) {
          return;
@@ -3071,7 +3074,7 @@ class Control: DObject, IWindow { // docmain
       RedrawWindow(hwnd, &rect, HRGN.init, RDW_ERASE | RDW_INVALIDATE | RDW_NOCHILDREN);
    }
 
-   /// ditto
+
    final void invalidate(Rect r, bool andChildren) {
       if(!hwnd) {
          return;
@@ -3083,7 +3086,7 @@ class Control: DObject, IWindow { // docmain
       RedrawWindow(hwnd, &rect, HRGN.init, RDW_ERASE | RDW_INVALIDATE | (andChildren ? RDW_ALLCHILDREN : RDW_NOCHILDREN));
    }
 
-   /// ditto
+
    final void invalidate(Region rgn) {
       if(!hwnd) {
          return;
@@ -3092,7 +3095,7 @@ class Control: DObject, IWindow { // docmain
       RedrawWindow(hwnd, null, rgn.handle, RDW_ERASE | RDW_INVALIDATE | RDW_NOCHILDREN);
    }
 
-   /// ditto
+
    final void invalidate(Region rgn, bool andChildren) {
       if(!hwnd) {
          return;
@@ -3114,7 +3117,7 @@ class Control: DObject, IWindow { // docmain
 
 
    /// Returns true if the window does not belong to the current thread.
-   @property bool invokeRequired() { // getter
+   @property bool invokeRequired() {
       DWORD tid = GetWindowThreadProcessId(hwnd, null);
       return tid != GetCurrentThreadId();
    }
@@ -3147,7 +3150,7 @@ class Control: DObject, IWindow { // docmain
       return inv.result;
    }
 
-   /// ditto
+
    final void invoke(void delegate() dg) {
       if(!hwnd) {
          badInvokeHandle();
@@ -3183,7 +3186,7 @@ class Control: DObject, IWindow { // docmain
       PostMessageA(hwnd, wmDfl, WPARAM_DFL_DELAY_INVOKE, cast(LPARAM)fn);
    }
 
-   /// ditto
+
    // Extra.
    // Exceptions will be passed to Application.onThreadException() and
    // trigger the threadException event or the default exception dialog.
@@ -3287,7 +3290,7 @@ class Control: DObject, IWindow { // docmain
       return result;
    }
 
-   /// ditto
+
    final Size getAutoScaleSize() {
       return getAutoScaleSize(font);
    }
@@ -3350,7 +3353,7 @@ class Control: DObject, IWindow { // docmain
       }
    }
 
-   /// ditto
+
    // Allow layout recalc, only do it now if -byes- is true.
    final void resumeLayout(bool byes) {
       if(_disallowLayout) {
@@ -3569,7 +3572,7 @@ class Control: DObject, IWindow { // docmain
       select(false, false);
    }
 
-   /// ditto
+
    // If -directed- is true, -forward- is used; otherwise, selects this control.
    // If -forward- is true, the next control in the tab order is selected,
    // otherwise the previous control in the tab order is selected.
@@ -3608,7 +3611,7 @@ class Control: DObject, IWindow { // docmain
       setBoundsCore(x, y, width, height, BoundsSpecified.ALL);
    }
 
-   /// ditto
+
    final void setBounds(int x, int y, int width, int height, BoundsSpecified specified) {
       setBoundsCore(x, y, width, height, specified);
    }
@@ -3632,7 +3635,7 @@ class Control: DObject, IWindow { // docmain
 
    // If mouseEnter, mouseHover and mouseLeave events are supported.
    // Returns true on Windows 95 with IE 5.5, Windows 98+ or Windows NT 4.0+.
-   static @property bool supportsMouseTracking() { // getter
+   static @property bool supportsMouseTracking() {
       return trackMouseEvent != null;
    }
 
@@ -5342,7 +5345,7 @@ class Control: DObject, IWindow { // docmain
       ccollection = createControlsInstance();
    }
 
-   /// ditto
+
    this(Dstring text) {
       this();
       wtext = text;
@@ -5350,7 +5353,7 @@ class Control: DObject, IWindow { // docmain
       ccollection = createControlsInstance();
    }
 
-   /// ditto
+
    this(Control cparent, Dstring text) {
       this();
       wtext = text;
@@ -5359,7 +5362,7 @@ class Control: DObject, IWindow { // docmain
       ccollection = createControlsInstance();
    }
 
-   /// ditto
+
    this(Dstring text, int left, int top, int width, int height) {
       this();
       wtext = text;
@@ -5368,7 +5371,7 @@ class Control: DObject, IWindow { // docmain
       ccollection = createControlsInstance();
    }
 
-   /// ditto
+
    this(Control cparent, Dstring text, int left, int top, int width, int height) {
       this();
       wtext = text;
@@ -5420,7 +5423,7 @@ class Control: DObject, IWindow { // docmain
       dispose(true);
    }
 
-   /// ditto
+
    protected void dispose(bool disposing) {
       if(disposing) {
          killing = true;
@@ -5463,14 +5466,14 @@ class Control: DObject, IWindow { // docmain
  protected:
 
 
-   @property Size defaultSize() { // getter
+   @property Size defaultSize() {
       return Size(0, 0);
    }
 
 
    /+
    // TODO: implement.
-   @property EventHandlerList events() { // getter
+   @property EventHandlerList events() {
    }
    +/
 
@@ -5479,20 +5482,20 @@ class Control: DObject, IWindow { // docmain
    // TODO: implement. Is this worth implementing?
 
    // Set to -1 to reset cache.
-   final @property void fontHeight(int fh) { // setter
+   final @property void fontHeight(int fh) {
 
    }
 
 
-   final @property int fontHeight() { // getter
+   final @property int fontHeight() {
       return fonth;
    }
    +/
 
 
 
-   //final void resizeRedraw(bool byes) // setter
-   public final @property void resizeRedraw(bool byes) { // setter
+   //final void resizeRedraw(bool byes)
+   public final @property void resizeRedraw(bool byes) {
       /+
       // These class styles get lost sometimes so don't rely on them.
       LONG cl = _classStyle();
@@ -5507,8 +5510,8 @@ class Control: DObject, IWindow { // docmain
       szdraw = byes;
    }
 
-   /// ditto
-   final @property bool resizeRedraw() { // getter
+
+   final @property bool resizeRedraw() {
       //return (_classStyle() & (CS_HREDRAW | CS_VREDRAW)) != 0;
       return szdraw;
    }
@@ -5517,7 +5520,7 @@ class Control: DObject, IWindow { // docmain
    /+
    // ///
    // I don't think this is reliable.
-   final bool hasVisualStyle() { // getter
+   final bool hasVisualStyle() {
       bool result = false;
       HWND hw = handle; // Always reference handle.
       HMODULE huxtheme = GetModuleHandleA("uxtheme.dll");
@@ -5743,7 +5746,7 @@ class Control: DObject, IWindow { // docmain
 
 
 
-   public final @property bool recreatingHandle() { // getter
+   public final @property bool recreatingHandle() {
       if(cbits & CBits.RECREATING) {
          return true;
       }
@@ -5836,7 +5839,7 @@ class Control: DObject, IWindow { // docmain
       return (ctrlStyle & flag) != 0;
    }
 
-   /// ditto
+
    protected final void setStyle(ControlStyles flag, bool value) {
       if(flag & ControlStyles.CACHE_TEXT) {
          if(value) {
@@ -6208,7 +6211,7 @@ class Control: DObject, IWindow { // docmain
    else version(DFL_NO_COMPAT)
       package enum _compat = CCompat.NONE;
    else
-      package @property CCompat _compat() { // getter
+      package @property CCompat _compat() {
       if(Application._compat & DflCompat.CONTROL_RECREATE_095) {
          return CCompat.DFL095;
       } return CCompat.NONE;
@@ -6297,18 +6300,18 @@ class Control: DObject, IWindow { // docmain
 
  final:
 
-   @property void menter(bool byes) { // setter
+   @property void menter(bool byes) {
       if(byes) {
          cbits |= CBits.MENTER;
       } else {
          cbits &= ~CBits.MENTER;
       }
    }
-   @property bool menter() { // getter
+   @property bool menter() {
       return (cbits & CBits.MENTER) != 0;
    }
 
-   @property void killing(bool byes) // setter
+   @property void killing(bool byes)
    //{ if(byes) cbits |= CBits.KILLING; else cbits &= ~CBits.KILLING; }
    {
       assert(byes);
@@ -6316,87 +6319,87 @@ class Control: DObject, IWindow { // docmain
          cbits |= CBits.KILLING;
       }
    }
-   @property bool killing() { // getter
+   @property bool killing() {
       return (cbits & CBits.KILLING) != 0;
    }
 
-   @property void owned(bool byes) { // setter
+   @property void owned(bool byes) {
       if(byes) {
          cbits |= CBits.OWNED;
       } else {
          cbits &= ~CBits.OWNED;
       }
    }
-   @property bool owned() { // getter
+   @property bool owned() {
       return (cbits & CBits.OWNED) != 0;
    }
 
    /+
-   void _allowLayout(bool byes) { // setter
+   void _allowLayout(bool byes) {
       if(byes) {
          cbits |= CBits.ALLOW_LAYOUT;
       } else {
          cbits &= ~CBits.ALLOW_LAYOUT;
       }
    }
-   bool _allowLayout() { // getter
+   bool _allowLayout() {
       return (cbits & CBits.ALLOW_LAYOUT) != 0;
    }
    +/
 
-   @property void _clicking(bool byes) { // setter
+   @property void _clicking(bool byes) {
       if(byes) {
          cbits |= CBits.CLICKING;
       } else {
          cbits &= ~CBits.CLICKING;
       }
    }
-   @property bool _clicking() { // getter
+   @property bool _clicking() {
       return (cbits & CBits.CLICKING) != 0;
    }
 
-   @property void needCalcSize(bool byes) { // setter
+   @property void needCalcSize(bool byes) {
       if(byes) {
          cbits |= CBits.NEED_CALC_SIZE;
       } else {
          cbits &= ~CBits.NEED_CALC_SIZE;
       }
    }
-   @property bool needCalcSize() { // getter
+   @property bool needCalcSize() {
       return (cbits & CBits.NEED_CALC_SIZE) != 0;
    }
 
-   @property void szdraw(bool byes) { // setter
+   @property void szdraw(bool byes) {
       if(byes) {
          cbits |= CBits.SZDRAW;
       } else {
          cbits &= ~CBits.SZDRAW;
       }
    }
-   @property bool szdraw() { // getter
+   @property bool szdraw() {
       return (cbits & CBits.SZDRAW) != 0;
    }
 
-   @property void ownedbg(bool byes) { // setter
+   @property void ownedbg(bool byes) {
       if(byes) {
          cbits |= CBits.OWNEDBG;
       } else {
          cbits &= ~CBits.OWNEDBG;
       }
    }
-   @property bool ownedbg() { // getter
+   @property bool ownedbg() {
       return (cbits & CBits.OWNEDBG) != 0;
    }
 
    debug {
-      @property void _handlecreated(bool byes) { // setter
+      @property void _handlecreated(bool byes) {
          if(byes) {
             cbits |= CBits.HANDLE_CREATED;
          } else {
             cbits &= ~CBits.HANDLE_CREATED;
          }
       }
-      @property bool _handlecreated() { // getter
+      @property bool _handlecreated() {
          return (cbits & CBits.HANDLE_CREATED) != 0;
       }
    }
@@ -6432,7 +6435,7 @@ class Control: DObject, IWindow { // docmain
    }
 
 
-   @property HBRUSH hbrBg() { // getter
+   @property HBRUSH hbrBg() {
       if(_hbrBg) {
          return _hbrBg;
       }
@@ -6446,7 +6449,7 @@ class Control: DObject, IWindow { // docmain
    }
 
 
-   @property void hbrBg(HBRUSH hbr) // setter
+   @property void hbrBg(HBRUSH hbr)
    in {
       if(hbr) {
          assert(!_hbrBg);
@@ -6625,7 +6628,7 @@ package abstract class ControlSuperClass: Control { // dapi.d
 
 class ScrollableControl: Control { // docmain
    // ///
-   deprecated void autoScroll(bool byes) { // setter
+   deprecated void autoScroll(bool byes) {
       if(byes) {
          cbits |= CBits.ASCROLL;
       } else {
@@ -6633,55 +6636,55 @@ class ScrollableControl: Control { // docmain
       }
    }
 
-   // /// ditto
-   deprecated bool autoScroll() { // getter
+   //
+   deprecated bool autoScroll() {
       return (cbits & CBits.ASCROLL) == CBits.ASCROLL;
    }
 
 
    // ///
-   deprecated final void autoScrollMargin(Size sz) { // setter
+   deprecated final void autoScrollMargin(Size sz) {
       //scrollmargin = sz;
    }
 
-   // /// ditto
-   deprecated final Size autoScrollMargin() { // getter
+   //
+   deprecated final Size autoScrollMargin() {
       //return scrollmargin;
       return Size(0, 0);
    }
 
 
    // ///
-   deprecated final void autoScrollMinSize(Size sz) { // setter
+   deprecated final void autoScrollMinSize(Size sz) {
       //scrollmin = sz;
    }
 
-   // /// ditto
-   deprecated final Size autoScrollMinSize() { // getter
+   //
+   deprecated final Size autoScrollMinSize() {
       //return scrollmin;
       return Size(0, 0);
    }
 
 
    // ///
-   deprecated final void autoScrollPosition(Point pt) { // setter
+   deprecated final void autoScrollPosition(Point pt) {
       //autoscrollpos = pt;
    }
 
-   // /// ditto
-   deprecated final Point autoScrollPosition() { // getter
+   //
+   deprecated final Point autoScrollPosition() {
       //return autoscrollpos;
       return Point(0, 0);
    }
 
 
 
-   final @property Size autoScaleBaseSize() { // getter
+   final @property Size autoScaleBaseSize() {
       return autossz;
    }
 
-   /// ditto
-   final @property void autoScaleBaseSize(Size newSize) // setter
+
+   final @property void autoScaleBaseSize(Size newSize)
    in {
       assert(newSize.width > 0);
       assert(newSize.height > 0);
@@ -6692,7 +6695,7 @@ class ScrollableControl: Control { // docmain
 
 
 
-   final @property void autoScale(bool byes) { // setter
+   final @property void autoScale(bool byes) {
       if(byes) {
          cbits |= CBits.ASCALE;
       } else {
@@ -6700,13 +6703,13 @@ class ScrollableControl: Control { // docmain
       }
    }
 
-   /// ditto
-   final @property bool autoScale() { // getter
+
+   final @property bool autoScale() {
       return (cbits & CBits.ASCALE) == CBits.ASCALE;
    }
 
 
-   final @property Point scrollPosition() { // getter
+   final @property Point scrollPosition() {
       return Point(xspos, yspos);
    }
 
@@ -6796,8 +6799,8 @@ class ScrollableControl: Control { // docmain
    }
 
 
-   //override final Rect displayRectangle() // getter
-   override @property Rect displayRectangle() { // getter
+   //override final Rect displayRectangle()
+   override @property Rect displayRectangle() {
       Rect result = clientRectangle;
 
       // Subtract dock padding.
@@ -6822,14 +6825,14 @@ class ScrollableControl: Control { // docmain
 
 
 
-   final @property void scrollSize(Size sz) { // setter
+   final @property void scrollSize(Size sz) {
       scrollsz = sz;
 
       _fixScrollBounds(); // Implies _adjustScrollSize().
    }
 
-   /// ditto
-   final @property Size scrollSize() { // getter
+
+   final @property Size scrollSize() {
       return scrollsz;
    }
 
@@ -6853,69 +6856,69 @@ class ScrollableControl: Control { // docmain
     public:
 
 
-      @property void all(int x) { // setter
+      @property void all(int x) {
          _bottom = _right = _top = _left = _all = x;
 
          changed();
       }
 
-      /// ditto
-      final @property int all() { // getter
+
+      final @property int all() {
          return _all;
       }
 
-      /// ditto
-      @property void left(int x) { // setter
+
+      @property void left(int x) {
          _left = x;
 
          changed();
       }
 
-      /// ditto
-      @property int left() { // getter
+
+      @property int left() {
          return _left;
       }
 
-      /// ditto
-      @property void top(int x) { // setter
+
+      @property void top(int x) {
          _top = x;
 
          changed();
       }
 
-      /// ditto
-      @property int top() { // getter
+
+      @property int top() {
          return _top;
       }
 
-      /// ditto
-      @property void right(int x) { // setter
+
+      @property void right(int x) {
          _right = x;
 
          changed();
       }
 
-      /// ditto
-      @property int right() { // getter
+
+      @property int right() {
          return _right;
       }
 
-      /// ditto
-      @property void bottom(int x) { // setter
+
+      @property void bottom(int x) {
          _bottom = x;
 
          changed();
       }
 
-      /// ditto
-      @property int bottom() { // getter
+
+      @property int bottom() {
          return _bottom;
       }
    }
 
 
 
-   final @property DockPaddingEdges dockPadding() { // getter
+   final @property DockPaddingEdges dockPadding() {
       return dpad;
    }
 
@@ -6934,7 +6937,7 @@ class ScrollableControl: Control { // docmain
    enum DEFAULT_SCALE = Size(5, 13);
 
 
-   final @property void hScroll(bool byes) { // setter
+   final @property void hScroll(bool byes) {
       LONG wl = _style();
       if(byes) {
          wl |= WS_HSCROLL;
@@ -6949,14 +6952,14 @@ class ScrollableControl: Control { // docmain
    }
 
 
-   /// ditto
-   final @property bool hScroll() { // getter
+
+   final @property bool hScroll() {
       return (_style() & WS_HSCROLL) != 0;
    }
 
 
 
-   final @property void vScroll(bool byes) { // setter
+   final @property void vScroll(bool byes) {
       LONG wl = _style();
       if(byes) {
          wl |= WS_VSCROLL;
@@ -6970,8 +6973,8 @@ class ScrollableControl: Control { // docmain
       }
    }
 
-   /// ditto
-   final @property bool vScroll() { // getter
+
+   final @property bool vScroll() {
       return (_style() & WS_VSCROLL) != 0;
    }
 
@@ -7309,9 +7312,9 @@ class ScrollableControl: Control { // docmain
 
 interface IContainerControl { // docmain
 
-   @property Control activeControl(); // getter
+   @property Control activeControl();
 
-   deprecated void activeControl(Control); // setter
+   deprecated void activeControl(Control);
 
    deprecated bool activateControl(Control);
 }
@@ -7320,7 +7323,7 @@ interface IContainerControl { // docmain
 
 class ContainerControl: ScrollableControl, IContainerControl { // docmain
 
-   @property Control activeControl() { // getter
+   @property Control activeControl() {
       /+
       HWND hwfocus, hw;
       hw = hwfocus = GetFocus();
@@ -7343,14 +7346,11 @@ class ContainerControl: ScrollableControl, IContainerControl { // docmain
       return null;
    }
 
-   /// ditto
-   @property void activeControl(Control ctrl) { // setter
+   @property void activeControl(Control ctrl) {
       if(!activateControl(ctrl)) {
          throw new DflException("Unable to activate control");
       }
    }
-
-
 
    // Returns true if successfully activated.
    final bool activateControl(Control ctrl) {
@@ -7365,9 +7365,7 @@ class ContainerControl: ScrollableControl, IContainerControl { // docmain
       return true;
    }
 
-
-
-   final @property Form parentForm() { // getter
+   final @property Form parentForm() {
       Control par;
       Form f;
 
@@ -7394,7 +7392,6 @@ class ContainerControl: ScrollableControl, IContainerControl { // docmain
       _init();
    }
 
-
    /+
    // Used internally.
    this(HWND hwnd) {
@@ -7411,15 +7408,15 @@ class ContainerControl: ScrollableControl, IContainerControl { // docmain
 
 
  protected:
-   /+
+   /*
    override bool processDialogChar(char charCode) {
       // Not sure if this is correct.
       return false;
    }
-   +/
+   */
 
 
-   /+
+   /*
    deprecated protected override bool processMnemonic(dchar charCode) {
       return false;
    }
@@ -7433,11 +7430,12 @@ class ContainerControl: ScrollableControl, IContainerControl { // docmain
       }
       return false;
    }
-   +/
+   */
 }
 
 
-import std.traits, std.typecons;
+import std.traits;
+import std.typecons;
 private template hasLocalAliasing(T...) {
    static if( !T.length ) {
       enum hasLocalAliasing = false;
