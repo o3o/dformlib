@@ -18,7 +18,7 @@ SRC += src/dfl/internal/winapi.d
 SRC += src/dfl/exception.d
 SRC += src/dfl/event.d
 SRC += src/dfl/drawing.d
-#SRC += src/dfl/base.d
+SRC += src/dfl/base.d
 
 D_DIR = 
 ROOT_SOURCE_DIR = src

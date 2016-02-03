@@ -2,17 +2,21 @@
 // See the included license.txt for copyright and license details.
 
 module dfl.base;
-import core.sys.windows.windows;
 
+import core.sys.windows.windows;
+import core.sys.windows.winuser;
+import core.stdc.stdlib: alloca;
+
+import core.stdc.string: strcpy;
 import dfl.internal.dlib;
 import dfl.internal.clib;
 
 // FIX: import dfl.internal.winapi;
 import dfl.drawing;
 import dfl.event;
+import dfl.exception;
 
 alias HWND HWindow;
-
 
 interface IWindow {
    @property HWindow handle();
@@ -248,8 +252,6 @@ enum Keys: uint {
    MODIFIERS = 0xFFFF0000,
 }
 
-
-
 enum MouseButtons: uint {
    /// No mouse buttons specified.
    NONE =      0,
@@ -263,14 +265,11 @@ enum MouseButtons: uint {
    //XBUTTON2 =  0x1000000,
 }
 
-
-
 enum CheckState: ubyte {
    UNCHECKED = BST_UNCHECKED, ///
    CHECKED = BST_CHECKED,
    INDETERMINATE = BST_INDETERMINATE,
 }
-
 
 
 struct Message {
@@ -297,10 +296,7 @@ struct Message {
    }
 }
 
-
-
 interface IMessageFilter {
-
    // Return false to allow the message to be dispatched.
    // Filter functions cannot modify messages.
    bool preFilterMessage(ref Message m);
@@ -328,24 +324,20 @@ abstract class WaitHandle {
       return h;
    }
 
-
    @property void handle(HANDLE h) {
       this.h = h;
    }
-
 
    void close() {
       CloseHandle(h);
       h = INVALID_HANDLE;
    }
 
-
    ~this() {
       if(owned) {
          close();
       }
    }
-
 
    private static DWORD _wait(WaitHandle[] handles, BOOL waitall, DWORD msTimeout) {
       DWORD result;
@@ -365,22 +357,19 @@ abstract class WaitHandle {
 
       result = WaitForMultipleObjects(handles.length, hs, waitall, msTimeout);
       if(WAIT_FAILED == result) {
-      fail:
+fail:
          throw new DflException("Wait failure");
       }
       return result;
    }
 
-
    static void waitAll(WaitHandle[] handles) {
       return waitAll(handles, INFINITE);
    }
 
-
    static void waitAll(WaitHandle[] handles, DWORD msTimeout) {
       _wait(handles, true, msTimeout);
    }
-
 
    static int waitAny(WaitHandle[] handles) {
       return waitAny(handles, INFINITE);
@@ -393,11 +382,9 @@ abstract class WaitHandle {
       return cast(int)result; // Same return info.
    }
 
-
    void waitOne() {
       return waitOne(INFINITE);
    }
-
 
    void waitOne(DWORD msTimeout) {
       DWORD result;
@@ -407,12 +394,9 @@ abstract class WaitHandle {
       }
    }
 
-
- private:
-   HANDLE h;
-   bool owned = true;
+   private HANDLE h;
+   private bool owned = true;
 }
-
 
 interface IAsyncResult {
    @property WaitHandle asyncWaitHandle();
@@ -431,17 +415,12 @@ class AsyncResult: IAsyncResult {
 +/
 
 
-
 interface IButtonControl {
-
    @property DialogResult dialogResult();
 
    @property void dialogResult(DialogResult);
 
-
    void notifyDefault(bool); // True if default button.
-
-
    void performClick(); // Raise click event.
 }
 
@@ -463,15 +442,12 @@ enum DialogResult: ubyte {
    HELP = IDHELP,
 }
 
-
 interface IDialogResult {
    // ///
    @property DialogResult dialogResult();
    //
    @property void dialogResult(DialogResult);
 }
-
-
 
 enum SortOrder: ubyte {
    NONE, ///
@@ -480,16 +456,12 @@ enum SortOrder: ubyte {
    DESCENDING,
 }
 
-
-
 enum View: ubyte {
    LARGE_ICON, ///
    SMALL_ICON, ///
    LIST, ///
    DETAILS, ///
 }
-
-
 
 enum ItemBoundsPortion: ubyte {
    ENTIRE, ///
@@ -498,23 +470,17 @@ enum ItemBoundsPortion: ubyte {
    LABEL, /// Item's text.
 }
 
-
-
 enum ItemActivation: ubyte {
    STANDARD, ///
    ONE_CLICK, ///
    TWO_CLICK, ///
 }
 
-
-
 enum ColumnHeaderStyle: ubyte {
    CLICKABLE, ///
    NONCLICKABLE, ///
    NONE, /// No column header.
 }
-
-
 
 enum BorderStyle: ubyte {
    NONE, ///
@@ -523,8 +489,6 @@ enum BorderStyle: ubyte {
    FIXED_SINGLE,
 }
 
-
-
 enum FlatStyle: ubyte {
    STANDARD, ///
    FLAT,
@@ -532,13 +496,10 @@ enum FlatStyle: ubyte {
    SYSTEM,
 }
 
-
-
 enum Appearance: ubyte {
    NORMAL, ///
    BUTTON, ///
 }
-
 
 
 enum ContentAlignment: ubyte {
@@ -553,15 +514,11 @@ enum ContentAlignment: ubyte {
    TOP_RIGHT, ///
 }
 
-
-
 enum CharacterCasing: ubyte {
    NORMAL, ///
    LOWER, ///
    UPPER, ///
 }
-
-
 
 // Not flags.
 enum ScrollBars: ubyte {
@@ -572,23 +529,17 @@ enum ScrollBars: ubyte {
    BOTH,
 }
 
-
-
 enum HorizontalAlignment: ubyte {
    LEFT, ///
    RIGHT,
    CENTER,
 }
 
-
-
 enum DrawMode: ubyte {
    NORMAL, ///
    OWNER_DRAW_FIXED, ///
    OWNER_DRAW_VARIABLE,
 }
-
-
 
 enum DrawItemState: uint {
    NONE = 0, ///
@@ -644,7 +595,7 @@ class PaintEventArgs: EventArgs {
    }
 
 
- private:
+   private:
    Graphics g;
    Rect cr;
 }
@@ -675,7 +626,7 @@ class CancelEventArgs: EventArgs {
    }
 
 
- private:
+   private:
    bool cncl;
 }
 
@@ -718,7 +669,7 @@ class SizingEventArgs: EventArgs {
    }
 
 
- private:
+   private:
    Size _sz;
 }
 
@@ -761,7 +712,7 @@ class MovingEventArgs: EventArgs {
    }
 
 
- private:
+   private:
    Point _loc;
 }
 
@@ -833,7 +784,7 @@ class KeyEventArgs: EventArgs {
    }
 
 
- private:
+   private:
    Keys ks;
    bool hand = false;
 }
@@ -841,42 +792,40 @@ class KeyEventArgs: EventArgs {
 
 
 class KeyPressEventArgs: KeyEventArgs {
-
+   private dchar _keych;
    this(dchar ch) {
       this(ch, (ch >= 'A' && ch <= 'Z') ? Keys.SHIFT : Keys.NONE);
    }
 
 
    this(dchar ch, Keys modifiers)
-   in {
-      assert((modifiers & Keys.MODIFIERS) == modifiers, "modifiers parameter can only contain modifiers");
+      in {
+         assert((modifiers & Keys.MODIFIERS) == modifiers, "modifiers parameter can only contain modifiers");
       } body {
-      _keych = ch;
+         _keych = ch;
 
-      int vk;
-      if(dfl.internal.utf.useUnicode) {
-         vk = 0xFF & VkKeyScanW(cast(WCHAR)ch);
-      } else
-      { vk = 0xFF & VkKeyScanA(cast(char)ch); }
+         int vk;
+         if(dfl.internal.utf.useUnicode) {
+            vk = 0xFF & VkKeyScanW(cast(WCHAR)ch);
+         } else {
+            vk = 0xFF & VkKeyScanA(cast(char)ch);
+         }
 
-      super(cast(Keys)(vk | modifiers));
-   }
-
-
+         super(cast(Keys)(vk | modifiers));
+      }
 
    final @property dchar keyChar() {
       return _keych;
    }
-
-
- private:
-   dchar _keych;
 }
 
 
 
 class MouseEventArgs: EventArgs {
-
+   private MouseButtons btn;
+   private int clks;
+   private int _x, _y;
+   private int dlt;
    // -delta- is mouse wheel rotations.
    this(MouseButtons button, int clicks, int x, int y, int delta) pure nothrow {
       btn = button;
@@ -886,42 +835,25 @@ class MouseEventArgs: EventArgs {
       dlt = delta;
    }
 
-
-
    final @property MouseButtons button() pure nothrow {
       return btn;
    }
-
-
 
    final @property int clicks() pure nothrow {
       return clks;
    }
 
-
-
    final @property int delta() pure nothrow {
       return dlt;
    }
-
-
 
    final @property int x() pure nothrow {
       return _x;
    }
 
-
-
    final @property int y() pure nothrow {
       return _y;
    }
-
-
- private:
-   MouseButtons btn;
-   int clks;
-   int _x, _y;
-   int dlt;
 }
 
 
@@ -965,7 +897,7 @@ class LabelEditEventArgs: EventArgs {
    }
 
 
- private:
+   private:
    int idx;
    Dstring ltxt;
    bool cancl = false;
@@ -976,19 +908,14 @@ class LabelEditEventArgs: EventArgs {
 
 class ColumnClickEventArgs: EventArgs {
 
+   private int col;
    this(int col) pure nothrow {
       this.col = col;
    }
 
-
-
    final @property int column() pure nothrow {
       return col;
    }
-
-
- private:
-   int col;
 }
 
 
@@ -1044,7 +971,7 @@ class DrawItemEventArgs: EventArgs {
 
    void drawBackground() {
       /+
-      HBRUSH hbr;
+         HBRUSH hbr;
       RECT _rect;
 
       hbr = bcolor.createBrush();
@@ -1057,7 +984,7 @@ class DrawItemEventArgs: EventArgs {
       }
       +/
 
-      gpx.fillRectangle(bcolor, rect);
+         gpx.fillRectangle(bcolor, rect);
    }
 
    void drawFocusRectangle() {
@@ -1118,7 +1045,7 @@ class MeasureItemEventArgs: EventArgs {
    }
 
 
- private:
+   private:
    Graphics gpx;
    int idx, iheight, iwidth = 0;
 }
@@ -1188,49 +1115,49 @@ class Cursor {
 
 
    /+
-   // TODO:
-   final @property Size size() {
-      Size result;
-      ICONINFO iinfo;
+      // TODO:
+      final @property Size size() {
+         Size result;
+         ICONINFO iinfo;
 
-      if(GetIconInfo(hcur, &iinfo)) {
+         if(GetIconInfo(hcur, &iinfo)) {
 
+         }
+
+         return result;
       }
-
-      return result;
-   }
    +/
 
 
 
-   // Uses the actual size.
-   final void draw(Graphics g, Point pt) {
-      DrawIconEx(g.handle, pt.x, pt.y, hcur, 0, 0, 0, HBRUSH.init, DI_NORMAL);
-   }
+      // Uses the actual size.
+      final void draw(Graphics g, Point pt) {
+         DrawIconEx(g.handle, pt.x, pt.y, hcur, 0, 0, 0, HBRUSH.init, DI_NORMAL);
+      }
 
    /+
 
-   // Should not stretch if bigger, but should crop if smaller.
-   final void draw(Graphics g, Rect r) {
-   }
+      // Should not stretch if bigger, but should crop if smaller.
+      final void draw(Graphics g, Rect r) {
+      }
    +/
 
 
 
-   final void drawStretched(Graphics g, Rect r) {
-      // DrawIconEx operates differently if the width or height is zero
-      // so bail out if zero and pretend the zero size cursor was drawn.
-      int width = r.width;
-      if(!width) {
-         return;
-      }
-      int height = r.height;
-      if(!height) {
-         return;
-      }
+      final void drawStretched(Graphics g, Rect r) {
+         // DrawIconEx operates differently if the width or height is zero
+         // so bail out if zero and pretend the zero size cursor was drawn.
+         int width = r.width;
+         if(!width) {
+            return;
+         }
+         int height = r.height;
+         if(!height) {
+            return;
+         }
 
-      DrawIconEx(g.handle, r.x, r.y, hcur, width, height, 0, HBRUSH.init, DI_NORMAL);
-   }
+         DrawIconEx(g.handle, r.x, r.y, hcur, width, height, 0, HBRUSH.init, DI_NORMAL);
+      }
 
 
    override Dequ opEquals(Object o) {
@@ -1273,7 +1200,7 @@ class Cursor {
    }
 
 
- private:
+   private:
    HCURSOR hcur;
    bool owned = true;
 }
@@ -1283,145 +1210,140 @@ class Cursors {
    private this() {}
 
 
- static:
+   static {
 
 
-   @property Cursor appStarting() {
-      return new Cursor(LoadCursorA(HINSTANCE.init, IDC_APPSTARTING), false);
-   }
 
-
-   @property Cursor arrow() {
-      return new Cursor(LoadCursorA(HINSTANCE.init, IDC_ARROW), false);
-   }
-
-
-   @property Cursor cross() {
-      return new Cursor(LoadCursorA(HINSTANCE.init, IDC_CROSS), false);
-   }
-
-
-   //@property Cursor default()
-   @property Cursor defaultCursor() {
-      return arrow;
-   }
-
-
-   @property Cursor hand() {
-      version(SUPPORTS_HAND_CURSOR) { // Windows 98+
-         return new Cursor(LoadCursorA(HINSTANCE.init, IDC_HAND), false);
+      @property Cursor appStarting() {
+         return new Cursor(LoadCursor(HINSTANCE.init, IDC_APPSTARTING), false);
       }
-      else {
-         static HCURSOR hcurHand;
 
-         if(!hcurHand) {
-            hcurHand = LoadCursorA(HINSTANCE.init, IDC_HAND);
-            if(!hcurHand) { // Must be Windows 95, so load the cursor from winhlp32.exe.
-               UINT len;
-               char[MAX_PATH] winhlppath = void;
 
-               len = GetWindowsDirectoryA(winhlppath.ptr, winhlppath.length - 16);
-               if(!len || len > winhlppath.length - 16) {
-               load_failed:
-                  return arrow; // Just fall back to a normal arrow.
-               }
-               strcpy(winhlppath.ptr + len, "\\winhlp32.exe");
-
-               HINSTANCE hinstWinhlp;
-               hinstWinhlp = LoadLibraryExA(winhlppath.ptr, HANDLE.init, LOAD_LIBRARY_AS_DATAFILE);
-               if(!hinstWinhlp) {
-                  goto load_failed;
-               }
-
-               HCURSOR hcur;
-               hcur = LoadCursorA(hinstWinhlp, cast(char*)106);
-               if(!hcur) { // No such cursor resource.
-                  FreeLibrary(hinstWinhlp);
-                  goto load_failed;
-               }
-               hcurHand = CopyCursor(hcur);
-               if(!hcurHand) {
-                  FreeLibrary(hinstWinhlp);
-                  //throw new DflException("Unable to copy cursor resource");
-                  goto load_failed;
-               }
-
-               FreeLibrary(hinstWinhlp);
-            }
-         }
-
-         assert(hcurHand);
-         // Copy the cursor and own it here so that it's safe to dispose it.
-         return new Cursor(CopyCursor(hcurHand));
+      @property Cursor arrow() {
+         return new Cursor(LoadCursor(HINSTANCE.init, IDC_ARROW), false);
       }
-   }
 
 
-   @property Cursor help() {
-      HCURSOR hcur;
-      hcur = LoadCursorA(HINSTANCE.init, IDC_HELP);
-      if(!hcur) { // IDC_HELP might not be supported on Windows 95, so fall back to a normal arrow.
+      @property Cursor cross() {
+         return new Cursor(LoadCursor(HINSTANCE.init, IDC_CROSS), false);
+      }
+
+
+      //@property Cursor default()
+      @property Cursor defaultCursor() {
          return arrow;
       }
-      return new Cursor(hcur);
-   }
 
 
-   @property Cursor hSplit() {
-      // ...
-      return sizeNS;
-   }
+      @property Cursor hand() {
+         version(SUPPORTS_HAND_CURSOR) { // Windows 98+
+            return new Cursor(LoadCursor(HINSTANCE.init, IDC_HAND), false);
+         } else {
+            static HCURSOR hcurHand;
 
-   @property Cursor vSplit() {
-      // ...
-      return sizeWE;
-   }
+            if(!hcurHand) {
+               hcurHand = LoadCursor(HINSTANCE.init, IDC_HAND);
+               if(!hcurHand) { // Must be Windows 95, so load the cursor from winhlp32.exe.
+                  UINT len;
+                  char[MAX_PATH] winhlppath = void;
 
-   @property Cursor iBeam() {
-      return new Cursor(LoadCursorA(HINSTANCE.init, IDC_IBEAM), false);
-   }
+                  len = GetWindowsDirectoryA(winhlppath.ptr, winhlppath.length - 16);
+                  if(!len || len > winhlppath.length - 16) {
+load_failed:
+                     return arrow; // Just fall back to a normal arrow.
+                  }
+                  strcpy(winhlppath.ptr + len, "\\winhlp32.exe");
+
+                  HINSTANCE hinstWinhlp;
+                  hinstWinhlp = LoadLibraryExA(winhlppath.ptr, HANDLE.init, LOAD_LIBRARY_AS_DATAFILE);
+                  if(!hinstWinhlp) {
+                     goto load_failed;
+                  }
+
+                  HCURSOR hcur;
+                  hcur = LoadCursorA(hinstWinhlp, cast(char*)106);
+                  if(!hcur) { // No such cursor resource.
+                     FreeLibrary(hinstWinhlp);
+                     goto load_failed;
+                  }
+                  hcurHand = CopyCursor(hcur);
+                  if(!hcurHand) {
+                     FreeLibrary(hinstWinhlp);
+                     //throw new DflException("Unable to copy cursor resource");
+                     goto load_failed;
+                  }
+
+                  FreeLibrary(hinstWinhlp);
+               }
+            }
+
+            assert(hcurHand);
+            // Copy the cursor and own it here so that it's safe to dispose it.
+            return new Cursor(CopyCursor(hcurHand));
+         }
+      }
 
 
-   @property Cursor no() {
-      return new Cursor(LoadCursorA(HINSTANCE.init, IDC_NO), false);
-   }
+      @property Cursor help() {
+         HCURSOR hcur;
+         hcur = LoadCursor(HINSTANCE.init, IDC_HELP);
+         if(!hcur) { // IDC_HELP might not be supported on Windows 95, so fall back to a normal arrow.
+            return arrow;
+         }
+         return new Cursor(hcur);
+      }
 
 
+      @property Cursor hSplit() {
+         // ...
+         return sizeNS;
+      }
 
-   @property Cursor sizeAll() {
-      return new Cursor(LoadCursorA(HINSTANCE.init, IDC_SIZEALL), false);
-   }
+      @property Cursor vSplit() {
+         // ...
+         return sizeWE;
+      }
 
-
-   @property Cursor sizeNESW() {
-      return new Cursor(LoadCursorA(HINSTANCE.init, IDC_SIZENESW), false);
-   }
-
-
-   @property Cursor sizeNS() {
-      return new Cursor(LoadCursorA(HINSTANCE.init, IDC_SIZENS), false);
-   }
-
-
-   @property Cursor sizeNWSE() {
-      return new Cursor(LoadCursorA(HINSTANCE.init, IDC_SIZENWSE), false);
-   }
+      @property Cursor iBeam() {
+         return new Cursor(LoadCursor(HINSTANCE.init, IDC_IBEAM), false);
+      }
 
 
-   @property Cursor sizeWE() {
-      return new Cursor(LoadCursorA(HINSTANCE.init, IDC_SIZEWE), false);
-   }
+      @property Cursor no() {
+         return new Cursor(LoadCursor(HINSTANCE.init, IDC_NO), false);
+      }
+
+      @property Cursor sizeAll() {
+         return new Cursor(LoadCursor(HINSTANCE.init, IDC_SIZEALL), false);
+      }
+
+      @property Cursor sizeNESW() {
+         return new Cursor(LoadCursor(HINSTANCE.init, IDC_SIZENESW), false);
+      }
+
+      @property Cursor sizeNS() {
+         return new Cursor(LoadCursor(HINSTANCE.init, IDC_SIZENS), false);
+      }
+
+      @property Cursor sizeNWSE() {
+         return new Cursor(LoadCursor(HINSTANCE.init, IDC_SIZENWSE), false);
+      }
+
+      @property Cursor sizeWE() {
+         return new Cursor(LoadCursor(HINSTANCE.init, IDC_SIZEWE), false);
+      }
 
 
       /*
 
-   // Insertion point.
-   @property Cursor upArrow() {
-   }
+      // Insertion point.
+      @property Cursor upArrow() {
+      }
        */
 
-   @property Cursor waitCursor() {
-      return new Cursor(LoadCursorA(HINSTANCE.init, IDC_WAIT), false);
+      @property Cursor waitCursor() {
+         return new Cursor(LoadCursor(HINSTANCE.init, IDC_WAIT), false);
+      }
    }
 }
 
