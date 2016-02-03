@@ -11,7 +11,7 @@ import dfl.internal.winapi;
 import dfl.application;
 import dfl.event;
 import dfl.label;
-import dfl.internal.wincom;
+//import dfl.internal.wincom;
 import dfl.internal.utf;
 import dfl.collections;
 import dfl.internal.com;

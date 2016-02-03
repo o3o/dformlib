@@ -1,161 +1,137 @@
 // Written by Christopher E. Miller
 // See the included license.txt for copyright and license details.
 
-
-
 module dfl.base;
+import core.sys.windows.windows;
 
-private import dfl.internal.dlib, dfl.internal.clib;
+import dfl.internal.dlib;
+import dfl.internal.clib;
 
-private import dfl.internal.winapi, dfl.drawing, dfl.event;
-
+// FIX: import dfl.internal.winapi;
+import dfl.drawing;
+import dfl.event;
 
 alias HWND HWindow;
 
 
-
-interface IWindow { // docmain
-
-   @property HWindow handle(); // getter
+interface IWindow {
+   @property HWindow handle();
 }
 
 alias IWindow IWin32Window; // deprecated
 
 
-
-class DflException: Exception { // docmain
-
-   this(Dstring msg, string file = __FILE__, int line = __LINE__) {
-      super(msg, file, line);
-   }
-}
-
-
-
 alias DThrowable DflThrowable;
 
-
-
 class StringObject: DObject {
-
    Dstring value;
-
-
-
    this(Dstring str) pure nothrow {
       this.value = str;
    }
-
 
    override Dstring toString() {
       return value;
    }
 
-
    override Dequ opEquals(Object o) {
       return value == getObjectString(o); // ?
    }
-
 
    Dequ opEquals(StringObject s) {
       return value == s.value;
    }
 
-
    override int opCmp(Object o) {
       return stringICmp(value, getObjectString(o)); // ?
    }
-
 
    int opCmp(StringObject s) {
       return stringICmp(value, s.value);
    }
 }
 
-
-
-enum Keys: uint { // docmain
+enum Keys: uint {
    NONE =     0, /// No keys specified.
 
 
    SHIFT =    0x10000, /// Modifier keys.
-   CONTROL =  0x20000, /// ditto
-   ALT =      0x40000, /// ditto
-   WINDOWS =  0x80000, /// ditto
+   CONTROL =  0x20000,
+   ALT =      0x40000,
+   WINDOWS =  0x80000,
 
    A = 'A', /// Letters.
-   B = 'B', /// ditto
-   C = 'C', /// ditto
-   D = 'D', /// ditto
-   E = 'E', /// ditto
-   F = 'F', /// ditto
-   G = 'G', /// ditto
-   H = 'H', /// ditto
-   I = 'I', /// ditto
-   J = 'J', /// ditto
-   K = 'K', /// ditto
-   L = 'L', /// ditto
-   M = 'M', /// ditto
-   N = 'N', /// ditto
-   O = 'O', /// ditto
-   P = 'P', /// ditto
-   Q = 'Q', /// ditto
-   R = 'R', /// ditto
-   S = 'S', /// ditto
-   T = 'T', /// ditto
-   U = 'U', /// ditto
-   V = 'V', /// ditto
-   W = 'W', /// ditto
-   X = 'X', /// ditto
-   Y = 'Y', /// ditto
-   Z = 'Z', /// ditto
+   B = 'B',
+   C = 'C',
+   D = 'D',
+   E = 'E',
+   F = 'F',
+   G = 'G',
+   H = 'H',
+   I = 'I',
+   J = 'J',
+   K = 'K',
+   L = 'L',
+   M = 'M',
+   N = 'N',
+   O = 'O',
+   P = 'P',
+   Q = 'Q',
+   R = 'R',
+   S = 'S',
+   T = 'T',
+   U = 'U',
+   V = 'V',
+   W = 'W',
+   X = 'X',
+   Y = 'Y',
+   Z = 'Z',
 
    D0 = '0', /// Digits.
-   D1 = '1', /// ditto
-   D2 = '2', /// ditto
-   D3 = '3', /// ditto
-   D4 = '4', /// ditto
-   D5 = '5', /// ditto
-   D6 = '6', /// ditto
-   D7 = '7', /// ditto
-   D8 = '8', /// ditto
-   D9 = '9', /// ditto
+   D1 = '1',
+   D2 = '2',
+   D3 = '3',
+   D4 = '4',
+   D5 = '5',
+   D6 = '6',
+   D7 = '7',
+   D8 = '8',
+   D9 = '9',
 
    F1 = 112, /// F - function keys.
-   F2 = 113, /// ditto
-   F3 = 114, /// ditto
-   F4 = 115, /// ditto
-   F5 = 116, /// ditto
-   F6 = 117, /// ditto
-   F7 = 118, /// ditto
-   F8 = 119, /// ditto
-   F9 = 120, /// ditto
-   F10 = 121, /// ditto
-   F11 = 122, /// ditto
-   F12 = 123, /// ditto
-   F13 = 124, /// ditto
-   F14 = 125, /// ditto
-   F15 = 126, /// ditto
-   F16 = 127, /// ditto
-   F17 = 128, /// ditto
-   F18 = 129, /// ditto
-   F19 = 130, /// ditto
-   F20 = 131, /// ditto
-   F21 = 132, /// ditto
-   F22 = 133, /// ditto
-   F23 = 134, /// ditto
-   F24 = 135, /// ditto
+   F2 = 113,
+   F3 = 114,
+   F4 = 115,
+   F5 = 116,
+   F6 = 117,
+   F7 = 118,
+   F8 = 119,
+   F9 = 120,
+   F10 = 121,
+   F11 = 122,
+   F12 = 123,
+   F13 = 124,
+   F14 = 125,
+   F15 = 126,
+   F16 = 127,
+   F17 = 128,
+   F18 = 129,
+   F19 = 130,
+   F20 = 131,
+   F21 = 132,
+   F22 = 133,
+   F23 = 134,
+   F24 = 135,
 
    NUM_PAD0 = 96, /// Numbers on keypad.
-   NUM_PAD1 = 97, /// ditto
-   NUM_PAD2 = 98, /// ditto
-   NUM_PAD3 = 99, /// ditto
-   NUM_PAD4 = 100, /// ditto
-   NUM_PAD5 = 101, /// ditto
-   NUM_PAD6 = 102, /// ditto
-   NUM_PAD7 = 103, /// ditto
-   NUM_PAD8 = 104, /// ditto
-   NUM_PAD9 = 105, /// ditto
+   NUM_PAD1 = 97,
+   NUM_PAD2 = 98,
+   NUM_PAD3 = 99,
+   NUM_PAD4 = 100,
+   NUM_PAD5 = 101,
+   NUM_PAD6 = 102,
+   NUM_PAD7 = 103,
+   NUM_PAD8 = 104,
+   NUM_PAD9 = 105,
 
    ADD = 107, ///
    APPS = 93, /// Application.
@@ -163,7 +139,7 @@ enum Keys: uint { // docmain
    BACK = 8, /// Backspace.
    CANCEL = 3, ///
    CAPITAL = 20, ///
-   CAPS_LOCK = 20, /// ditto
+   CAPS_LOCK = 20,
    CLEAR = 12, ///
    CONTROL_KEY = 17, ///
    CRSEL = 247, ///
@@ -171,7 +147,7 @@ enum Keys: uint { // docmain
    DEL = 46, ///
    DELETE = DEL, ///
    PERIOD = 190, ///
-   DOT = PERIOD, /// ditto
+   DOT = PERIOD,
    DIVIDE = 111, ///
    DOWN = 40, /// Down arrow.
    END = 35, ///
@@ -182,7 +158,7 @@ enum Keys: uint { // docmain
    EXSEL = 248, ///
    FINAL_MODE = 4, /// IME final mode.
    HANGUL_MODE = 21, /// IME Hangul mode.
-   HANGUEL_MODE = 21, /// ditto
+   HANGUEL_MODE = 21,
    HANJA_MODE = 25, /// IME Hanja mode.
    HELP = 47, ///
    HOME = 36, ///
@@ -235,19 +211,19 @@ enum Keys: uint { // docmain
 
    // Windows 2000+
    BROWSER_BACK = 166, ///
-   BROWSER_FAVORITES = 171, /// ditto
-   BROWSER_FORWARD = 167, /// ditto
-   BROWSER_HOME = 172, /// ditto
-   BROWSER_REFRESH = 168, /// ditto
-   BROWSER_SEARCH = 170, /// ditto
-   BROWSER_STOP = 169, /// ditto
+   BROWSER_FAVORITES = 171,
+   BROWSER_FORWARD = 167,
+   BROWSER_HOME = 172,
+   BROWSER_REFRESH = 168,
+   BROWSER_SEARCH = 170,
+   BROWSER_STOP = 169,
    LAUNCH_APPLICATION1 = 182, ///
-   LAUNCH_APPLICATION2 = 183, /// ditto
-   LAUNCH_MAIL = 180, /// ditto
+   LAUNCH_APPLICATION2 = 183,
+   LAUNCH_MAIL = 180,
    MEDIA_NEXT_TRACK = 176, ///
-   MEDIA_PLAY_PAUSE = 179, /// ditto
-   MEDIA_PREVIOUS_TRACK = 177, /// ditto
-   MEDIA_STOP = 178, /// ditto
+   MEDIA_PLAY_PAUSE = 179,
+   MEDIA_PREVIOUS_TRACK = 177,
+   MEDIA_STOP = 178,
    OEM_BACKSLASH = 226, // OEM angle bracket or backslash.
    OEM_CLOSE_BRACKETS = 221,
    OEM_COMMA = 188,
@@ -262,8 +238,8 @@ enum Keys: uint { // docmain
    OEM_TILDE = 192,
    SELECT_MEDIA = 181, ///
    VOLUME_DOWN = 174, ///
-   VOLUME_MUTE = 173, /// ditto
-   VOLUME_UP = 175, /// ditto
+   VOLUME_MUTE = 173,
+   VOLUME_UP = 175,
 
    /// Bit mask to extract key code from key value.
    KEY_CODE = 0xFFFF,
@@ -274,13 +250,13 @@ enum Keys: uint { // docmain
 
 
 
-enum MouseButtons: uint { // docmain
+enum MouseButtons: uint {
    /// No mouse buttons specified.
    NONE =      0,
 
    LEFT =      0x100000, ///
-   RIGHT =     0x200000, /// ditto
-   MIDDLE =    0x400000, /// ditto
+   RIGHT =     0x200000,
+   MIDDLE =    0x400000,
 
    // Windows 2000+
    //XBUTTON1 =  0x800000,
@@ -291,19 +267,19 @@ enum MouseButtons: uint { // docmain
 
 enum CheckState: ubyte {
    UNCHECKED = BST_UNCHECKED, ///
-   CHECKED = BST_CHECKED, /// ditto
-   INDETERMINATE = BST_INDETERMINATE, /// ditto
+   CHECKED = BST_CHECKED,
+   INDETERMINATE = BST_INDETERMINATE,
 }
 
 
 
-struct Message { // docmain
+struct Message {
    union {
       struct {
          HWND hWnd; ///
-         UINT msg; /// ditto
-         WPARAM wParam; /// ditto
-         LPARAM lParam; /// ditto
+         UINT msg;
+         WPARAM wParam;
+         LPARAM lParam;
       }
 
       package MSG _winMsg; // .time and .pt are not always valid.
@@ -323,7 +299,7 @@ struct Message { // docmain
 
 
 
-interface IMessageFilter { // docmain
+interface IMessageFilter {
 
    // Return false to allow the message to be dispatched.
    // Filter functions cannot modify messages.
@@ -348,12 +324,12 @@ abstract class WaitHandle {
    }
 
 
-   @property HANDLE handle() nothrow { // getter
+   @property HANDLE handle() nothrow {
       return h;
    }
 
 
-   @property void handle(HANDLE h) { // setter
+   @property void handle(HANDLE h) {
       this.h = h;
    }
 
@@ -439,13 +415,13 @@ abstract class WaitHandle {
 
 
 interface IAsyncResult {
-   @property WaitHandle asyncWaitHandle(); // getter
+   @property WaitHandle asyncWaitHandle();
 
    // Usually just returns false.
-   @property bool completedSynchronously(); // getter
+   @property bool completedSynchronously();
 
    // When true, it is safe to release its resources.
-   @property bool isCompleted(); // getter
+   @property bool isCompleted();
 }
 
 
@@ -456,11 +432,11 @@ class AsyncResult: IAsyncResult {
 
 
 
-interface IButtonControl { // docmain
+interface IButtonControl {
 
-   @property DialogResult dialogResult(); // getter
-   /// ditto
-   @property void dialogResult(DialogResult); // setter
+   @property DialogResult dialogResult();
+
+   @property void dialogResult(DialogResult);
 
 
    void notifyDefault(bool); // True if default button.
@@ -471,7 +447,7 @@ interface IButtonControl { // docmain
 
 
 
-enum DialogResult: ubyte { // docmain
+enum DialogResult: ubyte {
    NONE, ///
 
    ABORT = IDABORT, ///
@@ -490,9 +466,9 @@ enum DialogResult: ubyte { // docmain
 
 interface IDialogResult {
    // ///
-   @property DialogResult dialogResult(); // getter
-   // /// ditto
-   @property void dialogResult(DialogResult); // setter
+   @property DialogResult dialogResult();
+   //
+   @property void dialogResult(DialogResult);
 }
 
 
@@ -501,7 +477,7 @@ enum SortOrder: ubyte {
    NONE, ///
 
    ASCENDING, ///
-   DESCENDING, /// ditto
+   DESCENDING,
 }
 
 
@@ -544,16 +520,16 @@ enum BorderStyle: ubyte {
    NONE, ///
 
    FIXED_3D, ///
-   FIXED_SINGLE, /// ditto
+   FIXED_SINGLE,
 }
 
 
 
 enum FlatStyle: ubyte {
    STANDARD, ///
-   FLAT, /// ditto
-   POPUP, /// ditto
-   SYSTEM, /// ditto
+   FLAT,
+   POPUP,
+   SYSTEM,
 }
 
 
@@ -592,16 +568,16 @@ enum ScrollBars: ubyte {
    NONE, ///
 
    HORIZONTAL, ///
-   VERTICAL, /// ditto
-   BOTH, /// ditto
+   VERTICAL,
+   BOTH,
 }
 
 
 
 enum HorizontalAlignment: ubyte {
    LEFT, ///
-   RIGHT, /// ditto
-   CENTER, /// ditto
+   RIGHT,
+   CENTER,
 }
 
 
@@ -609,41 +585,41 @@ enum HorizontalAlignment: ubyte {
 enum DrawMode: ubyte {
    NORMAL, ///
    OWNER_DRAW_FIXED, ///
-   OWNER_DRAW_VARIABLE, /// ditto
+   OWNER_DRAW_VARIABLE,
 }
 
 
 
 enum DrawItemState: uint {
    NONE = 0, ///
-   SELECTED = 1, /// ditto
-   DISABLED = 2, /// ditto
-   CHECKED = 8, /// ditto
-   FOCUS = 0x10, /// ditto
-   DEFAULT = 0x20, /// ditto
-   HOT_LIGHT = 0x40, /// ditto
-   NO_ACCELERATOR = 0x80, /// ditto
-   INACTIVE = 0x100, /// ditto
-   NO_FOCUS_RECT = 0x200, /// ditto
-   COMBO_BOX_EDIT = 0x1000, /// ditto
+   SELECTED = 1,
+   DISABLED = 2,
+   CHECKED = 8,
+   FOCUS = 0x10,
+   DEFAULT = 0x20,
+   HOT_LIGHT = 0x40,
+   NO_ACCELERATOR = 0x80,
+   INACTIVE = 0x100,
+   NO_FOCUS_RECT = 0x200,
+   COMBO_BOX_EDIT = 0x1000,
 }
 
 
 
 enum RightToLeft: ubyte {
    INHERIT = 2, ///
-   YES = 1, /// ditto
-   NO = 0, /// ditto
+   YES = 1,
+   NO = 0,
 }
 
 
 
 enum ColorDepth: ubyte {
    DEPTH_4BIT = 0x04, ///
-   DEPTH_8BIT = 0x08, /// ditto
-   DEPTH_16BIT = 0x10, /// ditto
-   DEPTH_24BIT = 0x18, /// ditto
-   DEPTH_32BIT = 0x20, /// ditto
+   DEPTH_8BIT = 0x08,
+   DEPTH_16BIT = 0x10,
+   DEPTH_24BIT = 0x18,
+   DEPTH_32BIT = 0x20,
 }
 
 
@@ -657,13 +633,13 @@ class PaintEventArgs: EventArgs {
 
 
 
-   final @property Graphics graphics() pure nothrow { // getter
+   final @property Graphics graphics() pure nothrow {
       return g;
    }
 
 
 
-   final @property Rect clipRectangle() pure nothrow { // getter
+   final @property Rect clipRectangle() pure nothrow {
       return cr;
    }
 
@@ -682,19 +658,19 @@ class CancelEventArgs: EventArgs {
       cncl = false;
    }
 
-   /// ditto
+
    this(bool cancel) pure nothrow {
       cncl = cancel;
    }
 
 
 
-   final @property void cancel(bool byes) pure nothrow { // setter
+   final @property void cancel(bool byes) pure nothrow {
       cncl = byes;
    }
 
-   /// ditto
-   final @property bool cancel() pure nothrow { // getter
+
+   final @property bool cancel() pure nothrow {
       return cncl;
    }
 
@@ -716,7 +692,7 @@ class SizingEventArgs: EventArgs {
       return _sz;
    }
 
-   /// ditto
+
    @property void size(Size sz) pure nothrow {
       _sz = sz;
    }
@@ -726,7 +702,7 @@ class SizingEventArgs: EventArgs {
       _sz.width = w;
    }
 
-   /// ditto
+
    @property int width() pure nothrow {
       return _sz.width;
    }
@@ -736,7 +712,7 @@ class SizingEventArgs: EventArgs {
       _sz.height = h;
    }
 
-   /// ditto
+
    @property int height() pure nothrow {
       return _sz.height;
    }
@@ -759,7 +735,7 @@ class MovingEventArgs: EventArgs {
       return _loc;
    }
 
-   /// ditto
+
    @property void location(Point loc) pure nothrow {
       _loc = loc;
    }
@@ -769,7 +745,7 @@ class MovingEventArgs: EventArgs {
       _loc.x = posX;
    }
 
-   /// ditto
+
    @property int x() pure nothrow {
       return _loc.x;
    }
@@ -779,7 +755,7 @@ class MovingEventArgs: EventArgs {
       _loc.y = posY;
    }
 
-   /// ditto
+
    @property int y() pure nothrow {
       return _loc.y;
    }
@@ -798,61 +774,61 @@ class KeyEventArgs: EventArgs {
 
 
 
-   final @property bool alt() pure nothrow { // getter
+   final @property bool alt() pure nothrow {
       return (ks & Keys.ALT) != 0;
    }
 
 
 
-   final @property bool control() pure nothrow { // getter
+   final @property bool control() pure nothrow {
       return (ks & Keys.CONTROL) != 0;
    }
 
 
 
-   final @property void handled(bool byes) pure nothrow { // setter
+   final @property void handled(bool byes) pure nothrow {
       hand = byes;
    }
 
 
-   final @property bool handled() pure nothrow { // getter
+   final @property bool handled() pure nothrow {
       return hand;
    }
 
 
 
-   final @property Keys keyCode() pure nothrow { // getter
+   final @property Keys keyCode() pure nothrow {
       return ks & Keys.KEY_CODE;
    }
 
 
 
-   final @property Keys keyData() pure nothrow { // getter
+   final @property Keys keyData() pure nothrow {
       return ks;
    }
 
 
 
    // -keyData- as an int.
-   final @property int keyValue() pure nothrow { // getter
+   final @property int keyValue() pure nothrow {
       return cast(int)ks;
    }
 
 
 
-   final @property Keys modifiers() pure nothrow { // getter
+   final @property Keys modifiers() pure nothrow {
       return ks & Keys.MODIFIERS;
    }
 
 
 
-   final @property bool shift() pure nothrow { // getter
+   final @property bool shift() pure nothrow {
       return (ks & Keys.SHIFT) != 0;
    }
 
 
 
-   final @property bool windows() pure nothrow { // getter
+   final @property bool windows() pure nothrow {
       return (ks & Keys.WINDOWS) != 0;
    }
 
@@ -870,12 +846,11 @@ class KeyPressEventArgs: KeyEventArgs {
       this(ch, (ch >= 'A' && ch <= 'Z') ? Keys.SHIFT : Keys.NONE);
    }
 
-   /// ditto
+
    this(dchar ch, Keys modifiers)
    in {
       assert((modifiers & Keys.MODIFIERS) == modifiers, "modifiers parameter can only contain modifiers");
-   }
-   body {
+      } body {
       _keych = ch;
 
       int vk;
@@ -889,7 +864,7 @@ class KeyPressEventArgs: KeyEventArgs {
 
 
 
-   final @property dchar keyChar() { // getter
+   final @property dchar keyChar() {
       return _keych;
    }
 
@@ -913,31 +888,31 @@ class MouseEventArgs: EventArgs {
 
 
 
-   final @property MouseButtons button() pure nothrow { // getter
+   final @property MouseButtons button() pure nothrow {
       return btn;
    }
 
 
 
-   final @property int clicks() pure nothrow { // getter
+   final @property int clicks() pure nothrow {
       return clks;
    }
 
 
 
-   final @property int delta() pure nothrow { // getter
+   final @property int delta() pure nothrow {
       return dlt;
    }
 
 
 
-   final @property int x() pure nothrow { // getter
+   final @property int x() pure nothrow {
       return _x;
    }
 
 
 
-   final @property int y() pure nothrow { // getter
+   final @property int y() pure nothrow {
       return _y;
    }
 
@@ -958,7 +933,7 @@ class LabelEditEventArgs: EventArgs {
 
    }
 
-   /// ditto
+
    this(int index, Dstring labelText) {
       this.idx = index;
       this.ltxt = labelText;
@@ -966,26 +941,26 @@ class LabelEditEventArgs: EventArgs {
 
 
 
-   final @property void cancelEdit(bool byes) { // setter
+   final @property void cancelEdit(bool byes) {
       cancl = byes;
    }
 
-   /// ditto
-   final @property bool cancelEdit() { // getter
+
+   final @property bool cancelEdit() {
       return cancl;
    }
 
 
 
    // The text of the label's edit.
-   final @property Dstring label() { // getter
+   final @property Dstring label() {
       return ltxt;
    }
 
 
 
    // Gets the item's index.
-   final @property int item() { // getter
+   final @property int item() {
       return idx;
    }
 
@@ -1007,7 +982,7 @@ class ColumnClickEventArgs: EventArgs {
 
 
 
-   final @property int column() pure nothrow { // getter
+   final @property int column() pure nothrow {
       return col;
    }
 
@@ -1017,14 +992,18 @@ class ColumnClickEventArgs: EventArgs {
 }
 
 
-
 class DrawItemEventArgs: EventArgs {
-
+   private Graphics gpx;
+   private Font fnt; // Suggestion; the parent's font.
+   private Rect rect;
+   private int idx;
+   private DrawItemState distate;
+   private Color fcolor, bcolor; // Suggestion; depends on item state.
    this(Graphics g, Font f, Rect r, int i, DrawItemState dis) pure nothrow {
       this(g, f, r, i , dis, Color.empty, Color.empty);
    }
 
-   /// ditto
+
    this(Graphics g, Font f, Rect r, int i, DrawItemState dis, Color fc, Color bc) pure nothrow {
       gpx = g;
       fnt = f;
@@ -1035,49 +1014,33 @@ class DrawItemEventArgs: EventArgs {
       bcolor = bc;
    }
 
-
-
-   final @property Color backColor() pure nothrow { // getter
+   final @property Color backColor() pure nothrow {
       return bcolor;
    }
 
-
-
-   final @property Rect bounds() pure nothrow { // getter
+   final @property Rect bounds() pure nothrow {
       return rect;
    }
 
-
-
-   final @property Font font() pure nothrow { // getter
+   final @property Font font() pure nothrow {
       return fnt;
    }
 
-
-
-   final @property Color foreColor() pure nothrow { // getter
+   final @property Color foreColor() pure nothrow {
       return fcolor;
    }
 
-
-
-   final @property Graphics graphics() pure nothrow { // getter
+   final @property Graphics graphics() pure nothrow {
       return gpx;
    }
 
-
-
-   final @property int index() pure nothrow { // getter
+   final @property int index() pure nothrow {
       return idx;
    }
 
-
-
-   final @property DrawItemState state() pure nothrow { // getter
+   final @property DrawItemState state() pure nothrow {
       return distate;
    }
-
-
 
    void drawBackground() {
       /+
@@ -1097,8 +1060,6 @@ class DrawItemEventArgs: EventArgs {
       gpx.fillRectangle(bcolor, rect);
    }
 
-
-
    void drawFocusRectangle() {
       if(distate & DrawItemState.FOCUS) {
          RECT _rect;
@@ -1106,17 +1067,7 @@ class DrawItemEventArgs: EventArgs {
          DrawFocusRect(gpx.handle, &_rect);
       }
    }
-
-
- private:
-   Graphics gpx;
-   Font fnt; // Suggestion; the parent's font.
-   Rect rect;
-   int idx;
-   DrawItemState distate;
-   Color fcolor, bcolor; // Suggestion; depends on item state.
 }
-
 
 
 class MeasureItemEventArgs: EventArgs {
@@ -1127,42 +1078,42 @@ class MeasureItemEventArgs: EventArgs {
       iheight = itemHeight;
    }
 
-   /// ditto
+
    this(Graphics g, int index) {
       this(g, index, 0);
    }
 
 
 
-   final @property Graphics graphics() { // getter
+   final @property Graphics graphics() {
       return gpx;
    }
 
 
 
-   final @property int index() { // getter
+   final @property int index() {
       return idx;
    }
 
 
 
-   final @property void itemHeight(int height) { // setter
+   final @property void itemHeight(int height) {
       iheight = height;
    }
 
-   /// ditto
-   final @property int itemHeight() { // getter
+
+   final @property int itemHeight() {
       return iheight;
    }
 
 
 
-   final @property void itemWidth(int width) { // setter
+   final @property void itemWidth(int width) {
       iwidth = width;
    }
 
-   /// ditto
-   final @property int itemWidth() { // getter
+
+   final @property int itemWidth() {
       return iwidth;
    }
 
@@ -1174,7 +1125,7 @@ class MeasureItemEventArgs: EventArgs {
 
 
 
-class Cursor { // docmain
+class Cursor {
    private static Cursor _cur;
 
 
@@ -1201,29 +1152,29 @@ class Cursor { // docmain
 
 
 
-   static @property void current(Cursor cur) { // setter
+   static @property void current(Cursor cur) {
       // Keep a reference so that it doesn't get garbage collected until set again.
       _cur = cur;
 
       SetCursor(cur ? cur.hcur : HCURSOR.init);
    }
 
-   /// ditto
-   static @property Cursor current() { // getter
+
+   static @property Cursor current() {
       HCURSOR hcur = GetCursor();
       return hcur ? new Cursor(hcur, false) : null;
    }
 
 
 
-   static @property void clip(Rect r) { // setter
+   static @property void clip(Rect r) {
       RECT rect;
       r.getRect(&rect);
       ClipCursor(&rect);
    }
 
-   /// ditto
-   static @property Rect clip() { // getter
+
+   static @property Rect clip() {
       RECT rect;
       GetClipCursor(&rect);
       return Rect(&rect);
@@ -1231,14 +1182,14 @@ class Cursor { // docmain
 
 
 
-   final @property HCURSOR handle() { // getter
+   final @property HCURSOR handle() {
       return hcur;
    }
 
 
    /+
    // TODO:
-   final @property Size size() { // getter
+   final @property Size size() {
       Size result;
       ICONINFO iinfo;
 
@@ -1258,7 +1209,7 @@ class Cursor { // docmain
    }
 
    /+
-   /// ditto
+
    // Should not stretch if bigger, but should crop if smaller.
    final void draw(Graphics g, Rect r) {
    }
@@ -1302,7 +1253,7 @@ class Cursor { // docmain
       ShowCursor(false);
    }
 
-   /// ditto
+
    // show/hide are ref counted.
    static void show() {
       ShowCursor(true);
@@ -1310,12 +1261,12 @@ class Cursor { // docmain
 
 
    /// The position of the current mouse cursor.
-   static @property void position(Point pt) { // setter
+   static @property void position(Point pt) {
       SetCursorPos(pt.x, pt.y);
    }
 
-   /// ditto
-   static @property Point position() { // getter
+
+   static @property Point position() {
       Point pt;
       GetCursorPos(&pt.point);
       return pt;
@@ -1328,36 +1279,35 @@ class Cursor { // docmain
 }
 
 
-
-class Cursors { // docmain
+class Cursors {
    private this() {}
 
 
  static:
 
 
-   @property Cursor appStarting() { // getter
+   @property Cursor appStarting() {
       return new Cursor(LoadCursorA(HINSTANCE.init, IDC_APPSTARTING), false);
    }
 
 
-   @property Cursor arrow() { // getter
+   @property Cursor arrow() {
       return new Cursor(LoadCursorA(HINSTANCE.init, IDC_ARROW), false);
    }
 
 
-   @property Cursor cross() { // getter
+   @property Cursor cross() {
       return new Cursor(LoadCursorA(HINSTANCE.init, IDC_CROSS), false);
    }
 
 
-   //@property Cursor default() // getter
-   @property Cursor defaultCursor() { // getter
+   //@property Cursor default()
+   @property Cursor defaultCursor() {
       return arrow;
    }
 
 
-   @property Cursor hand() { // getter
+   @property Cursor hand() {
       version(SUPPORTS_HAND_CURSOR) { // Windows 98+
          return new Cursor(LoadCursorA(HINSTANCE.init, IDC_HAND), false);
       }
@@ -1407,7 +1357,7 @@ class Cursors { // docmain
    }
 
 
-   @property Cursor help() { // getter
+   @property Cursor help() {
       HCURSOR hcur;
       hcur = LoadCursorA(HINSTANCE.init, IDC_HELP);
       if(!hcur) { // IDC_HELP might not be supported on Windows 95, so fall back to a normal arrow.
@@ -1417,65 +1367,60 @@ class Cursors { // docmain
    }
 
 
-   @property Cursor hSplit() { // getter
+   @property Cursor hSplit() {
       // ...
       return sizeNS;
    }
 
-   /// ditto
-   @property Cursor vSplit() { // getter
+   @property Cursor vSplit() {
       // ...
       return sizeWE;
    }
 
-
-
-   @property Cursor iBeam() { // getter
+   @property Cursor iBeam() {
       return new Cursor(LoadCursorA(HINSTANCE.init, IDC_IBEAM), false);
    }
 
 
-   @property Cursor no() { // getter
+   @property Cursor no() {
       return new Cursor(LoadCursorA(HINSTANCE.init, IDC_NO), false);
    }
 
 
 
-   @property Cursor sizeAll() { // getter
+   @property Cursor sizeAll() {
       return new Cursor(LoadCursorA(HINSTANCE.init, IDC_SIZEALL), false);
    }
 
-   /// ditto
-   @property Cursor sizeNESW() { // getter
+
+   @property Cursor sizeNESW() {
       return new Cursor(LoadCursorA(HINSTANCE.init, IDC_SIZENESW), false);
    }
 
-   /// ditto
-   @property Cursor sizeNS() { // getter
+
+   @property Cursor sizeNS() {
       return new Cursor(LoadCursorA(HINSTANCE.init, IDC_SIZENS), false);
    }
 
-   /// ditto
-   @property Cursor sizeNWSE() { // getter
+
+   @property Cursor sizeNWSE() {
       return new Cursor(LoadCursorA(HINSTANCE.init, IDC_SIZENWSE), false);
    }
 
-   /// ditto
-   @property Cursor sizeWE() { // getter
+
+   @property Cursor sizeWE() {
       return new Cursor(LoadCursorA(HINSTANCE.init, IDC_SIZEWE), false);
    }
 
 
-   /+
+      /*
 
    // Insertion point.
-   @property Cursor upArrow() { // getter
-      // ...
+   @property Cursor upArrow() {
    }
-   +/
+       */
 
-
-   @property Cursor waitCursor() { // getter
+   @property Cursor waitCursor() {
       return new Cursor(LoadCursorA(HINSTANCE.init, IDC_WAIT), false);
    }
 }

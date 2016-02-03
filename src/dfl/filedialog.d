@@ -1,16 +1,18 @@
 // Written by Christopher E. Miller
 // See the included license.txt for copyright and license details.
 
-
-
 module dfl.filedialog;
 
-private import dfl.internal.dlib;
-
-private import dfl.control, dfl.internal.winapi, dfl.base, dfl.drawing;
-private import dfl.application, dfl.commondialog, dfl.event, dfl.internal.utf;
-
-
+import dfl.internal.dlib;
+import dfl.control;
+// FIX: import dfl.internal.winapi;
+import core.sys.windows.windows;
+import dfl.base;
+import dfl.drawing;
+import dfl.application;
+import dfl.commondialog;
+import dfl.event;
+import dfl.internal.utf;
 
 abstract class FileDialog: CommonDialog { // docmain
    private this() {
@@ -59,19 +61,19 @@ abstract class FileDialog: CommonDialog { // docmain
 
 
    /+
-   final @property void addExtension(bool byes) { // setter
+   final @property void addExtension(bool byes) {
       addext = byes;
    }
 
 
-   final @property bool addExtension() { // getter
+   final @property bool addExtension() {
       return addext;
    }
    +/
 
 
 
-   @property void checkFileExists(bool byes) { // setter
+   @property void checkFileExists(bool byes) {
       if(byes) {
          ofn.Flags |= OFN_FILEMUSTEXIST;
       } else {
@@ -79,14 +81,14 @@ abstract class FileDialog: CommonDialog { // docmain
       }
    }
 
-   /// ditto
-   @property bool checkFileExists() { // getter
+
+   @property bool checkFileExists() {
       return (ofn.Flags & OFN_FILEMUSTEXIST) != 0;
    }
 
 
 
-   final @property void checkPathExists(bool byes) { // setter
+   final @property void checkPathExists(bool byes) {
       if(byes) {
          ofn.Flags |= OFN_PATHMUSTEXIST;
       } else {
@@ -94,14 +96,14 @@ abstract class FileDialog: CommonDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property bool checkPathExists() { // getter
+
+   final @property bool checkPathExists() {
       return (ofn.Flags & OFN_PATHMUSTEXIST) != 0;
    }
 
 
 
-   final @property void defaultExt(Dstring ext) { // setter
+   final @property void defaultExt(Dstring ext) {
       if(!ext.length) {
          ofn.lpstrDefExt = null;
          _defext = null;
@@ -119,12 +121,12 @@ abstract class FileDialog: CommonDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property Dstring defaultExt() { // getter
+
+   final @property Dstring defaultExt() {
       return _defext;
    }
 
-   final @property void dereferenceLinks(bool byes) { // setter
+   final @property void dereferenceLinks(bool byes) {
       if(byes) {
          ofn.Flags &= ~OFN_NODEREFERENCELINKS;
       } else {
@@ -132,12 +134,12 @@ abstract class FileDialog: CommonDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property bool dereferenceLinks() { // getter
+
+   final @property bool dereferenceLinks() {
       return (ofn.Flags & OFN_NODEREFERENCELINKS) == 0;
    }
 
-   final @property void fileName(Dstring fn) { // setter
+   final @property void fileName(Dstring fn) {
       // TODO: check if correct implementation.
 
       if(fn.length > MAX_PATH) {
@@ -152,8 +154,8 @@ abstract class FileDialog: CommonDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property Dstring fileName() { // getter
+
+   final @property Dstring fileName() {
       if(fileNames.length) {
          return fileNames[0];
       }
@@ -162,7 +164,7 @@ abstract class FileDialog: CommonDialog { // docmain
 
 
 
-   final @property Dstring[] fileNames() { // getter
+   final @property Dstring[] fileNames() {
       if(needRebuildFiles) {
          populateFiles();
       }
@@ -173,7 +175,7 @@ abstract class FileDialog: CommonDialog { // docmain
 
 
    // The format string is like "Text files (*.txt)|*.txt|All files (*.*)|*.*".
-   final @property void filter(Dstring filterString) { // setter
+   final @property void filter(Dstring filterString) {
       if(!filterString.length) {
          ofn.lpstrFilter = null;
          _filter = null;
@@ -247,24 +249,24 @@ abstract class FileDialog: CommonDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property Dstring filter() { // getter
+
+   final @property Dstring filter() {
       return _filter;
    }
 
 
 
    // Note: index is 1-based.
-   final @property void filterIndex(int index) { // setter
+   final @property void filterIndex(int index) {
       ofn.nFilterIndex = (index > 0) ? index : 1;
    }
 
-   /// ditto
-   final @property int filterIndex() { // getter
+
+   final @property int filterIndex() {
       return ofn.nFilterIndex;
    }
 
-   final @property void initialDirectory(Dstring dir) { // setter
+   final @property void initialDirectory(Dstring dir) {
       if(!dir.length) {
          ofn.lpstrInitialDir = null;
          _initDir = null;
@@ -278,26 +280,26 @@ abstract class FileDialog: CommonDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property Dstring initialDirectory() { // getter
+
+   final @property Dstring initialDirectory() {
       return _initDir;
    }
 
    // Should be instance(), but conflicts with D's old keyword.
-   protected @property void inst(HINSTANCE hinst) { // setter
+   protected @property void inst(HINSTANCE hinst) {
       ofn.hInstance = hinst;
    }
 
-   /// ditto
-   protected @property HINSTANCE inst() { // getter
+
+   protected @property HINSTANCE inst() {
       return ofn.hInstance;
    }
 
-   protected @property DWORD options() { // getter
+   protected @property DWORD options() {
       return ofn.Flags;
    }
 
-   final @property void restoreDirectory(bool byes) { // setter
+   final @property void restoreDirectory(bool byes) {
       if(byes) {
          ofn.Flags |= OFN_NOCHANGEDIR;
       } else {
@@ -305,12 +307,12 @@ abstract class FileDialog: CommonDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property bool restoreDirectory() { // getter
+
+   final @property bool restoreDirectory() {
       return (ofn.Flags & OFN_NOCHANGEDIR) != 0;
    }
 
-   final @property void showHelp(bool byes) { // setter
+   final @property void showHelp(bool byes) {
       if(byes) {
          ofn.Flags |= OFN_SHOWHELP;
       } else {
@@ -318,12 +320,12 @@ abstract class FileDialog: CommonDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property bool showHelp() { // getter
+
+   final @property bool showHelp() {
       return (ofn.Flags & OFN_SHOWHELP) != 0;
    }
 
-   final @property void title(Dstring newTitle) { // setter
+   final @property void title(Dstring newTitle) {
       if(!newTitle.length) {
          ofn.lpstrTitle = null;
          _title = null;
@@ -337,12 +339,12 @@ abstract class FileDialog: CommonDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property Dstring title() { // getter
+
+   final @property Dstring title() {
       return _title;
    }
 
-   final @property void validateNames(bool byes) { // setter
+   final @property void validateNames(bool byes) {
       if(byes) {
          ofn.Flags &= ~OFN_NOVALIDATE;
       } else {
@@ -350,8 +352,8 @@ abstract class FileDialog: CommonDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property bool validateNames() { // getter
+
+   final @property bool validateNames() {
       return(ofn.Flags & OFN_NOVALIDATE) == 0;
    }
 
@@ -617,7 +619,7 @@ class OpenFileDialog: FileDialog { // docmain
 
 
 
-   final @property void multiselect(bool byes) { // setter
+   final @property void multiselect(bool byes) {
       if(byes) {
          ofn.Flags |= OFN_ALLOWMULTISELECT;
       } else {
@@ -625,14 +627,14 @@ class OpenFileDialog: FileDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property bool multiselect() { // getter
+
+   final @property bool multiselect() {
       return (ofn.Flags & OFN_ALLOWMULTISELECT) != 0;
    }
 
 
 
-   final @property void readOnlyChecked(bool byes) { // setter
+   final @property void readOnlyChecked(bool byes) {
       if(byes) {
          ofn.Flags |= OFN_READONLY;
       } else {
@@ -640,14 +642,14 @@ class OpenFileDialog: FileDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property bool readOnlyChecked() { // getter
+
+   final @property bool readOnlyChecked() {
       return (ofn.Flags & OFN_READONLY) != 0;
    }
 
 
 
-   final @property void showReadOnly(bool byes) { // setter
+   final @property void showReadOnly(bool byes) {
       if(byes) {
          ofn.Flags &= ~OFN_HIDEREADONLY;
       } else {
@@ -655,8 +657,8 @@ class OpenFileDialog: FileDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property bool showReadOnly() { // getter
+
+   final @property bool showReadOnly() {
       return (ofn.Flags & OFN_HIDEREADONLY) == 0;
    }
 
@@ -732,7 +734,7 @@ class SaveFileDialog: FileDialog { // docmain
 
 
 
-   final @property void createPrompt(bool byes) { // setter
+   final @property void createPrompt(bool byes) {
       if(byes) {
          ofn.Flags |= OFN_CREATEPROMPT;
       } else {
@@ -740,14 +742,12 @@ class SaveFileDialog: FileDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property bool createPrompt() { // getter
+
+   final @property bool createPrompt() {
       return (ofn.Flags & OFN_CREATEPROMPT) != 0;
    }
 
-
-
-   final @property void overwritePrompt(bool byes) { // setter
+   final @property void overwritePrompt(bool byes) {
       if(byes) {
          ofn.Flags |= OFN_OVERWRITEPROMPT;
       } else {
@@ -755,8 +755,8 @@ class SaveFileDialog: FileDialog { // docmain
       }
    }
 
-   /// ditto
-   final @property bool overwritePrompt() { // getter
+
+   final @property bool overwritePrompt() {
       return (ofn.Flags & OFN_OVERWRITEPROMPT) != 0;
    }
 
@@ -814,15 +814,13 @@ private extern(Windows) LRESULT ofnHookProc(HWND hwnd, UINT msg, WPARAM wparam, 
    FileDialog fd;
    LRESULT result = 0;
 
-   try
-   {
+   try {
       if(msg == WM_INITDIALOG) {
          OPENFILENAMEA* ofn;
          ofn = cast(OPENFILENAMEA*)lparam;
          SetPropA(hwnd, PROP_STR.ptr, cast(HANDLE)ofn.lCustData);
          fd = cast(FileDialog)cast(void*)ofn.lCustData;
-      } else
-      {
+      } else {
          fd = cast(FileDialog)cast(void*)GetPropA(hwnd, PROP_STR.ptr);
       }
 
@@ -834,7 +832,5 @@ private extern(Windows) LRESULT ofnHookProc(HWND hwnd, UINT msg, WPARAM wparam, 
    } catch(DThrowable e) {
       Application.onThreadException(e);
    }
-
    return result;
 }
-

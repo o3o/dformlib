@@ -1,18 +1,15 @@
 // Written by Christopher E. Miller
 // See the included license.txt for copyright and license details.
 
-
 module dfl.internal.com;
 
-private import dfl.internal.winapi, dfl.internal.wincom, dfl.internal.dlib;
+import core.sys.windows.windows;
+import core.sys.windows.com;
+import core.sys.windows.objidl; // IStream
 
-
-version(DFL_TANGO_SEEK_COMPAT) {
-}
-else {
-   version = DFL_TANGO_NO_SEEK_COMPAT;
-}
-
+// FIX: import dfl.internal.winapi;
+// FIX: import dfl.internal.wincom;
+import dfl.internal.dlib;
 
 // Importing dfl.application here causes the compiler to crash.
 //import dfl.application;
@@ -38,32 +35,31 @@ class DflComObject: ComObject { // package
 }
 
 
-class DStreamToIStream: DflComObject, dfl.internal.wincom.IStream {
+class DStreamToIStream: DflComObject, IStream {
    this(DStream sourceDStream) {
       this.stm = sourceDStream;
    }
 
 
    extern(Windows):
-
       override HRESULT QueryInterface(IID* riid, void** ppv) {
-      if(*riid == _IID_IStream) {
-         *ppv = cast(void*)cast(dfl.internal.wincom.IStream)this;
-         AddRef();
-         return S_OK;
-      } else if(*riid == _IID_ISequentialStream) {
-         *ppv = cast(void*)cast(dfl.internal.wincom.ISequentialStream)this;
-         AddRef();
-         return S_OK;
-      } else if(*riid == _IID_IUnknown) {
-         *ppv = cast(void*)cast(IUnknown)this;
-         AddRef();
-         return S_OK;
-      } else {
-         *ppv = null;
-         return E_NOINTERFACE;
+         if(*riid == IID_IStream) {
+            *ppv = cast(void*)cast(IStream)this;
+            AddRef();
+            return S_OK;
+         } else if(*riid == IID_ISequentialStream) {
+            *ppv = cast(void*)cast(ISequentialStream)this;
+            AddRef();
+            return S_OK;
+         } else if(*riid == IID_IUnknown) {
+            *ppv = cast(void*)cast(IUnknown)this;
+            AddRef();
+            return S_OK;
+         } else {
+            *ppv = null;
+            return E_NOINTERFACE;
+         }
       }
-   }
 
 
    HRESULT Read(void* pv, ULONG cb, ULONG* pcbRead) {
@@ -108,8 +104,7 @@ class DStreamToIStream: DflComObject, dfl.internal.wincom.IStream {
 
 
    version(DFL_TANGO_NO_SEEK_COMPAT) {
-   }
-   else {
+   } else {
       long _fakepos = 0;
    }
 
@@ -120,14 +115,13 @@ class DStreamToIStream: DflComObject, dfl.internal.wincom.IStream {
       //cprintf("seek move=%u, origin=0x%x\n", cast(uint)dlibMove.QuadPart, dwOrigin);
 
       try {
-         if(!stm.seekable)
+         if(!stm.seekable) {
             //return S_FALSE; // ?
-         {
             return E_NOTIMPL;   // ?
          }
 
          ulong pos;
-         switch(dwOrigin) {
+         switch (dwOrigin) with (STREAM_SEEK) {
             case STREAM_SEEK_SET:
                pos = stm.seekSet(dlibMove.QuadPart);
                if(plibNewPosition) {
@@ -206,12 +200,10 @@ class DStreamToIStream: DflComObject, dfl.internal.wincom.IStream {
 
 
    extern(D):
+      private DStream stm;
+}
 
-    private:
-      DStream stm;
-   }
-
-   class MemoryIStream: DflComObject, dfl.internal.wincom.IStream {
+class MemoryIStream: DflComObject, IStream {
    this(void[] memory) {
       this.mem = memory;
    }
@@ -220,23 +212,23 @@ class DStreamToIStream: DflComObject, dfl.internal.wincom.IStream {
    extern(Windows):
 
       override HRESULT QueryInterface(IID* riid, void** ppv) {
-      if(*riid == _IID_IStream) {
-         *ppv = cast(void*)cast(dfl.internal.wincom.IStream)this;
-         AddRef();
-         return S_OK;
-      } else if(*riid == _IID_ISequentialStream) {
-         *ppv = cast(void*)cast(dfl.internal.wincom.ISequentialStream)this;
-         AddRef();
-         return S_OK;
-      } else if(*riid == _IID_IUnknown) {
-         *ppv = cast(void*)cast(IUnknown)this;
-         AddRef();
-         return S_OK;
-      } else {
-         *ppv = null;
-         return E_NOINTERFACE;
+         if(*riid == IID_IStream) {
+            *ppv = cast(void*)cast(IStream)this;
+            AddRef();
+            return S_OK;
+         } else if(*riid == IID_ISequentialStream) {
+            *ppv = cast(void*)cast(ISequentialStream)this;
+            AddRef();
+            return S_OK;
+         } else if(*riid == IID_IUnknown) {
+            *ppv = cast(void*)cast(IUnknown)this;
+            AddRef();
+            return S_OK;
+         } else {
+            *ppv = null;
+            return E_NOINTERFACE;
+         }
       }
-   }
 
 
    HRESULT Read(void* pv, ULONG cb, ULONG* pcbRead) {
@@ -270,7 +262,7 @@ class DStreamToIStream: DflComObject, dfl.internal.wincom.IStream {
       //cprintf("seek move=%u, origin=0x%x\n", cast(uint)dlibMove.QuadPart, dwOrigin);
 
       auto toPos = cast(long)dlibMove.QuadPart;
-      switch(dwOrigin) {
+      switch (dwOrigin) with (STREAM_SEEK) {
          case STREAM_SEEK_SET:
             break;
 
@@ -340,19 +332,18 @@ class DStreamToIStream: DflComObject, dfl.internal.wincom.IStream {
    }
 
 
-   extern(D):
-
-    private:
-      void[] mem;
-      size_t seekpos = 0;
+   extern(D) {
+      private void[] mem;
+      private size_t seekpos = 0;
 
 
-      bool withinbounds(long pos) {
-      if(pos < seekpos.min || pos > seekpos.max) {
-         return false;
+      private bool withinbounds(long pos) {
+         if(pos < seekpos.min || pos > seekpos.max) {
+            return false;
+         }
+         // Note: it IS within bounds if it's AT the end, it just can't read there.
+         return cast(size_t)pos <= mem.length;
       }
-      // Note: it IS within bounds if it's AT the end, it just can't read there.
-      return cast(size_t)pos <= mem.length;
    }
 }
 

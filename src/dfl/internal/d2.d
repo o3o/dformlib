@@ -4,7 +4,6 @@
 
 module dfl.internal.d2;
 
-
 /// Gets the const type of a type, or the type itself if not supported.
 template ConstType(T) {
    alias const(T) ConstType;

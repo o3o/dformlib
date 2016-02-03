@@ -1,0 +1,20 @@
+digraph Dependencies {
+	node [shape=box];
+
+	utf [shape=circle];
+	d2 [shape=circle];
+	dlib [shape=circle];
+	clib [shape=circle];
+	com [shape=circle];
+
+	utf -> clib;
+	utf -> dlib;
+	com -> dlib;
+	event -> dlib;
+	base -> event;
+	base -> drawing;
+	drawing -> utf;
+	drawing -> dlib;
+	drawing -> com;
+	drawing -> d2;
+}

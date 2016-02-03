@@ -3,27 +3,22 @@
 
 module dfl.internal.winapi;
 
-
-public import core.sys.windows.windows;
-private import dfl.internal.wincom;
-
+import core.sys.windows.objfwd;
+import core.sys.windows.windows;
 
 version(D_Version2) {
    version = DFL_D2;
    version = DFL_D2_AND_ABOVE;
-}
-else version(D_Version3) {
+} else version(D_Version3) {
    version = DFL_D3;
    version = DFL_D3_AND_ABOVE;
    version = DFL_D2_AND_ABOVE;
-}
-else version(D_Version4) {
+} else version(D_Version4) {
    version = DFL_D4;
    version = DFL_D4_AND_ABOVE;
    version = DFL_D3_AND_ABOVE;
    version = DFL_D2_AND_ABOVE;
-}
-else {
+} else {
    static assert(0, "This environment is not supported.");
 }
 
@@ -43,23 +38,17 @@ struct POINTL {
 }
 alias POINTL* LPPOINTL;
 
-
 alias RECT* LPCRECT;
-
 
 alias WORD LANGID;
 
-
 alias size_t ULONG_PTR;
-
 
 alias long LONGLONG;
 
 alias ulong DWORDLONG;
 
-
 alias HRESULT THEMEAPI;
-
 
 union LARGE_INTEGER {
    struct {

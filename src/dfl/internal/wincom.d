@@ -1,15 +1,25 @@
 // This module just contains things that are needed but aren't in std.c.windows.com.
 // This code is public domain.
 
+
+/*
+   Probabilmente non serve.
+   Sostituita integralmente da
+
+   import core.sys.windows.com;
+*/
 module dfl.internal.wincom;
 
-private import dfl.internal.winapi;
+
+import core.sys.windows.windows;
+import dfl.internal.winapi;
 
 
 version(WINE)
 version = _dfl_needcom;
 
 version(_dfl_needcom) {
+   pragma(msg, "needcom");
    private import dfl.internal.dlib;
 
    // Grabbed from std.c.windows.com:
@@ -239,9 +249,9 @@ version(_dfl_needcom) {
       }
 
    }
-}
-else {
-   public import std.c.windows.com;
+} else {
+   import core.sys.windows.com;
+   // FIX: import std.c.windows.com;
 }
 
 
@@ -448,7 +458,7 @@ interface IAdviseSink: IUnknown {
 
 
 interface IMalloc: IUnknown {
-   extern(Windows):
+   extern(Windows) {
       void* Alloc(ULONG cb);
       void* Realloc(void *pv, ULONG cb);
       void Free(void* pv);
@@ -456,12 +466,12 @@ interface IMalloc: IUnknown {
       int DidAlloc(void* pv);
       void HeapMinimize();
    }
-   // Since an interface is a pointer..
-   alias IMalloc PMALLOC;
-   alias IMalloc LPMALLOC;
+}
+// Since an interface is a pointer..
+alias IMalloc PMALLOC;
+alias IMalloc LPMALLOC;
 
-
-   LONG MAP_LOGHIM_TO_PIX(LONG x, LONG logpixels) {
+LONG MAP_LOGHIM_TO_PIX(LONG x, LONG logpixels) {
    return MulDiv(logpixels, x, 2540);
 }
 
