@@ -11,10 +11,20 @@ digraph Dependencies {
 	utf -> dlib;
 	com -> dlib;
 	event -> dlib;
+	base -> clib;
+	base -> dlib;
 	base -> event;
 	base -> drawing;
+	base -> exception;
 	drawing -> utf;
 	drawing -> dlib;
 	drawing -> com;
 	drawing -> d2;
+	collections -> dlib;
+	collections -> base;
+	data -> base;
+	data -> exception;
+	data -> dlib;
+	data -> utf;
+	data -> com;
 }

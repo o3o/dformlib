@@ -1,159 +1,138 @@
 // Written by Christopher E. Miller
 // See the included license.txt for copyright and license details.
-
-
+// FIX: Restore onThreadException
 
 module dfl.data;
 
-private import dfl.internal.dlib;
+import core.sys.windows.com;
+import core.sys.windows.objidl; // for CLIPFORMAT
+import core.sys.windows.shlobj;
+import core.sys.windows.windows;
+import core.sys.windows.wtypes; // for DVASPECT
 
-private import dfl.base, dfl.internal.winapi, dfl.internal.wincom, dfl.application,
-        dfl.internal.utf, dfl.internal.com;
+import dfl.base;
+import dfl.exception;
 
+import dfl.internal.dlib;
+import dfl.internal.utf;
+import dfl.internal.com;
 
+//alias IDataObjectD = dfl.data.IDataObject;
 
-class DataFormats { // docmain
-
-   static class Format { // docmain
+class DataFormats {
+   static class Format {
       /// Data format ID number.
-      final @property int id() { // getter
+      package int _id;
+      final @property int id() {
          return _id;
       }
 
-
       /// Data format name.
-      final @property Dstring name() { // getter
+      package Dstring _name;
+      final @property Dstring name() {
          return _name;
       }
 
-
-    package:
-      int _id;
-      Dstring _name;
-
-
-      this() {
-      }
+      package this() { }
    }
 
 
- static:
+static:
 
    /// Predefined data formats.
-   @property Dstring bitmap() { // getter
+   @property Dstring bitmap() {
       return getFormat(CF_BITMAP).name;
    }
 
-   /+
-   /// ditto
-   @property Dstring commaSeparatedValue() { // getter
-      return getFormat(?).name;
-   }
-   +/
+   /*
 
-   /// ditto
-   @property Dstring dib() { // getter
+      @property Dstring commaSeparatedValue() {
+      return getFormat(?).name;
+      }
+    */
+
+   @property Dstring dib() {
       return getFormat(CF_DIB).name;
    }
 
-   /// ditto
-   @property Dstring dif() { // getter
+   @property Dstring dif() {
       return getFormat(CF_DIF).name;
    }
 
-   /// ditto
-   @property Dstring enhandedMetaFile() { // getter
+   @property Dstring enhandedMetaFile() {
       return getFormat(CF_ENHMETAFILE).name;
    }
 
-   /// ditto
-   @property Dstring fileDrop() { // getter
+   @property Dstring fileDrop() {
       return getFormat(CF_HDROP).name;
    }
 
-   /// ditto
-   @property Dstring html() { // getter
+   @property Dstring html() {
       return getFormat("HTML Format").name;
    }
 
-   /// ditto
-   @property Dstring locale() { // getter
+   @property Dstring locale() {
       return getFormat(CF_LOCALE).name;
    }
 
-   /// ditto
-   @property Dstring metafilePict() { // getter
+   @property Dstring metafilePict() {
       return getFormat(CF_METAFILEPICT).name;
    }
 
-   /// ditto
-   @property Dstring oemText() { // getter
+   @property Dstring oemText() {
       return getFormat(CF_OEMTEXT).name;
    }
 
-   /// ditto
-   @property Dstring palette() { // getter
+   @property Dstring palette() {
       return getFormat(CF_PALETTE).name;
    }
 
-   /// ditto
-   @property Dstring penData() { // getter
+   @property Dstring penData() {
       return getFormat(CF_PENDATA).name;
    }
 
-   /// ditto
-   @property Dstring riff() { // getter
+   @property Dstring riff() {
       return getFormat(CF_RIFF).name;
    }
 
-   /// ditto
-   @property Dstring rtf() { // getter
+   @property Dstring rtf() {
       return getFormat("Rich Text Format").name;
    }
 
+   /*
 
-   /+
-   /// ditto
-   @property Dstring serializable() { // getter
+      @property Dstring serializable() {
       return getFormat(?).name;
-   }
-   +/
+      }
+    */
 
-   /// ditto
-   @property Dstring stringFormat() { // getter
+   @property Dstring stringFormat() {
       return utf8; // ?
    }
 
-   /// ditto
-   @property Dstring utf8() { // getter
+   @property Dstring utf8() {
       return getFormat("UTF-8").name;
    }
 
-   /// ditto
-   @property Dstring symbolicLink() { // getter
+   @property Dstring symbolicLink() {
       return getFormat(CF_SYLK).name;
    }
 
-   /// ditto
-   @property Dstring text() { // getter
+   @property Dstring text() {
       return getFormat(CF_TEXT).name;
    }
 
-   /// ditto
-   @property Dstring tiff() { // getter
+   @property Dstring tiff() {
       return getFormat(CF_TIFF).name;
    }
 
-   /// ditto
-   @property Dstring unicodeText() { // getter
+   @property Dstring unicodeText() {
       return getFormat(CF_UNICODETEXT).name;
    }
 
-   /// ditto
-   @property Dstring waveAudio() { // getter
+   @property Dstring waveAudio() {
       return getFormat(CF_WAVE).name;
    }
-
 
    // Assumes _init() was already called and
    // -id- is not in -fmts-.
@@ -170,7 +149,6 @@ class DataFormats { // docmain
    }
 
 
-
    Format getFormat(int id) {
       _init();
 
@@ -181,7 +159,6 @@ class DataFormats { // docmain
       return _didntFindId(id);
    }
 
-   /// ditto
    // Creates the format name if it doesn't exist.
    Format getFormat(Dstring name) {
       _init();
@@ -194,14 +171,13 @@ class DataFormats { // docmain
       return _didntFindId(dfl.internal.utf.registerClipboardFormat(name));
    }
 
-   /// ditto
    // Extra.
    Format getFormat(TypeInfo type) {
       return getFormatFromType(type);
    }
 
 
- private:
+   private:
    Format[int] fmts; // Indexed by identifier. Must _init() before accessing!
 
 
@@ -212,9 +188,9 @@ class DataFormats { // docmain
 
 
       void initfmt(int id, Dstring name)
-      in {
-         assert(!(id in fmts));
-      }
+         in {
+            assert(!(id in fmts));
+         }
       body {
          Format fmt;
          fmt = new Format;
@@ -222,7 +198,6 @@ class DataFormats { // docmain
          fmt._name = name;
          fmts[id] = fmt;
       }
-
 
       initfmt(CF_BITMAP, "Bitmap");
       initfmt(CF_DIB, "DeviceIndependentBitmap");
@@ -255,7 +230,6 @@ class DataFormats { // docmain
       return result;
    }
 
-
    package Format getFormatFromType(TypeInfo type) {
       if(type == typeid(ubyte[])) {
          return getFormat(text);
@@ -276,12 +250,11 @@ class DataFormats { // docmain
       return getFormat(getObjectString(type)); // ?
    }
 
-
    private Dstring[] getHDropStrings(void[] value) {
       /+
-      if(value.length != HDROP.sizeof) {
-         return null;
-      }
+         if(value.length != HDROP.sizeof) {
+            return null;
+         }
 
       HDROP hd;
       UINT num;
@@ -300,9 +273,9 @@ class DataFormats { // docmain
       return result;
       +/
 
-      if(value.length <= DROPFILES.sizeof) {
-         return null;
-      }
+         if(value.length <= DROPFILES.sizeof) {
+            return null;
+         }
 
       Dstring[] result;
       DROPFILES* df;
@@ -342,7 +315,6 @@ class DataFormats { // docmain
       return result;
    }
 
-
    // Convert clipboard -value- to Data.
    Data getDataFromFormat(int id, void[] value) {
       switch(id) {
@@ -364,7 +336,6 @@ class DataFormats { // docmain
       //throw new DflException("Unknown data format");
       return Data(value); // ?
    }
-
 
    void[] getCbFileDrop(Dstring[] fileNames) {
       size_t sz = DROPFILES.sizeof;
@@ -427,7 +398,7 @@ class DataFormats { // docmain
       } else if(CF_HDROP == id) {
          return getCbFileDrop(data.getStrings());
       } else if(data.info == typeid(void[]) || data.info == typeid(Dstring)
-                || data.info == typeid(ubyte[]) || data.info == typeid(byte[])) { // Hack ?
+            || data.info == typeid(ubyte[]) || data.info == typeid(byte[])) { // Hack ?
          return *cast(void[]*)data.value; // Save the array elements, not the reference.
       } else {
          return data.value; // ?
@@ -435,8 +406,7 @@ class DataFormats { // docmain
    }
 
 
-   this() {
-   }
+   this() { }
 }
 
 
@@ -455,24 +425,23 @@ private template stopAtNull(T) {
 
 
 /// Data structure for holding data in a raw format with type information.
-struct Data { // docmain
+struct Data {
    /// Information about the data type.
-   @property TypeInfo info() { // getter
+   @property TypeInfo info() {
       return _info;
    }
 
-
    /// The data's raw value.
-   @property void[] value() { // getter
+   @property void[] value() {
       return _value[0 .. _info.tsize()];
    }
 
 
    /// Construct a new Data structure.
    static Data opCall(...)
-   in {
-      assert(_arguments.length == 1);
-   }
+      in {
+         assert(_arguments.length == 1);
+      }
    body {
       Data result;
       result._info = _arguments[0];
@@ -487,81 +456,74 @@ struct Data { // docmain
       return *cast(T*)_value;
    }
 
-   /// ditto
+
    // UTF-8.
    Dstring getString() {
       assert(_info == typeid(Dstring) || _info == typeid(void[]));
       return *cast(Dstring*)_value;
    }
 
-   /// ditto
+
    alias getString getUtf8;
-   /// ditto
+
    deprecated alias getString getUTF8;
 
-   /// ditto
+
    // ANSI text.
    ubyte[] getText() {
       assert(_info == typeid(ubyte[]) || _info == typeid(byte[]) || _info == typeid(void[]));
       return *cast(ubyte[]*)_value;
    }
 
-   /// ditto
+
    Dwstring getUnicodeText() {
       assert(_info == typeid(Dwstring) || _info == typeid(void[]));
       return *cast(Dwstring*)_value;
    }
 
-   /// ditto
+
    int getInt() {
       return getValue!(int)();
    }
 
-   /// ditto
+
    int getUint() {
       return getValue!(uint)();
    }
 
-   /// ditto
+
    Dstring[] getStrings() {
       assert(_info == typeid(Dstring[]));
       return *cast(Dstring[]*)_value;
    }
 
-   /// ditto
+
    Object getObject() {
       assert(!(cast(TypeInfo_Class)_info is null));
       return cast(Object)*cast(Object**)_value;
    }
 
 
-private:
+   private:
    TypeInfo _info;
    void* _value;
 }
 
 
-/+
-interface IDataFormat {
-
-}
-+/
-
-
 /// Interface to a data object. The data can have different formats by setting different formats.
-interface IDataObject { // docmain
+interface IDataObjectD {
 
    Data getData(Dstring fmt);
-   /// ditto
+
    Data getData(TypeInfo type);
-   /// ditto
+
    Data getData(Dstring fmt, bool doConvert);
 
 
    bool getDataPresent(Dstring fmt); // Check.
-   /// ditto
+
    bool getDataPresent(TypeInfo type); // Check.
-   /// ditto
+
    bool getDataPresent(Dstring fmt, bool canConvert); // Check.
 
 
@@ -570,28 +532,25 @@ interface IDataObject { // docmain
 
 
    void setData(Data obj);
-   /// ditto
+
    void setData(Dstring fmt, Data obj);
-   /// ditto
+
    void setData(TypeInfo type, Data obj);
-   /// ditto
+
    void setData(Dstring fmt, bool canConvert, Data obj);
 }
 
-
-
-class DataObject: dfl.data.IDataObject { // docmain
-
+class DataObject: IDataObjectD {
    Data getData(Dstring fmt) {
       return getData(fmt, true);
    }
 
-   /// ditto
+
    Data getData(TypeInfo type) {
       return getData(DataFormats.getFormat(type).name);
    }
 
-   /// ditto
+
    Data getData(Dstring fmt, bool doConvert) {
       // doConvert ...
 
@@ -605,23 +564,18 @@ class DataObject: dfl.data.IDataObject { // docmain
    }
 
 
-
    bool getDataPresent(Dstring fmt) {
       return getDataPresent(fmt, true);
    }
 
-   /// ditto
    bool getDataPresent(TypeInfo type) {
       return getDataPresent(DataFormats.getFormat(type).name);
    }
 
-   /// ditto
    bool getDataPresent(Dstring fmt, bool canConvert) {
       // canConvert ...
       return find(fmt) != -1;
    }
-
-
 
    Dstring[] getFormats() {
       Dstring[] result;
@@ -632,12 +586,10 @@ class DataObject: dfl.data.IDataObject { // docmain
       return result;
    }
 
-
    // TO-DO: remove...
    deprecated final Dstring[] getFormats(bool onlyNative) {
       return getFormats();
    }
-
 
    package final void _setData(Dstring fmt, Data obj, bool replace = true) {
       int i;
@@ -654,49 +606,41 @@ class DataObject: dfl.data.IDataObject { // docmain
       }
    }
 
-
-
    void setData(Data obj) {
       setData(DataFormats.getFormat(obj.info).name, obj);
    }
 
-
-   /// ditto
    void setData(Dstring fmt, Data obj) {
       setData(fmt, true, obj);
    }
 
-
-   /// ditto
    void setData(TypeInfo type, Data obj) {
       setData(DataFormats.getFormatFromType(type).name, true, obj);
    }
 
-
-   /// ditto
    void setData(Dstring fmt, bool canConvert, Data obj) {
       /+
-      if(obj.info == typeid(Data)) {
-         void[] objv;
-         objv = obj.value;
-         assert(objv.length == Data.sizeof);
-         obj = *(cast(Data*)objv.ptr);
-      }
+         if(obj.info == typeid(Data)) {
+            void[] objv;
+            objv = obj.value;
+            assert(objv.length == Data.sizeof);
+            obj = *(cast(Data*)objv.ptr);
+         }
       +/
 
-      _setData(fmt, obj);
+         _setData(fmt, obj);
       if(canConvert) {
          Data cdat;
          cdat = Data(*(cast(_DataConvert*)&obj));
          _canConvertFormats(fmt,
-         (Dstring cfmt) {
-            _setData(cfmt, cdat, false);
-         });
+               (Dstring cfmt) {
+               _setData(cfmt, cdat, false);
+               });
       }
    }
 
 
-private:
+   private:
    struct Pair {
       Dstring fmt;
       Data obj;
@@ -753,7 +697,6 @@ package void _canConvertFormats(Dstring fmt, void delegate(Dstring cfmt) callbac
    }
 }
 
-
 package Data _doConvertFormat(Data dat, Dstring toFmt) {
    Data result;
    //if(!stringICmp(toFmt, DataFormats.utf8))
@@ -785,18 +728,16 @@ package Data _doConvertFormat(Data dat, Dstring toFmt) {
    return result;
 }
 
-
-class ComToDdataObject: dfl.data.IDataObject { // package
-   this(dfl.internal.wincom.IDataObject dataObj) {
+class ComToDdataObject: IDataObjectD {
+   private IDataObject dataObj;
+   this(IDataObject dataObj) {
       this.dataObj = dataObj;
       dataObj.AddRef();
    }
 
-
    ~this() {
       dataObj.Release(); // Must get called...
    }
-
 
    private Data _getData(int id) {
       FORMATETC fmte;
@@ -806,14 +747,13 @@ class ComToDdataObject: dfl.data.IDataObject { // package
 
       fmte.cfFormat = cast(CLIPFORMAT)id;
       fmte.ptd = null;
-      fmte.dwAspect = DVASPECT_CONTENT; // ?
+      fmte.dwAspect = DVASPECT.DVASPECT_CONTENT; // ?
       fmte.lindex = -1;
-      fmte.tymed = TYMED_HGLOBAL; // ?
+      fmte.tymed = TYMED.TYMED_HGLOBAL; // ?
 
       if(S_OK != dataObj.GetData(&fmte, &stgm)) {
          throw new DflException("Unable to get data");
       }
-
 
       void release() {
          //ReleaseStgMedium(&stgm);
@@ -839,49 +779,41 @@ class ComToDdataObject: dfl.data.IDataObject { // package
       return DataFormats.getDataFromFormat(id, mem);
    }
 
-
    Data getData(Dstring fmt) {
       return _getData(DataFormats.getFormat(fmt).id);
    }
-
 
    Data getData(TypeInfo type) {
       return _getData(DataFormats.getFormatFromType(type).id);
    }
 
-
    Data getData(Dstring fmt, bool doConvert) {
       return getData(fmt); // ?
    }
-
 
    private bool _getDataPresent(int id) {
       FORMATETC fmte;
 
       fmte.cfFormat = cast(CLIPFORMAT)id;
       fmte.ptd = null;
-      fmte.dwAspect = DVASPECT_CONTENT; // ?
+      fmte.dwAspect = DVASPECT.DVASPECT_CONTENT; // ?
       fmte.lindex = -1;
-      fmte.tymed = TYMED_HGLOBAL; // ?
+      fmte.tymed = TYMED.TYMED_HGLOBAL; // ?
 
       return S_OK == dataObj.QueryGetData(&fmte);
    }
-
 
    bool getDataPresent(Dstring fmt) {
       return _getDataPresent(DataFormats.getFormat(fmt).id);
    }
 
-
    bool getDataPresent(TypeInfo type) {
       return _getDataPresent(DataFormats.getFormatFromType(type).id);
    }
 
-
    bool getDataPresent(Dstring fmt, bool canConvert) {
       return getDataPresent(fmt); // ?
    }
-
 
    Dstring[] getFormats() {
       IEnumFORMATETC fenum;
@@ -915,10 +847,9 @@ class ComToDdataObject: dfl.data.IDataObject { // package
       return getFormats();
    }
 
-
    private void _setData(int id, Data obj) {
       /+
-      FORMATETC fmte;
+         FORMATETC fmte;
       STGMEDIUM stgm;
       HANDLE hmem;
       void[] mem;
@@ -929,7 +860,7 @@ class ComToDdataObject: dfl.data.IDataObject { // package
       hmem = GlobalAlloc(GMEM_SHARE, mem.length);
       if(!hmem) {
          //cprintf("Unable to GlobalAlloc().\n");
-      err_set:
+err_set:
          throw new DflException("Unable to set data");
       }
       pmem = GlobalLock(hmem);
@@ -943,11 +874,11 @@ class ComToDdataObject: dfl.data.IDataObject { // package
 
       fmte.cfFormat = cast(CLIPFORMAT)id;
       fmte.ptd = null;
-      fmte.dwAspect = DVASPECT_CONTENT; // ?
+      fmte.dwAspect = DVASPECT.DVASPECT_CONTENT; // ?
       fmte.lindex = -1;
-      fmte.tymed = TYMED_HGLOBAL;
+      fmte.tymed = TYMED.TYMED_HGLOBAL;
 
-      stgm.tymed = TYMED_HGLOBAL;
+      stgm.tymed = TYMED.TYMED_HGLOBAL;
       stgm.hGlobal = hmem;
       stgm.pUnkForRelease = null;
 
@@ -960,68 +891,58 @@ class ComToDdataObject: dfl.data.IDataObject { // package
          goto err_set;
       }
       +/
-      // Don't set stuff in someone else's data object.
+         // Don't set stuff in someone else's data object.
    }
-
 
    void setData(Data obj) {
       _setData(DataFormats.getFormatFromType(obj.info).id, obj);
    }
 
-
    void setData(Dstring fmt, Data obj) {
       _setData(DataFormats.getFormat(fmt).id, obj);
    }
-
 
    void setData(TypeInfo type, Data obj) {
       _setData(DataFormats.getFormatFromType(type).id, obj);
    }
 
-
    void setData(Dstring fmt, bool canConvert, Data obj) {
       setData(fmt, obj); // ?
    }
 
-
-   final bool isSameDataObject(dfl.internal.wincom.IDataObject dataObj) {
+   final bool isSameDataObject(IDataObject dataObj) {
       return dataObj is this.dataObj;
    }
-
-
-private:
-   dfl.internal.wincom.IDataObject dataObj;
 }
 
-
 package class EnumDataObjectFORMATETC: DflComObject, IEnumFORMATETC {
-   this(dfl.data.IDataObject dataObj, Dstring[] fmts, ULONG start) {
+   this(IDataObjectD dataObj, Dstring[] fmts, ULONG start) {
       this.dataObj = dataObj;
       this.fmts = fmts;
       idx = start;
    }
 
 
-   this(dfl.data.IDataObject dataObj) {
+   this(IDataObjectD dataObj) {
       this(dataObj, dataObj.getFormats(), 0);
    }
 
 
    extern(Windows):
       override HRESULT QueryInterface(IID* riid, void** ppv) {
-      if(*riid == _IID_IEnumFORMATETC) {
-         *ppv = cast(void*)cast(IEnumFORMATETC)this;
-         AddRef();
-         return S_OK;
-      } else if(*riid == _IID_IUnknown) {
-         *ppv = cast(void*)cast(IUnknown)this;
-         AddRef();
-         return S_OK;
-      } else {
-         *ppv = null;
-         return E_NOINTERFACE;
+         if(*riid == IID_IEnumFORMATETC) {
+            *ppv = cast(void*)cast(IEnumFORMATETC)this;
+            AddRef();
+            return S_OK;
+         } else if(*riid == IID_IUnknown) {
+            *ppv = cast(void*)cast(IUnknown)this;
+            AddRef();
+            return S_OK;
+         } else {
+            *ppv = null;
+            return E_NOINTERFACE;
+         }
       }
-   }
 
 
    HRESULT Next(ULONG celt, FORMATETC* rgelt, ULONG* pceltFetched) {
@@ -1049,10 +970,10 @@ package class EnumDataObjectFORMATETC: DflComObject, IEnumFORMATETC {
             for(; idx != end; idx++) {
                rgelt.cfFormat = cast(CLIPFORMAT)DataFormats.getFormat(fmts[idx]).id;
                rgelt.ptd = null;
-               rgelt.dwAspect = DVASPECT_CONTENT; // ?
+               rgelt.dwAspect = DVASPECT.DVASPECT_CONTENT; // ?
                rgelt.lindex = -1;
-               //rgelt.tymed = TYMED_NULL;
-               rgelt.tymed = TYMED_HGLOBAL;
+               //rgelt.tymed = TYMED.TYMED_NULL;
+               rgelt.tymed = TYMED.TYMED_HGLOBAL;
 
                rgelt++;
             }
@@ -1063,7 +984,7 @@ package class EnumDataObjectFORMATETC: DflComObject, IEnumFORMATETC {
             result = S_FALSE;
          }
       } catch(DThrowable e) {
-         Application.onThreadException(e);
+         // FIX: Application.onThreadException(e);
 
          result = E_UNEXPECTED;
       }
@@ -1087,7 +1008,7 @@ package class EnumDataObjectFORMATETC: DflComObject, IEnumFORMATETC {
 
          result = S_OK;
       } catch(DThrowable e) {
-         Application.onThreadException(e);
+         // FIX: Application.onThreadException(e);
 
          result = E_UNEXPECTED;
       }
@@ -1103,7 +1024,7 @@ package class EnumDataObjectFORMATETC: DflComObject, IEnumFORMATETC {
          *ppenum = new EnumDataObjectFORMATETC(dataObj, fmts, idx);
          result = S_OK;
       } catch(DThrowable e) {
-         Application.onThreadException(e);
+         // FIX: Application.onThreadException(e);
 
          result = E_UNEXPECTED;
       }
@@ -1112,197 +1033,194 @@ package class EnumDataObjectFORMATETC: DflComObject, IEnumFORMATETC {
    }
 
 
-   extern(D):
+   extern(D) {
 
-   private:
-      dfl.data.IDataObject dataObj;
-      Dstring[] fmts;
-      ULONG idx;
+      private:
+         IDataObjectD dataObj;
+         Dstring[] fmts;
+         ULONG idx;
    }
+}
 
 
-   class DtoComDataObject: DflComObject, dfl.internal.wincom.IDataObject { // package
-   this(dfl.data.IDataObject dataObj) {
+class DtoComDataObject: DflComObject, IDataObject {
+   this(IDataObjectD dataObj) {
       this.dataObj = dataObj;
    }
 
-
-   extern(Windows):
-
+   extern(Windows) {
       override HRESULT QueryInterface(IID* riid, void** ppv) {
-      if(*riid == _IID_IDataObject) {
-         *ppv = cast(void*)cast(dfl.internal.wincom.IDataObject)this;
-         AddRef();
-         return S_OK;
-      } else if(*riid == _IID_IUnknown) {
-         *ppv = cast(void*)cast(IUnknown)this;
-         AddRef();
-         return S_OK;
-      } else {
-         *ppv = null;
-         return E_NOINTERFACE;
-      }
-   }
-
-
-   HRESULT GetData(FORMATETC* pFormatetc, STGMEDIUM* pmedium) {
-      Dstring fmt;
-      HRESULT result = S_OK;
-      Data data;
-
-      try {
-         if(pFormatetc.lindex != -1) {
-            result = DV_E_LINDEX;
-         } else if(!(pFormatetc.tymed & TYMED_HGLOBAL)) {
-            // Unsupported medium type.
-            result = DV_E_TYMED;
-         } else if(!(pFormatetc.dwAspect & DVASPECT_CONTENT)) {
-            // What about the other aspects?
-            result = DV_E_DVASPECT;
+         if(*riid == IID_IDataObject) {
+            *ppv = cast(void*)cast(IDataObject)this;
+            AddRef();
+            return S_OK;
+         } else if(*riid == IID_IUnknown) {
+            *ppv = cast(void*)cast(IUnknown)this;
+            AddRef();
+            return S_OK;
          } else {
-            DataFormats.Format dfmt;
-            dfmt = DataFormats.getFormat(pFormatetc.cfFormat);
-            fmt = dfmt.name;
-            data = dataObj.getData(fmt, true); // Should this be convertable?
+            *ppv = null;
+            return E_NOINTERFACE;
+         }
+      }
 
-            HGLOBAL hg;
-            void* pmem;
-            void[] src;
 
-            //src = data.value;
-            src = DataFormats.getClipboardValueFromData(dfmt.id, data);
-            hg = GlobalAlloc(GMEM_SHARE, src.length);
-            if(!hg) {
-               result = STG_E_MEDIUMFULL;
+      HRESULT GetData(FORMATETC* pFormatetc, STGMEDIUM* pmedium) {
+         Dstring fmt;
+         HRESULT result = S_OK;
+         Data data;
+
+         try {
+            if(pFormatetc.lindex != -1) {
+               result = DV_E_LINDEX;
+            } else if(!(pFormatetc.tymed & TYMED.TYMED_HGLOBAL)) {
+               // Unsupported medium type.
+               result = DV_E_TYMED;
+            } else if(!(pFormatetc.dwAspect & DVASPECT.DVASPECT_CONTENT)) {
+               // What about the other aspects?
+               result = DV_E_DVASPECT;
             } else {
-               pmem = GlobalLock(hg);
-               if(!hg) {
-                  result = E_UNEXPECTED;
-                  GlobalFree(hg);
-               } else {
-                  pmem[0 .. src.length] = src[];
-                  GlobalUnlock(hg);
+               DataFormats.Format dfmt;
+               dfmt = DataFormats.getFormat(pFormatetc.cfFormat);
+               fmt = dfmt.name;
+               data = dataObj.getData(fmt, true); // Should this be convertable?
 
-                  pmedium.tymed = TYMED_HGLOBAL;
-                  pmedium.hGlobal = hg;
-                  pmedium.pUnkForRelease = null; // ?
+               HGLOBAL hg;
+               void* pmem;
+               void[] src;
+
+               //src = data.value;
+               src = DataFormats.getClipboardValueFromData(dfmt.id, data);
+               // FIX: obsolete:
+               enum GMEM_SHARE=8192;
+
+               hg = GlobalAlloc(GMEM_SHARE, src.length);
+               if(!hg) {
+                  result = STG_E_MEDIUMFULL;
+               } else {
+                  pmem = GlobalLock(hg);
+                  if(!hg) {
+                     result = E_UNEXPECTED;
+                     GlobalFree(hg);
+                  } else {
+                     pmem[0 .. src.length] = src[];
+                     GlobalUnlock(hg);
+
+                     pmedium.tymed = TYMED.TYMED_HGLOBAL;
+                     pmedium.hGlobal = hg;
+                     pmedium.pUnkForRelease = null; // ?
+                  }
                }
             }
+         } catch(DflException e) {
+            //Application.onThreadException(e);
+
+            result = DV_E_FORMATETC;
+         } catch(OomException e) {
+            // FIX: Application.onThreadException(e);
+
+            result = E_OUTOFMEMORY;
+         } catch(DThrowable e) {
+            // FIX: Application.onThreadException(e);
+
+            result = E_UNEXPECTED;
          }
-      } catch(DflException e) {
-         //Application.onThreadException(e);
 
-         result = DV_E_FORMATETC;
-      } catch(OomException e) {
-         Application.onThreadException(e);
-
-         result = E_OUTOFMEMORY;
-      } catch(DThrowable e) {
-         Application.onThreadException(e);
-
-         result = E_UNEXPECTED;
+         return result;
       }
 
-      return result;
-   }
+
+      HRESULT GetDataHere(FORMATETC* pFormatetc, STGMEDIUM* pmedium) {
+         return E_UNEXPECTED; // TODO: finish.
+      }
 
 
-   HRESULT GetDataHere(FORMATETC* pFormatetc, STGMEDIUM* pmedium) {
-      return E_UNEXPECTED; // TODO: finish.
-   }
+      HRESULT QueryGetData(FORMATETC* pFormatetc) {
+         Dstring fmt;
+         HRESULT result = S_OK;
 
+         try {
+            if(pFormatetc.lindex != -1) {
+               result = DV_E_LINDEX;
+            } else if(!(pFormatetc.tymed & TYMED.TYMED_HGLOBAL)) {
+               // Unsupported medium type.
+               result = DV_E_TYMED;
+            } else if(!(pFormatetc.dwAspect & DVASPECT.DVASPECT_CONTENT)) {
+               // What about the other aspects?
+               result = DV_E_DVASPECT;
+            } else {
+               fmt = DataFormats.getFormat(pFormatetc.cfFormat).name;
 
-   HRESULT QueryGetData(FORMATETC* pFormatetc) {
-      Dstring fmt;
-      HRESULT result = S_OK;
-
-      try {
-         if(pFormatetc.lindex != -1) {
-            result = DV_E_LINDEX;
-         } else if(!(pFormatetc.tymed & TYMED_HGLOBAL)) {
-            // Unsupported medium type.
-            result = DV_E_TYMED;
-         } else if(!(pFormatetc.dwAspect & DVASPECT_CONTENT)) {
-            // What about the other aspects?
-            result = DV_E_DVASPECT;
-         } else {
-            fmt = DataFormats.getFormat(pFormatetc.cfFormat).name;
-
-            if(!dataObj.getDataPresent(fmt)) {
-               result = S_FALSE;   // ?
+               if(!dataObj.getDataPresent(fmt)) {
+                  result = S_FALSE;   // ?
+               }
             }
+         } catch(DflException e) {
+            //Application.onThreadException(e);
+
+            result = DV_E_FORMATETC;
+         } catch(OomException e) {
+            // FIX: Application.onThreadException(e);
+
+            result = E_OUTOFMEMORY;
+         } catch(DThrowable e) {
+            // FIX: Application.onThreadException(e);
+
+            result = E_UNEXPECTED;
          }
-      } catch(DflException e) {
-         //Application.onThreadException(e);
 
-         result = DV_E_FORMATETC;
-      } catch(OomException e) {
-         Application.onThreadException(e);
-
-         result = E_OUTOFMEMORY;
-      } catch(DThrowable e) {
-         Application.onThreadException(e);
-
-         result = E_UNEXPECTED;
+         return result;
       }
 
-      return result;
-   }
 
+      HRESULT GetCanonicalFormatEtc(FORMATETC* pFormatetcIn, FORMATETC* pFormatetcOut) {
+         // TODO: finish.
 
-   HRESULT GetCanonicalFormatEtc(FORMATETC* pFormatetcIn, FORMATETC* pFormatetcOut) {
-      // TODO: finish.
-
-      pFormatetcOut.ptd = null;
-      return E_NOTIMPL;
-   }
-
-
-   HRESULT SetData(FORMATETC* pFormatetc, STGMEDIUM* pmedium, BOOL fRelease) {
-      return E_UNEXPECTED; // TODO: finish.
-   }
-
-
-   HRESULT EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC* ppenumFormatetc) {
-      // SHCreateStdEnumFmtEtc() requires Windows 2000 +
-
-      HRESULT result;
-
-      try {
-         if(dwDirection == DATADIR_GET) {
-            *ppenumFormatetc = new EnumDataObjectFORMATETC(dataObj);
-            result = S_OK;
-         } else {
-            result = E_NOTIMPL;
-         }
-      } catch(DThrowable e) {
-         Application.onThreadException(e);
-
-         result = E_UNEXPECTED;
+         pFormatetcOut.ptd = null;
+         return E_NOTIMPL;
       }
 
-      return result;
+
+      HRESULT SetData(FORMATETC* pFormatetc, STGMEDIUM* pmedium, BOOL fRelease) {
+         return E_UNEXPECTED; // TODO: finish.
+      }
+
+
+      HRESULT EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC* ppenumFormatetc) {
+         // SHCreateStdEnumFmtEtc() requires Windows 2000 +
+
+         HRESULT result;
+
+         try {
+            if(dwDirection == DATADIR.DATADIR_GET) {
+               *ppenumFormatetc = new EnumDataObjectFORMATETC(dataObj);
+               result = S_OK;
+            } else {
+               result = E_NOTIMPL;
+            }
+         } catch(DThrowable e) {
+            // FIX: Application.onThreadException(e);
+
+            result = E_UNEXPECTED;
+         }
+
+         return result;
+      }
+
+
+      HRESULT DAdvise(FORMATETC* pFormatetc, DWORD advf, IAdviseSink pAdvSink, DWORD* pdwConnection) {
+         return E_UNEXPECTED; // TODO: finish.
+      }
+
+
+      HRESULT DUnadvise(DWORD dwConnection) {
+         return E_UNEXPECTED; // TODO: finish.
+      }
+
+
+      HRESULT EnumDAdvise(IEnumSTATDATA* ppenumAdvise) {
+         return E_UNEXPECTED; // TODO: finish.
+      }
    }
-
-
-   HRESULT DAdvise(FORMATETC* pFormatetc, DWORD advf, IAdviseSink pAdvSink, DWORD* pdwConnection) {
-      return E_UNEXPECTED; // TODO: finish.
-   }
-
-
-   HRESULT DUnadvise(DWORD dwConnection) {
-      return E_UNEXPECTED; // TODO: finish.
-   }
-
-
-   HRESULT EnumDAdvise(IEnumSTATDATA* ppenumAdvise) {
-      return E_UNEXPECTED; // TODO: finish.
-   }
-
-
-   extern(D):
-
-    private:
-      dfl.data.IDataObject dataObj;
-   }
-
+   extern(D) private IDataObjectD dataObj;
+}
