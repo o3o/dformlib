@@ -1,52 +1,47 @@
 // Written by Christopher E. Miller
 // See the included license.txt for copyright and license details.
 
-
-
 module dfl.imagelist;
 
-import dfl.base, dfl.drawing, dfl.internal.winapi;
+import core.sys.windows.windows;
+import core.sys.windows.commctrl;
+
+import dfl.base;
+import dfl.exception;
+import dfl.drawing;
 import dfl.collections;
 
-
-version(DFL_NO_IMAGELIST) {
-}
-else {
-
-   class ImageList { // docmain
+version (DFL_NO_IMAGELIST) {
+} else {
+   class ImageList {
 
       class ImageCollection {
          protected this() {
          }
 
-
          void insert(int index, Image img) {
-            if(index >= _images.length) {
+            if (index >= _images.length) {
                add(img);
             } else {
                assert(0, "Must add images to the end of the image list");
             }
          }
 
-
          final void addStrip(Image img) {
             HGDIOBJ hgo;
-            if(1 != img._imgtype(&hgo)) {
+            if (1 != img._imgtype(&hgo)) {
                debug {
                   assert(0, "Image list: addStrip needs bitmap");
-               }
-               else {
+               } else {
                   _unableimg();
                }
             }
 
             auto sz = imageSize;
-            if(img.height != sz.height
-                  || img.width % sz.width) {
+            if (img.height != sz.height || img.width % sz.width) {
                debug {
                   assert(0, "Image list: invalid image size");
-               }
-               else {
+               } else {
                   _unableimg();
                }
             }
@@ -63,7 +58,7 @@ else {
             _addhbitmap(hgo);
 
             int x = 0;
-            for(; num; num--) {
+            for (; num; num--) {
                auto sp = new StripPart();
                sp.origImg = img;
                sp.hbm = hgo;
@@ -75,17 +70,14 @@ else {
             }
          }
 
-
-       package:
+      package:
 
          Image[] _images;
 
-
-         static class StripPart: Image {
-            override @property Size size() { // getter
+         static class StripPart : Image {
+            override @property Size size() {
                return partBounds.size;
             }
-
 
             override void draw(Graphics g, Point pt) {
                HDC memdc;
@@ -93,14 +85,14 @@ else {
                try {
                   HGDIOBJ hgo;
                   hgo = SelectObject(memdc, hbm);
-                  BitBlt(g.handle, pt.x, pt.y, partBounds.width, partBounds.height, memdc, partBounds.x, partBounds.y, SRCCOPY);
+                  BitBlt(g.handle, pt.x, pt.y, partBounds.width,
+                     partBounds.height, memdc, partBounds.x, partBounds.y, SRCCOPY);
                   SelectObject(memdc, hgo); // Old bitmap.
                }
                finally {
                   DeleteDC(memdc);
                }
             }
-
 
             override void drawStretched(Graphics g, Rect r) {
                HDC memdc;
@@ -110,8 +102,9 @@ else {
                   int lstretch;
                   hgo = SelectObject(memdc, hbm);
                   lstretch = SetStretchBltMode(g.handle, COLORONCOLOR);
-                  StretchBlt(g.handle, r.x, r.y, r.width, r.height,
-                             memdc, partBounds.x, partBounds.y, partBounds.width, partBounds.height, SRCCOPY);
+                  StretchBlt(g.handle, r.x, r.y, r.width, r.height, memdc,
+                     partBounds.x, partBounds.y, partBounds.width, partBounds.height,
+                     SRCCOPY);
                   SetStretchBltMode(g.handle, lstretch);
                   SelectObject(memdc, hgo); // Old bitmap.
                }
@@ -120,51 +113,45 @@ else {
                }
             }
 
-
             Image origImg; // Hold this so the HBITMAP doesn't get collected.
             HBITMAP hbm;
             Rect partBounds;
          }
 
-
          void _adding(size_t idx, Image val) {
             assert(val !is null);
 
-            switch(val._imgtype(null)) {
-               case 1:
-               case 2:
-                  break;
-               default:
-                  debug {
-                     assert(0, "Image list: invalid image type");
-                  }
-                  else {
-                     _unableimg();
-                  }
+            switch (val._imgtype(null)) {
+            case 1:
+            case 2:
+               break;
+            default:
+               debug {
+                  assert(0, "Image list: invalid image type");
+               } else {
+                  _unableimg();
+               }
             }
 
-            if(val.size != imageSize) {
+            if (val.size != imageSize) {
                debug {
                   assert(0, "Image list: invalid image size");
-               }
-               else {
+               } else {
                   _unableimg();
                }
             }
          }
 
-
          void _added(size_t idx, Image val) {
-            if(isHandleCreated) {
+            if (isHandleCreated) {
                //if(idx >= _images.length) // Can't test for this here because -val- is already added to the array.
                _addimg(val);
             }
          }
 
-
          void _removed(size_t idx, Image val) {
-            if(isHandleCreated) {
-               if(size_t.max == idx) { // Clear all.
+            if (isHandleCreated) {
+               if (size_t.max == idx) { // Clear all.
                   imageListRemove(handle, -1);
                } else {
                   imageListRemove(handle, idx);
@@ -172,15 +159,11 @@ else {
             }
          }
 
+      public:
 
-       public:
-
-         mixin ListWrapArray!(Image, _images,
-                              _adding, _added,
-                              _blankListCallback!(Image), _removed,
-                              false, false, false);
+         mixin ListWrapArray!(Image, _images, _adding, _added,
+            _blankListCallback!(Image), _removed, false, false, false);
       }
-
 
       this() {
          InitCommonControls();
@@ -189,35 +172,27 @@ else {
          _transcolor = Color.transparent;
       }
 
-
-
-      final @property void colorDepth(ColorDepth depth) { // setter
+      final @property void colorDepth(ColorDepth depth) {
          assert(!isHandleCreated);
 
          this._depth = depth;
       }
 
-      /// ditto
-      final @property ColorDepth colorDepth() { // getter
+      final @property ColorDepth colorDepth() {
          return _depth;
       }
 
-
-
-      final @property void transparentColor(Color tc) { // setter
+      final @property void transparentColor(Color tc) {
          assert(!isHandleCreated);
 
          _transcolor = tc;
       }
 
-      /// ditto
-      final @property Color transparentColor() { // getter
+      final @property Color transparentColor() {
          return _transcolor;
       }
 
-
-
-      final @property void imageSize(Size sz) { // setter
+      final @property void imageSize(Size sz) {
          assert(!isHandleCreated);
 
          assert(sz.width && sz.height);
@@ -226,28 +201,21 @@ else {
          _h = sz.height;
       }
 
-      /// ditto
-      final @property Size imageSize() { // getter
+      final @property Size imageSize() {
          return Size(_w, _h);
       }
 
-
-
-      final @property ImageCollection images() { // getter
+      final @property ImageCollection images() {
          return _cimages;
       }
 
-
-
-      final @property void tag(Object t) { // setter
+      final @property void tag(Object t) {
          this._tag = t;
       }
 
-      /// ditto
-      final @property Object tag() { // getter
+      final @property Object tag() {
          return this._tag;
       }
-
 
       /+ // Actually, forget about these; just draw with the actual images.
 
@@ -255,12 +223,12 @@ else {
          return draw(g, pt.x, pt.y, index);
       }
 
-      /// ditto
+
       final void draw(Graphics g, int x, int y, int index) {
          imageListDraw(handle, index, g.handle, x, y, ILD_NORMAL);
       }
 
-      /// ditto
+
       // stretch
       final void draw(Graphics g, int x, int y, int width, int height, int index) {
          // ImageList_DrawEx operates differently if the width or height is zero
@@ -277,49 +245,40 @@ else {
       }
       +/
 
-
-
-      final @property bool isHandleCreated() { // getter
+      final @property bool isHandleCreated() {
          return HIMAGELIST.init != _hil;
       }
 
-      deprecated alias isHandleCreated handleCreated;
+      deprecated alias handleCreated = isHandleCreated;
 
-
-
-      final @property HIMAGELIST handle() { // getter
-         if(!isHandleCreated) {
+      final @property HIMAGELIST handle() {
+         if (!isHandleCreated) {
             _createimagelist();
          }
          return _hil;
       }
 
-
-
       void dispose() {
          return dispose(true);
       }
 
-      /// ditto
       void dispose(bool disposing) {
-         if(isHandleCreated) {
+         if (isHandleCreated) {
             imageListDestroy(_hil);
          }
          _hil = HIMAGELIST.init;
 
-         if(disposing) {
+         if (disposing) {
             //_cimages._images = null; // Not GC-safe in dtor.
             //_cimages = null; // Could cause bad things.
          }
       }
 
-
       ~this() {
          dispose();
       }
 
-
-    private:
+   private:
 
       ColorDepth _depth = ColorDepth.DEPTH_8BIT;
       Color _transcolor;
@@ -328,55 +287,64 @@ else {
       int _w = 16, _h = 16;
       Object _tag;
 
-
       void _createimagelist() {
-         if(isHandleCreated) {
+         if (isHandleCreated) {
             imageListDestroy(_hil);
             _hil = HIMAGELIST.init;
          }
 
          UINT flags = ILC_MASK;
-         switch(_depth) {
-            case ColorDepth.DEPTH_4BIT:          flags |= ILC_COLOR4;  break;
-         default: case ColorDepth.DEPTH_8BIT: flags |= ILC_COLOR8;  break;
-            case ColorDepth.DEPTH_16BIT:         flags |= ILC_COLOR16; break;
-            case ColorDepth.DEPTH_24BIT:         flags |= ILC_COLOR24; break;
-            case ColorDepth.DEPTH_32BIT:         flags |= ILC_COLOR32; break;
+         switch (_depth) {
+         case ColorDepth.DEPTH_4BIT:
+            flags |= ILC_COLOR4;
+            break;
+         default:
+         case ColorDepth.DEPTH_8BIT:
+            flags |= ILC_COLOR8;
+            break;
+         case ColorDepth.DEPTH_16BIT:
+            flags |= ILC_COLOR16;
+            break;
+         case ColorDepth.DEPTH_24BIT:
+            flags |= ILC_COLOR24;
+            break;
+         case ColorDepth.DEPTH_32BIT:
+            flags |= ILC_COLOR32;
+            break;
          }
 
          // Note: cGrow is not a limit, but how many images to preallocate each grow.
-         _hil = imageListCreate(_w, _h, flags, _cimages._images.length, 4 + _cimages._images.length / 4);
-         if(!_hil) {
+         _hil = imageListCreate(_w, _h, flags, _cimages._images.length,
+            4 + _cimages._images.length / 4);
+         if (!_hil) {
             throw new DflException("Unable to create image list");
          }
 
-         foreach(img; _cimages._images) {
+         foreach (img; _cimages._images) {
             _addimg(img);
          }
       }
 
-
       void _unableimg() {
          throw new DflException("Unable to add image to image list");
       }
-
 
       int _addimg(Image img) {
          assert(isHandleCreated);
 
          HGDIOBJ hgo;
          int result;
-         switch(img._imgtype(&hgo)) {
-            case 1:
-               result = _addhbitmap(hgo);
-               break;
+         switch (img._imgtype(&hgo)) {
+         case 1:
+            result = _addhbitmap(hgo);
+            break;
 
-            case 2:
-               result = imageListAddIcon(_hil, cast(HICON)hgo);
-               break;
+         case 2:
+            result = imageListAddIcon(_hil, cast(HICON) hgo);
+            break;
 
-            default:
-               result = -1;
+         default:
+            result = -1;
          }
 
          //if(-1 == result)
@@ -388,69 +356,66 @@ else {
          assert(isHandleCreated);
 
          COLORREF cr;
-         if(_transcolor == Color.empty
-               || _transcolor == Color.transparent) {
+         if (_transcolor == Color.empty || _transcolor == Color.transparent) {
             cr = CLR_NONE; // ?
          } else {
             cr = _transcolor.toRgb();
          }
-         return imageListAddMasked(_hil, cast(HBITMAP)hbm, cr);
+         return imageListAddMasked(_hil, cast(HBITMAP) hbm, cr);
       }
    }
 
-
-   private extern(Windows) {
+   private extern (Windows) {
       // This was the only way I could figure out how to use the current actctx (Windows issue).
 
-      HIMAGELIST imageListCreate(
-         int cx, int cy, UINT flags, int cInitial, int cGrow) {
-         alias typeof(&ImageList_Create) TProc;
+      HIMAGELIST imageListCreate(int cx, int cy, UINT flags, int cInitial, int cGrow) {
+         alias TProc = typeof(&ImageList_Create);
          static TProc proc = null;
-         if(!proc) {
-            proc = cast(typeof(proc))GetProcAddress(GetModuleHandleA("comctl32.dll"), "ImageList_Create");
+         if (!proc) {
+            proc = cast(typeof(proc)) GetProcAddress(GetModuleHandleA("comctl32.dll"),
+               "ImageList_Create");
          }
          return proc(cx, cy, flags, cInitial, cGrow);
       }
 
-      int imageListAddIcon(
-         HIMAGELIST himl, HICON hicon) {
-         alias typeof(&ImageList_AddIcon) TProc;
+      int imageListAddIcon(HIMAGELIST himl, HICON hicon) {
+         alias TProc = typeof(&ImageList_AddIcon);
          static TProc proc = null;
-         if(!proc) {
-            proc = cast(typeof(proc))GetProcAddress(GetModuleHandleA("comctl32.dll"), "ImageList_AddIcon");
+         if (!proc) {
+            proc = cast(typeof(proc)) GetProcAddress(GetModuleHandleA("comctl32.dll"),
+               "ImageList_AddIcon");
          }
          return proc(himl, hicon);
       }
 
-      int imageListAddMasked(
-         HIMAGELIST himl, HBITMAP hbmImage, COLORREF crMask) {
-         alias typeof(&ImageList_AddMasked) TProc;
+      int imageListAddMasked(HIMAGELIST himl, HBITMAP hbmImage, COLORREF crMask) {
+         alias TProc = typeof(&ImageList_AddMasked);
          static TProc proc = null;
-         if(!proc) {
-            proc = cast(typeof(proc))GetProcAddress(GetModuleHandleA("comctl32.dll"), "ImageList_AddMasked");
+         if (!proc) {
+            proc = cast(typeof(proc)) GetProcAddress(GetModuleHandleA("comctl32.dll"),
+               "ImageList_AddMasked");
          }
          return proc(himl, hbmImage, crMask);
       }
 
-      BOOL imageListRemove(
-         HIMAGELIST himl, int i) {
-         alias typeof(&ImageList_Remove) TProc;
+      BOOL imageListRemove(HIMAGELIST himl, int i) {
+         alias TProc = typeof(&ImageList_Remove);
          static TProc proc = null;
-         if(!proc) {
-            proc = cast(typeof(proc))GetProcAddress(GetModuleHandleA("comctl32.dll"), "ImageList_Remove");
+         if (!proc) {
+            proc = cast(typeof(proc)) GetProcAddress(GetModuleHandleA("comctl32.dll"),
+               "ImageList_Remove");
          }
          return proc(himl, i);
       }
 
-      BOOL imageListDestroy(
-         HIMAGELIST himl) {
-         alias typeof(&ImageList_Destroy) TProc;
+      BOOL imageListDestroy(HIMAGELIST himl) {
+         alias TProc = typeof(&ImageList_Destroy);
          static TProc proc = null;
-         if(!proc) {
-            proc = cast(typeof(proc))GetProcAddress(GetModuleHandleA("comctl32.dll"), "ImageList_Destroy");
+         if (!proc) {
+            proc = cast(typeof(proc)) GetProcAddress(GetModuleHandleA("comctl32.dll"),
+               "ImageList_Destroy");
          }
          return proc(himl);
       }
    }
 }
-

@@ -1,36 +1,36 @@
 // Written by Christopher E. Miller
 // See the included license.txt for copyright and license details.
 
-
-
 module dfl.treeview;
+import core.sys.windows.windows;
+import core.sys.windows.commctrl;
 
-private import dfl.internal.dlib;
+import dfl.exception;
+import dfl.internal.dlib;
+import dfl.control;
+import dfl.application;
+import dfl.base;
+import dfl.event;
+import dfl.drawing;
+import dfl.collections;
+import dfl.internal.utf;
 
-private import dfl.control, dfl.application, dfl.base, dfl.internal.winapi;
-private import dfl.event, dfl.drawing, dfl.collections, dfl.internal.utf;
-
-version(DFL_NO_IMAGELIST) {
-}
-else {
+version (DFL_NO_IMAGELIST) {
+} else {
    private import dfl.imagelist;
 }
 
-
-private extern(Windows) void _initTreeview();
-
-
+private extern (Windows) void _initTreeview();
 
 enum TreeViewAction : ubyte {
    UNKNOWN,
-   COLLAPSE, /// ditto
-   EXPAND, /// ditto
-   BY_KEYBOARD, /// ditto
-   BY_MOUSE, /// ditto
+   COLLAPSE,
+   EXPAND,
+   BY_KEYBOARD,
+   BY_MOUSE,
 }
 
-
-class TreeViewCancelEventArgs: CancelEventArgs {
+class TreeViewCancelEventArgs : CancelEventArgs {
    this(TreeNode node, bool cancel, TreeViewAction action) {
       super(cancel);
 
@@ -38,98 +38,81 @@ class TreeViewCancelEventArgs: CancelEventArgs {
       _action = action;
    }
 
-
-   final @property TreeViewAction action() { // getter
+   final @property TreeViewAction action() {
       return _action;
    }
 
-
-   final @property TreeNode node() { // getter
+   final @property TreeNode node() {
       return _node;
    }
 
-
- private:
+private:
    TreeNode _node;
    TreeViewAction _action;
 }
 
-
-class TreeViewEventArgs: EventArgs {
+class TreeViewEventArgs : EventArgs {
    this(TreeNode node, TreeViewAction action) {
       _node = node;
       _action = action;
    }
-
 
    this(TreeNode node) {
       _node = node;
       //_action = TreeViewAction.UNKNOWN;
    }
 
-
-   final @property TreeViewAction action() { // getter
+   final @property TreeViewAction action() {
       return _action;
    }
 
-
-   final @property TreeNode node() { // getter
+   final @property TreeNode node() {
       return _node;
    }
 
-
- private:
+private:
    TreeNode _node;
    TreeViewAction _action = TreeViewAction.UNKNOWN;
 }
 
-
-class NodeLabelEditEventArgs: EventArgs {
+class NodeLabelEditEventArgs : EventArgs {
    this(TreeNode node, Dstring label) {
       _node = node;
       _label = label;
    }
 
-
    this(TreeNode node) {
       _node = node;
    }
 
-
-   final @property TreeNode node() { // getter
+   final @property TreeNode node() {
       return _node;
    }
 
-
-   final @property Dstring label() { // getter
+   final @property Dstring label() {
       return _label;
    }
 
-
-   final @property void cancelEdit(bool byes) { // setter
+   final @property void cancelEdit(bool byes) {
       _cancel = byes;
    }
 
-
-   final @property bool cancelEdit() { // getter
+   final @property bool cancelEdit() {
       return _cancel;
    }
 
-
- private:
+private:
    TreeNode _node;
    Dstring _label;
    bool _cancel = false;
 }
 
-
-class TreeNode: DObject {
+class TreeNode : DObject {
    this(Dstring labelText) {
       this();
 
       ttext = labelText;
    }
-
 
    this(Dstring labelText, TreeNode[] children) {
       this();
@@ -138,9 +121,8 @@ class TreeNode: DObject {
       tchildren.addRange(children);
    }
 
-
    this() {
-      Application.ppin(cast(void*)this);
+      Application.ppin(cast(void*) this);
 
       /*
       bcolor = Color.empty;
@@ -176,19 +158,18 @@ class TreeNode: DObject {
    //}
 
    /*
-      final @property void backColor(Color c) // setter
+      final @property void backColor(Color c)
       {
       bcolor = c;
       }
 
-      final @property Color backColor() // getter
+      final @property Color backColor()
       {
       return bcolor;
       }
     */
 
-
-   final @property Rect bounds() { // getter
+   final @property Rect bounds() {
       Rect result;
 
       if (created) {
@@ -202,30 +183,27 @@ class TreeNode: DObject {
       return result;
    }
 
-
-   final @property TreeNode firstNode() { // getter
+   final @property TreeNode firstNode() {
       if (tchildren.length) {
          return tchildren._nodes[0];
       }
       return null;
    }
 
-
    /*
-      final @property void foreColor(Color c) // setter
+      final @property void foreColor(Color c)
       {
       fcolor = c;
       }
 
-      final @property Color foreColor() // getter
+      final @property Color foreColor()
       {
       return fcolor;
       }
     */
 
-
    // Path from the root to this node.
-   final @property Dstring fullPath() { // getter
+   final @property Dstring fullPath() {
       if (!tparent) {
          return ttext;
       }
@@ -237,21 +215,19 @@ class TreeNode: DObject {
       //return std.string.format("%s%s%s", tparent.fullPath, sep, ttext);
       char[4] ssep;
       int sseplen = 0;
-      foreach(char ch; (&sep)[0 .. 1]) {
+      foreach (char ch; (&sep)[0 .. 1]) {
          ssep[sseplen++] = ch;
       }
       //return tparent.fullPath ~ ssep[0 .. sseplen] ~ ttext;
-      return tparent.fullPath ~ cast(Dstring)ssep[0 .. sseplen] ~ ttext; // Needed in D2.
+      return tparent.fullPath ~ cast(Dstring) ssep[0 .. sseplen] ~ ttext; // Needed in D2.
    }
 
-
-   final @property HTREEITEM handle() { // getter
+   final @property HTREEITEM handle() {
       return hnode;
    }
 
-
    // Index of this node in the parent node.
-   final @property int index() { // getter
+   final @property int index() {
       int result = -1;
       if (tparent) {
          result = tparent.tchildren.indexOf(this);
@@ -260,30 +236,27 @@ class TreeNode: DObject {
       return result;
    }
 
-
    /*
-      final @property bool isEditing() // getter
+      final @property bool isEditing()
       {
       }
     */
 
-
-
-   final @property bool isExpanded() { // getter
+   final @property bool isExpanded() {
       return isState(TVIS_EXPANDED);
    }
 
-   final @property bool isSelected() { // getter
+   final @property bool isSelected() {
       return isState(TVIS_SELECTED);
    }
 
    /*
-      final @property bool isVisible() // getter
+      final @property bool isVisible()
       {
       }
     */
 
-   final @property TreeNode lastNode() { // getter
+   final @property TreeNode lastNode() {
       if (tchildren.length) {
          return tchildren._nodes[tchildren.length - 1];
       }
@@ -291,7 +264,7 @@ class TreeNode: DObject {
    }
 
    // Next sibling node.
-   final @property TreeNode nextNode() { // getter
+   final @property TreeNode nextNode() {
       if (tparent) {
          int i;
          i = tparent.tchildren.indexOf(this);
@@ -307,28 +280,28 @@ class TreeNode: DObject {
 
    /*
 
-      final @property void nodeFont(Font f) // setter
+      final @property void nodeFont(Font f)
       {
       tfont = f;
       }
 
 
-      final @property Font nodeFont() // getter
+      final @property Font nodeFont()
       {
       return tfont;
       }
     */
 
-   final @property TreeNodeCollection nodes() { // getter
+   final @property TreeNodeCollection nodes() {
       return tchildren;
    }
 
-   final @property TreeNode parent() { // getter
+   final @property TreeNode parent() {
       return tparent;
    }
 
    // Previous sibling node.
-   final @property TreeNode prevNode() { // getter
+   final @property TreeNode prevNode() {
       if (tparent) {
          int i;
          i = tparent.tchildren.indexOf(this);
@@ -342,17 +315,15 @@ class TreeNode: DObject {
       return null;
    }
 
-   final @property void tag(Object o) { // setter
+   final @property void tag(Object o) {
       ttag = o;
    }
 
-
-   final @property Object tag() { // getter
+   final @property Object tag() {
       return ttag;
    }
 
-
-   final @property void text(Dstring newText) { // setter
+   final @property void text(Dstring newText) {
       ttext = newText;
 
       if (created) {
@@ -367,22 +338,22 @@ class TreeNode: DObject {
          m = Message(tview.handle, TVM_SETITEMA, 0, cast(LPARAM)&item);
           */
          if (dfl.internal.utf.useUnicode) {
-            item.pszText = cast(typeof(item.pszText))dfl.internal.utf.toUnicodez(ttext);
+            item.pszText = cast(typeof(item.pszText)) dfl.internal.utf.toUnicodez(ttext);
             m = Message(tview.handle, TVM_SETITEMW, 0, cast(LPARAM)&item);
          } else {
-            item.pszText = cast(typeof(item.pszText))dfl.internal.utf.unsafeAnsiz(ttext);
+            item.pszText = cast(typeof(item.pszText)) dfl.internal.utf.unsafeAnsiz(ttext);
             m = Message(tview.handle, TVM_SETITEMA, 0, cast(LPARAM)&item);
          }
          tview.prevWndProc(m);
       }
    }
 
-   final @property Dstring text() { // getter
+   final @property Dstring text() {
       return ttext;
    }
 
    // Get the TreeView control this node belongs to.
-   final @property TreeView treeView() { // getter
+   final @property TreeView treeView() {
       return tview;
    }
 
@@ -390,7 +361,7 @@ class TreeNode: DObject {
       if (created) {
          SetFocus(tview.hwnd); // Needs to have focus.
          HWND hwEdit;
-         hwEdit = cast(HWND)SendMessageA(tview.hwnd, TVM_EDITLABELA, 0, cast(LPARAM)hnode);
+         hwEdit = cast(HWND) SendMessageA(tview.hwnd, TVM_EDITLABELA, 0, cast(LPARAM) hnode);
          if (!hwEdit) {
             goto err_edit;
          }
@@ -399,7 +370,6 @@ class TreeNode: DObject {
          throw new DflException("Unable to edit TreeNode");
       }
    }
-
 
    /*
 
@@ -411,27 +381,27 @@ class TreeNode: DObject {
 
    final void ensureVisible() {
       if (created) {
-         SendMessageA(tview.hwnd, TVM_ENSUREVISIBLE, 0, cast(LPARAM)hnode);
+         SendMessageA(tview.hwnd, TVM_ENSUREVISIBLE, 0, cast(LPARAM) hnode);
       }
    }
 
    final void collapse() {
       if (created) {
-         SendMessageA(tview.hwnd, TVM_EXPAND, TVE_COLLAPSE, cast(LPARAM)hnode);
+         SendMessageA(tview.hwnd, TVM_EXPAND, TVE_COLLAPSE, cast(LPARAM) hnode);
       }
    }
 
    final void expand() {
       if (created) {
-         SendMessageA(tview.hwnd, TVM_EXPAND, TVE_EXPAND, cast(LPARAM)hnode);
+         SendMessageA(tview.hwnd, TVM_EXPAND, TVE_EXPAND, cast(LPARAM) hnode);
       }
    }
 
    final void expandAll() {
       if (created) {
-         SendMessageA(tview.hwnd, TVM_EXPAND, TVE_EXPAND, cast(LPARAM)hnode);
+         SendMessageA(tview.hwnd, TVM_EXPAND, TVE_EXPAND, cast(LPARAM) hnode);
 
-         foreach(TreeNode node; tchildren._nodes) {
+         foreach (TreeNode node; tchildren._nodes) {
             node.expandAll();
          }
       }
@@ -451,13 +421,13 @@ class TreeNode: DObject {
 
    final void toggle() {
       if (created) {
-         SendMessageA(tview.hwnd, TVM_EXPAND, TVE_TOGGLE, cast(LPARAM)hnode);
+         SendMessageA(tview.hwnd, TVM_EXPAND, TVE_TOGGLE, cast(LPARAM) hnode);
       }
    }
 
-   version(DFL_NO_IMAGELIST) {
+   version (DFL_NO_IMAGELIST) {
    } else {
-      final @property void imageIndex(int index) { // setter
+      final @property void imageIndex(int index) {
          this._imgidx = index;
 
          if (created) {
@@ -476,7 +446,7 @@ class TreeNode: DObject {
          }
       }
 
-      final @property int imageIndex() { // getter
+      final @property int imageIndex() {
          return _imgidx;
       }
    }
@@ -509,15 +479,14 @@ class TreeNode: DObject {
       return stringICmp(text, val);
    }
 
-
- private:
+private:
    Dstring ttext;
    TreeNode tparent;
    TreeNodeCollection tchildren;
    Object ttag;
    HTREEITEM hnode;
    TreeView tview;
-   version(DFL_NO_IMAGELIST) {
+   version (DFL_NO_IMAGELIST) {
    } else {
       int _imgidx = -1;
    }
@@ -526,7 +495,7 @@ class TreeNode: DObject {
       Font tfont;
     */
 
-   package final @property bool created() { // getter
+   package final @property bool created() {
       if (tview && tview.created()) {
          assert(hnode);
          return true;
@@ -555,8 +524,6 @@ class TreeNode: DObject {
       tparent = null;
    }
 }
-
-
 
 class TreeNodeCollection {
    void add(TreeNode node) {
@@ -587,52 +554,47 @@ class TreeNodeCollection {
       return add(new TreeNode(getObjectString(val))); // ?
    }
 
-
    void addRange(Object[] range) {
-      foreach(Object o; range) {
+      foreach (Object o; range) {
          add(o);
       }
    }
 
    void addRange(TreeNode[] range) {
-      foreach(TreeNode node; range) {
+      foreach (TreeNode node; range) {
          add(node);
       }
    }
 
    void addRange(Dstring[] range) {
-      foreach(Dstring s; range) {
+      foreach (Dstring s; range) {
          add(s);
       }
    }
-
 
    // Like clear but doesn't bother removing stuff from the lists.
    // Used when a parent is being removed and the children only
    // need to be reset.
    private void _reset() {
-      foreach(TreeNode node; _nodes) {
+      foreach (TreeNode node; _nodes) {
          node._reset();
       }
    }
 
-
    // Clear node handles when the TreeView window is destroyed so
    // that it can be reconstructed.
    private void _resetHandles() {
-      foreach(TreeNode node; _nodes) {
+      foreach (TreeNode node; _nodes) {
          node.tchildren._resetHandles();
          node.hnode = null;
       }
    }
 
-
- private:
+private:
 
    TreeView tview; // null if not assigned to a TreeView yet.
    TreeNode tparent; // null if root. The parent of -_nodes-.
    TreeNode[] _nodes;
-
 
    void verifyNoParent(TreeNode node) {
       if (node.tparent) {
@@ -640,32 +602,27 @@ class TreeNodeCollection {
       }
    }
 
-
    package this(TreeView treeView, TreeNode parentNode) {
       tview = treeView;
       tparent = parentNode;
    }
 
-
    package final void setTreeView(TreeView treeView) {
       tview = treeView;
-      foreach(TreeNode node; _nodes) {
+      foreach (TreeNode node; _nodes) {
          node.tchildren.setTreeView(treeView);
       }
    }
 
-
-   package final @property bool created() { // getter
+   package final @property bool created() {
       return tview && tview.created();
    }
 
-
    package void populateInsertChildNode(ref Message m, ref TV_ITEMA dest, TreeNode node) {
-      with(dest) {
+      with (dest) {
          mask = /* TVIF_CHILDREN | */ TVIF_PARAM | TVIF_TEXT;
-         version(DFL_NO_IMAGELIST) {
-         }
-         else {
+         version (DFL_NO_IMAGELIST) {
+         } else {
             mask |= TVIF_IMAGE | TVIF_SELECTEDIMAGE;
             iImage = node._imgidx;
             if (tview._selimgidx < 0) {
@@ -675,23 +632,22 @@ class TreeNodeCollection {
             }
          }
          /* cChildren = I_CHILDRENCALLBACK; */
-         lParam = cast(LPARAM)cast(void*)node;
+         lParam = cast(LPARAM) cast(void*) node;
          /*
             pszText = stringToStringz(node.text);
          //cchTextMax = node.text.length; // ?
           */
          if (dfl.internal.utf.useUnicode) {
-            pszText = cast(typeof(pszText))dfl.internal.utf.toUnicodez(node.text);
+            pszText = cast(typeof(pszText)) dfl.internal.utf.toUnicodez(node.text);
             m.hWnd = tview.handle;
             m.msg = TVM_INSERTITEMW;
          } else {
-            pszText = cast(typeof(pszText))dfl.internal.utf.unsafeAnsiz(node.text);
+            pszText = cast(typeof(pszText)) dfl.internal.utf.unsafeAnsiz(node.text);
             m.hWnd = tview.handle;
             m.msg = TVM_INSERTITEMA;
          }
       }
    }
-
 
    void doNodes()
    in {
@@ -706,7 +662,7 @@ class TreeNodeCollection {
       m.hWnd = tview.handle;
       m.wParam = 0;
 
-      foreach(TreeNode node; _nodes) {
+      foreach (TreeNode node; _nodes) {
          assert(!node.handle);
 
          tis.hParent = tparent ? tparent.handle : TVI_ROOT;
@@ -715,12 +671,11 @@ class TreeNodeCollection {
          m.lParam = cast(LPARAM)&tis;
          tview.prevWndProc(m);
          assert(m.result);
-         node.hnode = cast(HTREEITEM)m.result;
+         node.hnode = cast(HTREEITEM) m.result;
 
          node.tchildren.doNodes();
       }
    }
-
 
    void _added(size_t idx, TreeNode val) {
       verifyNoParent(val);
@@ -734,7 +689,7 @@ class TreeNodeCollection {
 
          if (idx <= 0) {
             tis.hInsertAfter = TVI_FIRST;
-         } else if (idx >= cast(int)_nodes.length) {
+         } else if (idx >= cast(int) _nodes.length) {
             tis.hInsertAfter = TVI_LAST;
          } else {
             tis.hInsertAfter = _nodes[idx - 1].handle;
@@ -751,7 +706,7 @@ class TreeNodeCollection {
          m.lParam = cast(LPARAM)&tis;
          tview.prevWndProc(m);
          assert(m.result);
-         val.hnode = cast(HTREEITEM)m.result;
+         val.hnode = cast(HTREEITEM) m.result;
 
          val.tchildren.doNodes();
 
@@ -760,7 +715,6 @@ class TreeNodeCollection {
          }
       }
    }
-
 
    void _removing(size_t idx, TreeNode val) {
       if (size_t.max == idx) { // Clearing all...
@@ -772,17 +726,17 @@ class TreeNodeCollection {
             m.msg = TVM_DELETEITEM;
             m.wParam = 0;
             if (tparent) {
-               foreach(TreeNode node; nodes) {
+               foreach (TreeNode node; nodes) {
                   assert(node.handle !is null);
-                  m.lParam = cast(LPARAM)node.handle;
+                  m.lParam = cast(LPARAM) node.handle;
                   tview.prevWndProc(m);
 
                   node._reset();
                }
             } else {
-               m.lParam = cast(LPARAM)TVI_ROOT;
+               m.lParam = cast(LPARAM) TVI_ROOT;
                tview.prevWndProc(m);
-               foreach(TreeNode node; nodes) {
+               foreach (TreeNode node; nodes) {
                   node._reset();
                }
             }
@@ -791,14 +745,13 @@ class TreeNodeCollection {
       }
    }
 
-
    void _removed(size_t idx, TreeNode val) {
       if (size_t.max == idx) { // Clear all.
       } else {
          if (created) {
             assert(val.hnode);
             Message m;
-            m = Message(tview.handle, TVM_DELETEITEM, 0, cast(LPARAM)val.hnode);
+            m = Message(tview.handle, TVM_DELETEITEM, 0, cast(LPARAM) val.hnode);
             tview.prevWndProc(m);
          }
 
@@ -807,18 +760,13 @@ class TreeNodeCollection {
       }
    }
 
+public:
 
- public:
-
-   mixin ListWrapArray!(TreeNode, _nodes,
-                        _blankListCallback!(TreeNode), _added,
-                        _removing, _removed,
-                        true, /*true*/ false, false) _wraparray;
+   mixin ListWrapArray!(TreeNode, _nodes, _blankListCallback!(TreeNode),
+      _added, _removing, _removed, true, /*true*/ false, false) _wraparray;
 }
 
-
-
-class TreeView: ControlSuperClass { // docmain
+class TreeView : ControlSuperClass {
    this() {
       _initTreeview();
 
@@ -830,7 +778,6 @@ class TreeView: ControlSuperClass { // docmain
       tchildren = new TreeNodeCollection(this, null);
    }
 
-
    /*
       ~this()
       {
@@ -839,63 +786,58 @@ class TreeView: ControlSuperClass { // docmain
       }
     */
 
-
-   static @property Color defaultBackColor() { // getter
+   static @property Color defaultBackColor() {
       return SystemColors.window;
    }
 
-
-   override @property Color backColor() { // getter
+   override @property Color backColor() {
       if (Color.empty == backc) {
          return defaultBackColor;
       }
       return backc;
    }
 
-
-   override @property void backColor(Color b) { // setter
+   override @property void backColor(Color b) {
       super.backColor = b;
 
       if (created) {
          // For some reason the left edge isn't showing the new color.
          // This causes the entire control to be redrawn with the new color.
          // Sets the same font.
-         prevwproc(WM_SETFONT, this.font ? cast(WPARAM)this.font.handle : 0, MAKELPARAM(TRUE, 0));
+         prevwproc(WM_SETFONT, this.font ? cast(WPARAM) this.font.handle : 0, MAKELPARAM(TRUE,
+            0));
       }
    }
 
-
-   static @property Color defaultForeColor() { //getter
+   static @property Color defaultForeColor() {
       return SystemColors.windowText;
    }
 
-
-   override @property Color foreColor() { // getter
+   override @property Color foreColor() {
       if (Color.empty == forec) {
          return defaultForeColor;
       }
       return forec;
    }
 
-   alias Control.foreColor foreColor; // Overload.
+   alias foreColor = Control.foreColor; // Overload.
 
-
-   final @property void borderStyle(BorderStyle bs) { // setter
+   final @property void borderStyle(BorderStyle bs) {
       final switch (bs) {
-         case BorderStyle.FIXED_3D:
-            _style(_style() & ~WS_BORDER);
-            _exStyle(_exStyle() | WS_EX_CLIENTEDGE);
-            break;
+      case BorderStyle.FIXED_3D:
+         _style(_style() & ~WS_BORDER);
+         _exStyle(_exStyle() | WS_EX_CLIENTEDGE);
+         break;
 
-         case BorderStyle.FIXED_SINGLE:
-            _exStyle(_exStyle() & ~WS_EX_CLIENTEDGE);
-            _style(_style() | WS_BORDER);
-            break;
+      case BorderStyle.FIXED_SINGLE:
+         _exStyle(_exStyle() & ~WS_EX_CLIENTEDGE);
+         _style(_style() | WS_BORDER);
+         break;
 
-         case BorderStyle.NONE:
-            _style(_style() & ~WS_BORDER);
-            _exStyle(_exStyle() & ~WS_EX_CLIENTEDGE);
-            break;
+      case BorderStyle.NONE:
+         _style(_style() & ~WS_BORDER);
+         _exStyle(_exStyle() & ~WS_EX_CLIENTEDGE);
+         break;
       }
 
       if (created) {
@@ -903,8 +845,7 @@ class TreeView: ControlSuperClass { // docmain
       }
    }
 
-
-   final @property BorderStyle borderStyle() { // getter
+   final @property BorderStyle borderStyle() {
       if (_exStyle() & WS_EX_CLIENTEDGE) {
          return BorderStyle.FIXED_3D;
       } else if (_style() & WS_BORDER) {
@@ -913,10 +854,9 @@ class TreeView: ControlSuperClass { // docmain
       return BorderStyle.NONE;
    }
 
-
    /*
 
-      final @property void checkBoxes(bool byes) // setter
+      final @property void checkBoxes(bool byes)
       {
       if(byes)
       _style(_style() | TVS_CHECKBOXES);
@@ -927,15 +867,13 @@ class TreeView: ControlSuperClass { // docmain
       }
 
 
-      final @property bool checkBoxes() // getter
+      final @property bool checkBoxes()
       {
       return (_style() & TVS_CHECKBOXES) != 0;
       }
     */
 
-
-
-   final @property void fullRowSelect(bool byes) { // setter
+   final @property void fullRowSelect(bool byes) {
       if (byes) {
          _style(_style() | TVS_FULLROWSELECT);
       } else {
@@ -945,14 +883,11 @@ class TreeView: ControlSuperClass { // docmain
       _crecreate(); // ?
    }
 
-
-   final @property bool fullRowSelect() { // getter
+   final @property bool fullRowSelect() {
       return (_style() & TVS_FULLROWSELECT) != 0;
    }
 
-
-
-   final @property void hideSelection(bool byes) { // setter
+   final @property void hideSelection(bool byes) {
       if (byes) {
          _style(_style() & ~TVS_SHOWSELALWAYS);
       } else {
@@ -960,16 +895,13 @@ class TreeView: ControlSuperClass { // docmain
       }
    }
 
-
-   final @property bool hideSelection() { // getter
+   final @property bool hideSelection() {
       return (_style() & TVS_SHOWSELALWAYS) == 0;
    }
 
+   deprecated alias hotTracking = hoverSelection;
 
-   deprecated alias hoverSelection hotTracking;
-
-
-   final @property void hoverSelection(bool byes) { // setter
+   final @property void hoverSelection(bool byes) {
       if (byes) {
          _style(_style() | TVS_TRACKSELECT);
       } else {
@@ -977,14 +909,11 @@ class TreeView: ControlSuperClass { // docmain
       }
    }
 
-
-   final @property bool hoverSelection() { // getter
+   final @property bool hoverSelection() {
       return (_style() & TVS_TRACKSELECT) != 0;
    }
 
-
-
-   final @property void indent(int newIndent) { // setter
+   final @property void indent(int newIndent) {
       if (newIndent < 0) {
          newIndent = 0;
       } else if (newIndent > 32_000) {
@@ -998,17 +927,14 @@ class TreeView: ControlSuperClass { // docmain
       }
    }
 
-
-   final @property int indent() { // getter
+   final @property int indent() {
       if (created) {
-         ind = cast(int)SendMessageA(hwnd, TVM_GETINDENT, 0, 0);
+         ind = cast(int) SendMessageA(hwnd, TVM_GETINDENT, 0, 0);
       }
       return ind;
    }
 
-
-
-   final @property void itemHeight(int h) { // setter
+   final @property void itemHeight(int h) {
       if (h < 0) {
          h = 0;
       }
@@ -1020,17 +946,14 @@ class TreeView: ControlSuperClass { // docmain
       }
    }
 
-
-   final @property int itemHeight() { // getter
+   final @property int itemHeight() {
       if (created) {
-         iheight = cast(int)SendMessageA(hwnd, TVM_GETITEMHEIGHT, 0, 0);
+         iheight = cast(int) SendMessageA(hwnd, TVM_GETITEMHEIGHT, 0, 0);
       }
       return iheight;
    }
 
-
-
-   final @property void labelEdit(bool byes) { // setter
+   final @property void labelEdit(bool byes) {
       if (byes) {
          _style(_style() | TVS_EDITLABELS);
       } else {
@@ -1038,30 +961,23 @@ class TreeView: ControlSuperClass { // docmain
       }
    }
 
-
-   final @property bool labelEdit() { // getter
+   final @property bool labelEdit() {
       return (_style() & TVS_EDITLABELS) != 0;
    }
 
-
-
-   final @property TreeNodeCollection nodes() { // getter
+   final @property TreeNodeCollection nodes() {
       return tchildren;
    }
 
-
-
-   final @property void pathSeparator(dchar sep) { // setter
+   final @property void pathSeparator(dchar sep) {
       pathsep = sep;
    }
 
-   final @property dchar pathSeparator() { // getter
+   final @property dchar pathSeparator() {
       return pathsep;
    }
 
-
-
-   final @property void scrollable(bool byes) { // setter
+   final @property void scrollable(bool byes) {
       if (byes) {
          _style(_style() & ~TVS_NOSCROLL);
       } else {
@@ -1073,16 +989,14 @@ class TreeView: ControlSuperClass { // docmain
       }
    }
 
-   final @property bool scrollable() { // getter
+   final @property bool scrollable() {
       return (_style & TVS_NOSCROLL) == 0;
    }
 
-
-
-   final @property void selectedNode(TreeNode node) { // setter
+   final @property void selectedNode(TreeNode node) {
       if (created) {
          if (node) {
-            SendMessageA(hwnd, TVM_SELECTITEM, TVGN_CARET, cast(LPARAM)node.handle);
+            SendMessageA(hwnd, TVM_SELECTITEM, TVGN_CARET, cast(LPARAM) node.handle);
          } else {
             // Should the selection be cleared if -node- is null?
             //SendMessageA(hwnd, TVM_SELECTITEM, TVGN_CARET, cast(LPARAM)null);
@@ -1090,11 +1004,10 @@ class TreeView: ControlSuperClass { // docmain
       }
    }
 
-
-   final @property TreeNode selectedNode() { // getter
+   final @property TreeNode selectedNode() {
       if (created) {
          HTREEITEM hnode;
-         hnode = cast(HTREEITEM)SendMessageA(hwnd, TVM_GETNEXTITEM, TVGN_CARET, cast(LPARAM)0);
+         hnode = cast(HTREEITEM) SendMessageA(hwnd, TVM_GETNEXTITEM, TVGN_CARET, cast(LPARAM) 0);
          if (hnode) {
             return treeNodeFromHandle(hnode);
          }
@@ -1102,9 +1015,7 @@ class TreeView: ControlSuperClass { // docmain
       return null;
    }
 
-
-
-   final @property void showLines(bool byes) { // setter
+   final @property void showLines(bool byes) {
       if (byes) {
          _style(_style() | TVS_HASLINES);
       } else {
@@ -1114,14 +1025,11 @@ class TreeView: ControlSuperClass { // docmain
       _crecreate(); // ?
    }
 
-
-   final @property bool showLines() { // getter
+   final @property bool showLines() {
       return (_style() & TVS_HASLINES) != 0;
    }
 
-
-
-   final @property void showPlusMinus(bool byes) { // setter
+   final @property void showPlusMinus(bool byes) {
       if (byes) {
          _style(_style() | TVS_HASBUTTONS);
       } else {
@@ -1131,15 +1039,12 @@ class TreeView: ControlSuperClass { // docmain
       _crecreate(); // ?
    }
 
-
-   final @property bool showPlusMinus() { // getter
+   final @property bool showPlusMinus() {
       return (_style() & TVS_HASBUTTONS) != 0;
    }
 
-
-
    // -showPlusMinus- should be false.
-   final @property void singleExpand(bool byes) { // setter
+   final @property void singleExpand(bool byes) {
       if (byes) {
          _style(_style() | TVS_SINGLEEXPAND);
       } else {
@@ -1149,14 +1054,11 @@ class TreeView: ControlSuperClass { // docmain
       _crecreate(); // ?
    }
 
-
-   final @property bool singleExpand() { // getter
+   final @property bool singleExpand() {
       return (_style & TVS_SINGLEEXPAND) != 0;
    }
 
-
-
-   final @property void showRootLines(bool byes) { // setter
+   final @property void showRootLines(bool byes) {
       if (byes) {
          _style(_style() | TVS_LINESATROOT);
       } else {
@@ -1166,30 +1068,24 @@ class TreeView: ControlSuperClass { // docmain
       _crecreate(); // ?
    }
 
-
-   final @property bool showRootLines() { // getter
+   final @property bool showRootLines() {
       return (_style() & TVS_LINESATROOT) != 0;
    }
 
-
-
-   final @property void sorted(bool byes) { // setter
+   final @property void sorted(bool byes) {
       _sort = byes;
    }
 
-
-   final @property bool sorted() { // getter
+   final @property bool sorted() {
       return _sort;
    }
 
-
-
    // First visible node, based on the scrolled position.
-   final @property TreeNode topNode() { // getter
+   final @property TreeNode topNode() {
       if (created) {
          HTREEITEM hnode;
-         hnode = cast(HTREEITEM)SendMessageA(hwnd, TVM_GETNEXTITEM,
-                                             TVGN_FIRSTVISIBLE, cast(LPARAM)0);
+         hnode = cast(HTREEITEM) SendMessageA(hwnd, TVM_GETNEXTITEM,
+            TVGN_FIRSTVISIBLE, cast(LPARAM) 0);
          if (hnode) {
             return treeNodeFromHandle(hnode);
          }
@@ -1197,61 +1093,48 @@ class TreeView: ControlSuperClass { // docmain
       return null;
    }
 
-
-
    // Number of visible nodes, including partially visible.
-   final @property int visibleCount() { // getter
+   final @property int visibleCount() {
       if (!created) {
          return 0;
       }
-      return cast(int)SendMessageA(hwnd, TVM_GETVISIBLECOUNT, 0, 0);
+      return cast(int) SendMessageA(hwnd, TVM_GETVISIBLECOUNT, 0, 0);
    }
-
-
 
    final void beginUpdate() {
       SendMessageA(handle, WM_SETREDRAW, false, 0);
    }
-
 
    final void endUpdate() {
       SendMessageA(handle, WM_SETREDRAW, true, 0);
       invalidate(true); // Show updates.
    }
 
-
-
    final void collapseAll() {
       if (created) {
          void collapsing(TreeNodeCollection tchildren) {
-            foreach(TreeNode node; tchildren._nodes) {
-               SendMessageA(hwnd, TVM_EXPAND, TVE_COLLAPSE, cast(LPARAM)node.hnode);
+            foreach (TreeNode node; tchildren._nodes) {
+               SendMessageA(hwnd, TVM_EXPAND, TVE_COLLAPSE, cast(LPARAM) node.hnode);
                collapsing(node.tchildren);
             }
          }
-
 
          collapsing(tchildren);
       }
    }
 
-
-
    final void expandAll() {
       if (created) {
          void expanding(TreeNodeCollection tchildren) {
-            foreach(TreeNode node; tchildren._nodes) {
-               SendMessageA(hwnd, TVM_EXPAND, TVE_EXPAND, cast(LPARAM)node.hnode);
+            foreach (TreeNode node; tchildren._nodes) {
+               SendMessageA(hwnd, TVM_EXPAND, TVE_EXPAND, cast(LPARAM) node.hnode);
                expanding(node.tchildren);
             }
          }
 
-
          expanding(tchildren);
       }
    }
-
-
 
    final TreeNode getNodeAt(int x, int y) {
       if (created) {
@@ -1259,7 +1142,7 @@ class TreeView: ControlSuperClass { // docmain
          HTREEITEM hti;
          thi.pt.x = x;
          thi.pt.y = y;
-         hti = cast(HTREEITEM)SendMessageA(hwnd, TVM_HITTEST, 0, cast(LPARAM)&thi);
+         hti = cast(HTREEITEM) SendMessageA(hwnd, TVM_HITTEST, 0, cast(LPARAM)&thi);
          if (hti) {
             TreeNode result;
             result = treeNodeFromHandle(hti);
@@ -1272,11 +1155,9 @@ class TreeView: ControlSuperClass { // docmain
       return null;
    }
 
-
    final TreeNode getNodeAt(Point pt) {
       return getNodeAt(pt.x, pt.y);
    }
-
 
    /*
 
@@ -1295,44 +1176,38 @@ class TreeView: ControlSuperClass { // docmain
    }
     */
 
+   version (DFL_NO_IMAGELIST) {
+   } else {
 
-   version(DFL_NO_IMAGELIST) {
-   }
-   else {
-
-      final @property void imageList(ImageList imglist) { // setter
+      final @property void imageList(ImageList imglist) {
          if (isHandleCreated) {
             prevwproc(TVM_SETIMAGELIST, TVSIL_NORMAL,
-                      cast(LPARAM)(imglist ? imglist.handle : cast(HIMAGELIST)null));
+               cast(LPARAM)(imglist ? imglist.handle : cast(HIMAGELIST) null));
          }
 
          _imglist = imglist;
       }
 
-
-      final @property ImageList imageList() { // getter
+      final @property ImageList imageList() {
          return _imglist;
       }
-
 
       /*
 
       // Default image index (if -1 use this).
-      final @property void imageIndex(int index) // setter
+      final @property void imageIndex(int index)
       {
       _defimgidx = index;
       }
 
 
-      final @property int imageIndex() // getter
+      final @property int imageIndex()
       {
       return _defimgidx;
       }
        */
 
-
-
-      final @property void selectedImageIndex(int index) { // setter
+      final @property void selectedImageIndex(int index) {
          //assert(index >= 0);
          assert(index >= -1);
          _selimgidx = index;
@@ -1346,17 +1221,14 @@ class TreeView: ControlSuperClass { // docmain
          }
       }
 
-
-      final @property int selectedImageIndex() { // getter
+      final @property int selectedImageIndex() {
          return _selimgidx;
       }
    }
 
-
-   protected override @property Size defaultSize() { // getter
+   protected override @property Size defaultSize() {
       return Size(120, 100);
    }
-
 
    /*
       override void createHandle()
@@ -1370,13 +1242,11 @@ class TreeView: ControlSuperClass { // docmain
       }
     */
 
-
    protected override void createParams(ref CreateParams cp) {
       super.createParams(cp);
 
       cp.className = TREEVIEW_CLASSNAME;
    }
-
 
    protected override void onHandleCreated(EventArgs ea) {
       super.onHandleCreated(ea);
@@ -1387,17 +1257,15 @@ class TreeView: ControlSuperClass { // docmain
 
       prevwproc(TVM_SETITEMHEIGHT, iheight, 0);
 
-      version(DFL_NO_IMAGELIST) {
-      }
-      else {
+      version (DFL_NO_IMAGELIST) {
+      } else {
          if (_imglist) {
-            prevwproc(TVM_SETIMAGELIST, TVSIL_NORMAL, cast(LPARAM)_imglist.handle);
+            prevwproc(TVM_SETIMAGELIST, TVSIL_NORMAL, cast(LPARAM) _imglist.handle);
          }
       }
 
       tchildren.doNodes();
    }
-
 
    protected override void onHandleDestroyed(EventArgs ea) {
       tchildren._resetHandles();
@@ -1405,40 +1273,38 @@ class TreeView: ControlSuperClass { // docmain
       super.onHandleDestroyed(ea);
    }
 
-
    protected override void wndProc(ref Message m) {
       // TODO: support these messages.
       switch (m.msg) {
-         case TVM_INSERTITEMA:
-         case TVM_INSERTITEMW:
-            m.result = cast(LRESULT)0;
-            return;
+      case TVM_INSERTITEMA:
+      case TVM_INSERTITEMW:
+         m.result = cast(LRESULT) 0;
+         return;
 
-         case TVM_SETITEMA:
-         case TVM_SETITEMW:
-            m.result = cast(LRESULT) - 1;
-            return;
+      case TVM_SETITEMA:
+      case TVM_SETITEMW:
+         m.result = cast(LRESULT)-1;
+         return;
 
-         case TVM_DELETEITEM:
-            m.result = FALSE;
-            return;
+      case TVM_DELETEITEM:
+         m.result = FALSE;
+         return;
 
-         case TVM_SETIMAGELIST:
-            m.result = cast(LRESULT)0;
-            return;
+      case TVM_SETIMAGELIST:
+         m.result = cast(LRESULT) 0;
+         return;
 
-         default:
+      default:
       }
 
       super.wndProc(m);
    }
 
-
    protected override void prevWndProc(ref Message msg) {
       //msg.result = CallWindowProcA(treeviewPrevWndProc, msg.hWnd, msg.msg, msg.wParam, msg.lParam);
-      msg.result = dfl.internal.utf.callWindowProc(treeviewPrevWndProc, msg.hWnd, msg.msg, msg.wParam, msg.lParam);
+      msg.result = dfl.internal.utf.callWindowProc(treeviewPrevWndProc,
+         msg.hWnd, msg.msg, msg.wParam, msg.lParam);
    }
-
 
    //TreeViewEventHandler afterCollapse;
    Event!(TreeView, TreeViewEventArgs) afterCollapse;
@@ -1457,333 +1323,311 @@ class TreeView: ControlSuperClass { // docmain
    //NodeLabelEditEventHandler beforeLabelEdit;
    Event!(TreeView, NodeLabelEditEventArgs) beforeLabelEdit;
 
-
-
    protected void onAfterCollapse(TreeViewEventArgs ea) {
       afterCollapse(this, ea);
    }
-
-
 
    protected void onAfterExpand(TreeViewEventArgs ea) {
       afterExpand(this, ea);
    }
 
-
-
    protected void onAfterSelect(TreeViewEventArgs ea) {
       afterSelect(this, ea);
    }
-
-
 
    protected void onAfterLabelEdit(NodeLabelEditEventArgs ea) {
       afterLabelEdit(this, ea);
    }
 
-
-
    protected void onBeforeCollapse(TreeViewCancelEventArgs ea) {
       beforeCollapse(this, ea);
    }
-
-
 
    protected void onBeforeExpand(TreeViewCancelEventArgs ea) {
       beforeExpand(this, ea);
    }
 
-
-
    protected void onBeforeSelect(TreeViewCancelEventArgs ea) {
       beforeSelect(this, ea);
    }
-
-
 
    protected void onBeforeLabelEdit(NodeLabelEditEventArgs ea) {
       beforeLabelEdit(this, ea);
    }
 
-
    protected override void onReflectedMessage(ref Message m) { // package
       super.onReflectedMessage(m);
 
       switch (m.msg) {
-         case WM_NOTIFY: {
-               NMHDR* nmh;
-               NM_TREEVIEW* nmtv;
-               TreeViewCancelEventArgs cea;
+      case WM_NOTIFY: {
+            NMHDR* nmh;
+            NM_TREEVIEW* nmtv;
+            TreeViewCancelEventArgs cea;
 
-               nmh = cast(NMHDR*)m.lParam;
-               assert(nmh.hwndFrom == hwnd);
+            nmh = cast(NMHDR*) m.lParam;
+            assert(nmh.hwndFrom == hwnd);
 
-               switch (nmh.code) {
-                  case NM_CUSTOMDRAW: {
-                        NMTVCUSTOMDRAW* tvcd;
-                        tvcd = cast(NMTVCUSTOMDRAW*)nmh;
-                        //if(tvcd.nmcd.dwDrawStage & CDDS_ITEM)
-                        {
-                           //if(tvcd.nmcd.uItemState & CDIS_SELECTED)
-                           if ((tvcd.nmcd.dwDrawStage & CDDS_ITEM)
-                                 && (tvcd.nmcd.uItemState & CDIS_SELECTED)) {
-                              // Note: might not look good with custom colors.
-                              tvcd.clrText = SystemColors.highlightText.toRgb();
-                              tvcd.clrTextBk = SystemColors.highlight.toRgb();
-                           } else {
-                              //tvcd.clrText = foreColor.toRgb();
-                              tvcd.clrText = foreColor.solidColor(backColor).toRgb();
-                              tvcd.clrTextBk = backColor.toRgb();
-                           }
-                        }
-                        m.result |= CDRF_NOTIFYITEMDRAW; // | CDRF_NOTIFYITEMERASE;
-
-                        // This doesn't seem to be doing anything.
-                        Font fon;
-                        fon = this.font;
-                        if (fon) {
-                           SelectObject(tvcd.nmcd.hdc, fon.handle);
-                           m.result |= CDRF_NEWFONT;
-                        }
+            switch (nmh.code) {
+            case NM_CUSTOMDRAW: {
+                  NMTVCUSTOMDRAW* tvcd;
+                  tvcd = cast(NMTVCUSTOMDRAW*) nmh;
+                  //if(tvcd.nmcd.dwDrawStage & CDDS_ITEM)
+                  {
+                     //if(tvcd.nmcd.uItemState & CDIS_SELECTED)
+                     if ((tvcd.nmcd.dwDrawStage & CDDS_ITEM)
+                           && (tvcd.nmcd.uItemState & CDIS_SELECTED)) {
+                        // Note: might not look good with custom colors.
+                        tvcd.clrText = SystemColors.highlightText.toRgb();
+                        tvcd.clrTextBk = SystemColors.highlight.toRgb();
+                     } else {
+                        //tvcd.clrText = foreColor.toRgb();
+                        tvcd.clrText = foreColor.solidColor(backColor).toRgb();
+                        tvcd.clrTextBk = backColor.toRgb();
                      }
-                     break;
+                  }
+                  m.result |= CDRF_NOTIFYITEMDRAW; // | CDRF_NOTIFYITEMERASE;
 
-                  /*
+                  // This doesn't seem to be doing anything.
+                  Font fon;
+                  fon = this.font;
+                  if (fon) {
+                     SelectObject(tvcd.nmcd.hdc, fon.handle);
+                     m.result |= CDRF_NEWFONT;
+                  }
+               }
+               break;
+
+               /*
                      case TVN_GETDISPINFOA:
 
                      break;
                    */
 
-                  case TVN_SELCHANGINGW:
-                     goto sel_changing;
+            case TVN_SELCHANGINGW:
+               goto sel_changing;
 
-                  case TVN_SELCHANGINGA:
-                     if (dfl.internal.utf.useUnicode) {
-                        break;
-                     }
-                  sel_changing:
-
-                     nmtv = cast(NM_TREEVIEW*)nmh;
-                     switch (nmtv.action) {
-                        case TVC_BYMOUSE:
-                           cea = new TreeViewCancelEventArgs(cast(TreeNode)cast(void*)nmtv.itemNew.lParam,
-                                                             false, TreeViewAction.BY_MOUSE);
-                           onBeforeSelect(cea);
-                           m.result = cea.cancel;
-                           break;
-
-                        case TVC_BYKEYBOARD:
-                           cea = new TreeViewCancelEventArgs(cast(TreeNode)cast(void*)nmtv.itemNew.lParam,
-                                                             false, TreeViewAction.BY_KEYBOARD);
-                           onBeforeSelect(cea);
-                           m.result = cea.cancel;
-                           break;
-
-                        //case TVC_UNKNOWN:
-                        default:
-                           cea = new TreeViewCancelEventArgs(cast(TreeNode)cast(void*)nmtv.itemNew.lParam,
-                                                             false, TreeViewAction.UNKNOWN);
-                           onBeforeSelect(cea);
-                           m.result = cea.cancel;
-                     }
-                     break;
-
-                  case TVN_SELCHANGEDW:
-                     goto sel_changed;
-
-                  case TVN_SELCHANGEDA:
-                     if (dfl.internal.utf.useUnicode) {
-                        break;
-                     }
-                  sel_changed:
-
-                     nmtv = cast(NM_TREEVIEW*)nmh;
-                     switch (nmtv.action) {
-                        case TVC_BYMOUSE:
-                           onAfterSelect(new TreeViewEventArgs(cast(TreeNode)cast(void*)nmtv.itemNew.lParam,
-                                                               TreeViewAction.BY_MOUSE));
-                           break;
-
-                        case TVC_BYKEYBOARD:
-                           onAfterSelect(new TreeViewEventArgs(cast(TreeNode)cast(void*)nmtv.itemNew.lParam,
-                                                               TreeViewAction.BY_KEYBOARD));
-                           break;
-
-                        //case TVC_UNKNOWN:
-                        default:
-                           onAfterSelect(new TreeViewEventArgs(cast(TreeNode)cast(void*)nmtv.itemNew.lParam,
-                                                               TreeViewAction.UNKNOWN));
-                     }
-                     break;
-
-                  case TVN_ITEMEXPANDINGW:
-                     goto item_expanding;
-
-                  case TVN_ITEMEXPANDINGA:
-                     if (dfl.internal.utf.useUnicode) {
-                        break;
-                     }
-                  item_expanding:
-
-                     nmtv = cast(NM_TREEVIEW*)nmh;
-                     switch (nmtv.action) {
-                        case TVE_COLLAPSE:
-                           cea = new TreeViewCancelEventArgs(cast(TreeNode)cast(void*)nmtv.itemNew.lParam,
-                                                             false, TreeViewAction.COLLAPSE);
-                           onBeforeCollapse(cea);
-                           m.result = cea.cancel;
-                           break;
-
-                        case TVE_EXPAND:
-                           cea = new TreeViewCancelEventArgs(cast(TreeNode)cast(void*)nmtv.itemNew.lParam,
-                                                             false, TreeViewAction.EXPAND);
-                           onBeforeExpand(cea);
-                           m.result = cea.cancel;
-                           break;
-
-                        default:
-                     }
-                     break;
-
-                  case TVN_ITEMEXPANDEDW:
-                     goto item_expanded;
-
-                  case TVN_ITEMEXPANDEDA:
-                     if (dfl.internal.utf.useUnicode) {
-                        break;
-                     }
-                  item_expanded:
-
-                     nmtv = cast(NM_TREEVIEW*)nmh;
-                     switch (nmtv.action) {
-                        case TVE_COLLAPSE: {
-                              scope TreeViewEventArgs tvea = new TreeViewEventArgs(
-                                 cast(TreeNode)cast(void*)nmtv.itemNew.lParam,
-                                 TreeViewAction.COLLAPSE);
-                              onAfterCollapse(tvea);
-                           }
-                           break;
-
-                        case TVE_EXPAND: {
-                              scope TreeViewEventArgs tvea = new TreeViewEventArgs(
-                                 cast(TreeNode)cast(void*)nmtv.itemNew.lParam,
-                                 TreeViewAction.EXPAND);
-                              onAfterExpand(tvea);
-                           }
-                           break;
-
-                        default:
-                     }
-                     break;
-
-                  case TVN_BEGINLABELEDITW:
-                     goto begin_label_edit;
-
-                  case TVN_BEGINLABELEDITA:
-                     if (dfl.internal.utf.useUnicode) {
-                        break;
-                     }
-                  begin_label_edit:
-
-                     {
-                        TV_DISPINFOA* nmdi;
-                        nmdi = cast(TV_DISPINFOA*)nmh;
-                        TreeNode node;
-                        node = cast(TreeNode)cast(void*)nmdi.item.lParam;
-                        scope NodeLabelEditEventArgs nleea = new NodeLabelEditEventArgs(node);
-                        onBeforeLabelEdit(nleea);
-                        m.result = nleea.cancelEdit;
-                     }
-                     break;
-
-                  case TVN_ENDLABELEDITW: {
-                        Dstring label;
-                        TV_DISPINFOW* nmdi;
-                        nmdi = cast(TV_DISPINFOW*)nmh;
-                        if (nmdi.item.pszText) {
-                           TreeNode node;
-                           node = cast(TreeNode)cast(void*)nmdi.item.lParam;
-                           label = fromUnicodez(nmdi.item.pszText);
-                           scope NodeLabelEditEventArgs nleea = new NodeLabelEditEventArgs(node, label);
-                           onAfterLabelEdit(nleea);
-                           if (nleea.cancelEdit) {
-                              m.result = FALSE;
-                           } else {
-                              // TODO: check if correct implementation.
-                              // Update the node's cached text..
-                              node.ttext = label;
-
-                              m.result = TRUE;
-                           }
-                        }
-                     }
-                     break;
-
-                  case TVN_ENDLABELEDITA:
-                     if (dfl.internal.utf.useUnicode) {
-                        break;
-                     } else {
-                        Dstring label;
-                        TV_DISPINFOA* nmdi;
-                        nmdi = cast(TV_DISPINFOA*)nmh;
-                        if (nmdi.item.pszText) {
-                           TreeNode node;
-                           node = cast(TreeNode)cast(void*)nmdi.item.lParam;
-                           label = fromAnsiz(nmdi.item.pszText);
-                           scope NodeLabelEditEventArgs nleea = new NodeLabelEditEventArgs(node, label);
-                           onAfterLabelEdit(nleea);
-                           if (nleea.cancelEdit) {
-                              m.result = FALSE;
-                           } else {
-                              // TODO: check if correct implementation.
-                              // Update the node's cached text..
-                              node.ttext = label;
-
-                              m.result = TRUE;
-                           }
-                        }
-                        break;
-                     }
-
-                  default:
+            case TVN_SELCHANGINGA:
+               if (dfl.internal.utf.useUnicode) {
+                  break;
                }
-            }
-            break;
+            sel_changing:
 
-         default:
+               nmtv = cast(NM_TREEVIEW*) nmh;
+               switch (nmtv.action) {
+               case TVC_BYMOUSE:
+                  cea = new TreeViewCancelEventArgs(cast(TreeNode) cast(void*) nmtv.itemNew.lParam,
+                     false, TreeViewAction.BY_MOUSE);
+                  onBeforeSelect(cea);
+                  m.result = cea.cancel;
+                  break;
+
+               case TVC_BYKEYBOARD:
+                  cea = new TreeViewCancelEventArgs(cast(TreeNode) cast(void*) nmtv.itemNew.lParam,
+                     false, TreeViewAction.BY_KEYBOARD);
+                  onBeforeSelect(cea);
+                  m.result = cea.cancel;
+                  break;
+
+                  //case TVC_UNKNOWN:
+               default:
+                  cea = new TreeViewCancelEventArgs(cast(TreeNode) cast(void*) nmtv.itemNew.lParam,
+                     false, TreeViewAction.UNKNOWN);
+                  onBeforeSelect(cea);
+                  m.result = cea.cancel;
+               }
+               break;
+
+            case TVN_SELCHANGEDW:
+               goto sel_changed;
+
+            case TVN_SELCHANGEDA:
+               if (dfl.internal.utf.useUnicode) {
+                  break;
+               }
+            sel_changed:
+
+               nmtv = cast(NM_TREEVIEW*) nmh;
+               switch (nmtv.action) {
+               case TVC_BYMOUSE:
+                  onAfterSelect(new TreeViewEventArgs(cast(TreeNode) cast(void*) nmtv.itemNew.lParam,
+                     TreeViewAction.BY_MOUSE));
+                  break;
+
+               case TVC_BYKEYBOARD:
+                  onAfterSelect(new TreeViewEventArgs(cast(TreeNode) cast(void*) nmtv.itemNew.lParam,
+                     TreeViewAction.BY_KEYBOARD));
+                  break;
+
+                  //case TVC_UNKNOWN:
+               default:
+                  onAfterSelect(new TreeViewEventArgs(cast(TreeNode) cast(void*) nmtv.itemNew.lParam,
+                     TreeViewAction.UNKNOWN));
+               }
+               break;
+
+            case TVN_ITEMEXPANDINGW:
+               goto item_expanding;
+
+            case TVN_ITEMEXPANDINGA:
+               if (dfl.internal.utf.useUnicode) {
+                  break;
+               }
+            item_expanding:
+
+               nmtv = cast(NM_TREEVIEW*) nmh;
+               switch (nmtv.action) {
+               case TVE_COLLAPSE:
+                  cea = new TreeViewCancelEventArgs(cast(TreeNode) cast(void*) nmtv.itemNew.lParam,
+                     false, TreeViewAction.COLLAPSE);
+                  onBeforeCollapse(cea);
+                  m.result = cea.cancel;
+                  break;
+
+               case TVE_EXPAND:
+                  cea = new TreeViewCancelEventArgs(cast(TreeNode) cast(void*) nmtv.itemNew.lParam,
+                     false, TreeViewAction.EXPAND);
+                  onBeforeExpand(cea);
+                  m.result = cea.cancel;
+                  break;
+
+               default:
+               }
+               break;
+
+            case TVN_ITEMEXPANDEDW:
+               goto item_expanded;
+
+            case TVN_ITEMEXPANDEDA:
+               if (dfl.internal.utf.useUnicode) {
+                  break;
+               }
+            item_expanded:
+
+               nmtv = cast(NM_TREEVIEW*) nmh;
+               switch (nmtv.action) {
+               case TVE_COLLAPSE: {
+                     scope TreeViewEventArgs tvea = new TreeViewEventArgs(
+                        cast(TreeNode) cast(void*) nmtv.itemNew.lParam, TreeViewAction.COLLAPSE);
+                     onAfterCollapse(tvea);
+                  }
+                  break;
+
+               case TVE_EXPAND: {
+                     scope TreeViewEventArgs tvea = new TreeViewEventArgs(
+                        cast(TreeNode) cast(void*) nmtv.itemNew.lParam, TreeViewAction.EXPAND);
+                     onAfterExpand(tvea);
+                  }
+                  break;
+
+               default:
+               }
+               break;
+
+            case TVN_BEGINLABELEDITW:
+               goto begin_label_edit;
+
+            case TVN_BEGINLABELEDITA:
+               if (dfl.internal.utf.useUnicode) {
+                  break;
+               }
+            begin_label_edit: {
+                  TV_DISPINFOA* nmdi;
+                  nmdi = cast(TV_DISPINFOA*) nmh;
+                  TreeNode node;
+                  node = cast(TreeNode) cast(void*) nmdi.item.lParam;
+                  scope NodeLabelEditEventArgs nleea = new NodeLabelEditEventArgs(node);
+                  onBeforeLabelEdit(nleea);
+                  m.result = nleea.cancelEdit;
+               }
+               break;
+
+            case TVN_ENDLABELEDITW: {
+                  Dstring label;
+                  TV_DISPINFOW* nmdi;
+                  nmdi = cast(TV_DISPINFOW*) nmh;
+                  if (nmdi.item.pszText) {
+                     TreeNode node;
+                     node = cast(TreeNode) cast(void*) nmdi.item.lParam;
+                     label = fromUnicodez(nmdi.item.pszText);
+                     scope NodeLabelEditEventArgs nleea = new NodeLabelEditEventArgs(node,
+                        label);
+                     onAfterLabelEdit(nleea);
+                     if (nleea.cancelEdit) {
+                        m.result = FALSE;
+                     } else {
+                        // TODO: check if correct implementation.
+                        // Update the node's cached text..
+                        node.ttext = label;
+
+                        m.result = TRUE;
+                     }
+                  }
+               }
+               break;
+
+            case TVN_ENDLABELEDITA:
+               if (dfl.internal.utf.useUnicode) {
+                  break;
+               } else {
+                  Dstring label;
+                  TV_DISPINFOA* nmdi;
+                  nmdi = cast(TV_DISPINFOA*) nmh;
+                  if (nmdi.item.pszText) {
+                     TreeNode node;
+                     node = cast(TreeNode) cast(void*) nmdi.item.lParam;
+                     label = fromAnsiz(nmdi.item.pszText);
+                     scope NodeLabelEditEventArgs nleea = new NodeLabelEditEventArgs(node,
+                        label);
+                     onAfterLabelEdit(nleea);
+                     if (nleea.cancelEdit) {
+                        m.result = FALSE;
+                     } else {
+                        // TODO: check if correct implementation.
+                        // Update the node's cached text..
+                        node.ttext = label;
+
+                        m.result = TRUE;
+                     }
+                  }
+                  break;
+               }
+
+            default:
+            }
+         }
+         break;
+
+      default:
       }
    }
 
-
- private:
+private:
    TreeNodeCollection tchildren;
    int ind = 19; // Indent.
    dchar pathsep = '\\';
    bool _sort = false;
    int iheight = 16;
-   version(DFL_NO_IMAGELIST) {
-   }
-   else {
+   version (DFL_NO_IMAGELIST) {
+   } else {
       ImageList _imglist;
       int _selimgidx = -1; //0;
    }
-
 
    TreeNode treeNodeFromHandle(HTREEITEM hnode) {
       TV_ITEMA ti;
       ti.mask = TVIF_HANDLE | TVIF_PARAM;
       ti.hItem = hnode;
       if (SendMessageA(hwnd, TVM_GETITEMA, 0, cast(LPARAM)&ti)) {
-         return cast(TreeNode)cast(void*)ti.lParam;
+         return cast(TreeNode) cast(void*) ti.lParam;
       }
       return null;
    }
 
- package:
- final:
+package:
+final:
    LRESULT prevwproc(UINT msg, WPARAM wparam, LPARAM lparam) {
       //return CallWindowProcA(treeviewPrevWndProc, hwnd, msg, wparam, lparam);
-      return dfl.internal.utf.callWindowProc(treeviewPrevWndProc, hwnd, msg, wparam, lparam);
+      return dfl.internal.utf.callWindowProc(treeviewPrevWndProc, hwnd, msg, wparam,
+         lparam);
    }
 }
-

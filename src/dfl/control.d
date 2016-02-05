@@ -6,7 +6,6 @@ import core.memory;
 import core.sys.windows.windows;
 import core.sys.windows.objidl;
 import core.sys.windows.commctrl;
-
 import core.stdc.stdlib;
 
 import dfl.application;
@@ -24,8 +23,6 @@ import dfl.internal.winapi: SetWindowTheme;
 
 //fix  from application: remve
 enum UINT WNDCLASS_STYLE = 0x0008;
-// FIX:
-version=NO_DRAG_DROP;
 
 version (NO_DRAG_DROP) version = DFL_NO_DRAG_DROP;
 

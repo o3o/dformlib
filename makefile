@@ -10,33 +10,58 @@ PROJECT_VERSION = 0.1.0
 #SRC += src/dfl/internal/d1.d
 #SRC += src/dfl/internal/wincom.d ?
 
+SRC += src/dfl/application.d
+SRC += src/dfl/base.d
+SRC += src/dfl/button.d
+SRC += src/dfl/clipboard.d
+SRC += src/dfl/collections.d
+SRC += src/dfl/colordialog.d
+SRC += src/dfl/combobox.d
+SRC += src/dfl/commondialog.d
+SRC += src/dfl/control.d
+SRC += src/dfl/data.d
+SRC += src/dfl/drawing.d
+SRC += src/dfl/environment.d
+SRC += src/dfl/event.d
+SRC += src/dfl/exception.d
+SRC += src/dfl/filedialog.d
+SRC += src/dfl/folderdialog.d
+SRC += src/dfl/fontdialog.d
+SRC += src/dfl/form.d
 SRC += src/dfl/internal/clib.d
 SRC += src/dfl/internal/com.d
 SRC += src/dfl/internal/d2.d
 SRC += src/dfl/internal/dlib.d
 SRC += src/dfl/internal/utf.d
 SRC += src/dfl/internal/winapi.d
-
-SRC += src/dfl/exception.d
-SRC += src/dfl/event.d
-SRC += src/dfl/drawing.d
-SRC += src/dfl/base.d
-SRC += src/dfl/collections.d
-SRC += src/dfl/control.d
-SRC += src/dfl/data.d
-SRC += src/dfl/application.d
-SRC += src/dfl/menu.d
-SRC += src/dfl/form.d
 SRC += src/dfl/label.d
-SRC += src/dfl/button.d
+SRC += src/dfl/listbox.d
+SRC += src/dfl/menu.d
 SRC += src/dfl/textbox.d
-SRC += src/dfl/environment.d
 SRC += src/dfl/timer.d
-SRC += src/dfl/commondialog.d
-SRC += src/dfl/filedialog.d
-SRC += src/dfl/colordialog.d
-SRC += src/dfl/fontdialog.d
-SRC += src/dfl/folderdialog.d
+
+SRC += src/dfl/groupbox.d
+SRC += src/dfl/imagelist.d
+SRC += src/dfl/listview.d
+SRC += src/dfl/messagebox.d
+# SRC += src/dfl/notifyicon.d
+# SRC += src/dfl/package.d
+SRC += src/dfl/panel.d
+# SRC += src/dfl/picturebox.d
+# SRC += src/dfl/progressbar.d
+# SRC += src/dfl/registry.d
+# SRC += src/dfl/resources.d
+SRC += src/dfl/richtextbox.d
+# SRC += src/dfl/socket.d
+# SRC += src/dfl/splitter.d
+# SRC += src/dfl/statusbar.d
+SRC += src/dfl/tabcontrol.d
+SRC += src/dfl/textbox.d
+SRC += src/dfl/toolbar.d
+SRC += src/dfl/tooltip.d
+SRC += src/dfl/treeview.d
+#SRC += src/dfl/usercontrol.d
+
 
 D_DIR = 
 ROOT_SOURCE_DIR = src
@@ -78,7 +103,7 @@ DCFLAGS_TEST += -unittest
 # Version flag
 # -----------
 #VERSION_FLAG += -version=StdLoggerDisableLogging
-#VERSION_FLAG += -version=use_gtk
+VERSION_FLAG += -version=NO_DRAG_DROP
 
 # Packages
 # -----------

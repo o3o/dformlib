@@ -1,60 +1,121 @@
 // Written by Christopher E. Miller
 // See the included license.txt for copyright and license details.
 
-
-
 module dfl.richtextbox;
+import core.sys.windows.windows;
+import core.sys.windows.windef;
+import core.sys.windows.richedit;
 
-private import dfl.textbox, dfl.internal.winapi, dfl.event, dfl.application;
-private import dfl.base, dfl.drawing, dfl.data;
-private import dfl.control, dfl.internal.utf, dfl.internal.dlib;
+import dfl.application;
+import dfl.base;
+import dfl.control;
+import dfl.data;
+import dfl.drawing;
+import dfl.event;
+import dfl.exception;
+import dfl.internal.dlib;
+import dfl.internal.utf;
+import dfl.textbox;
 
-version(DFL_NO_MENUS) {
-}
-else {
+version (DFL_NO_MENUS) {
+} else {
    private import dfl.menu;
 }
 
+private extern (C) char* strcpy(char*, char*);
 
-private extern(C) char* strcpy(char*, char*);
+private extern (Windows) void _initRichtextbox();
 
-
-private extern(Windows) void _initRichtextbox();
-
-
-
-class LinkClickedEventArgs: EventArgs {
+class LinkClickedEventArgs : EventArgs {
 
    this(Dstring linkText) {
       _linktxt = linkText;
    }
 
-
-
-   final @property Dstring linkText() { // getter
+   final @property Dstring linkText() {
       return _linktxt;
    }
 
-
- private:
+private:
    Dstring _linktxt;
 }
+// rom winapi
+enum: UINT {
+   SF_TEXT = 0x0001,
+   SF_RTF = 0x0002,
+   SF_RTFNOOBJS = 0x0003,
+   SF_TEXTIZED = 0x0004,
 
+   SFF_SELECTION = 0x8000,
+   SFF_PLAINRTF = 0x4000,
 
+   SCF_SELECTION = 0x0001,
+   SCF_WORD = 0x0002,
+   SCF_ALL = 0x0004,
 
-enum RichTextBoxScrollBars: ubyte {
-   NONE, ///
-   HORIZONTAL, /// ditto
-   VERTICAL, /// ditto
-   BOTH, /// ditto
-   FORCED_HORIZONTAL, /// ditto
-   FORCED_VERTICAL, /// ditto
-   FORCED_BOTH, /// ditto
+   CFM_BOLD = 0x00000001,
+   CFM_ITALIC = 0x00000002,
+   CFM_UNDERLINE = 0x00000004,
+   CFM_STRIKEOUT = 0x00000008,
+   CFM_PROTECTED = 0x00000010,
+   CFM_LINK = 0x00000020,
+   CFM_SIZE = 0x80000000,
+   CFM_COLOR = 0x40000000,
+   CFM_FACE = 0x20000000,
+   CFM_OFFSET = 0x10000000,
+   CFM_CHARSET = 0x08000000,
+   CFM_SMALLCAPS = 0x0040,
+   CFM_ALLCAPS = 0x0080,
+   CFM_HIDDEN = 0x0100,
+   CFM_OUTLINE = 0x0200,
+   CFM_SHADOW = 0x0400,
+   CFM_EMBOSS = 0x0800,
+   CFM_IMPRINT = 0x1000,
+   CFM_DISABLED = 0x2000,
+   CFM_REVISED = 0x4000,
+   CFM_BACKCOLOR = 0x04000000,
+   CFM_LCID = 0x02000000,
+   CFM_UNDERLINETYPE = 0x00800000,
+   CFM_WEIGHT = 0x00400000,
+   CFM_SPACING = 0x00200000,
+   CFM_KERNING = 0x00100000,
+   CFM_STYLE = 0x00080000,
+   CFM_ANIMATION = 0x00040000,
+   CFM_REVAUTHOR = 0x00008000,
+
+   CFE_BOLD = 0x0001,
+   CFE_ITALIC = 0x0002,
+   CFE_UNDERLINE = 0x0004,
+   CFE_STRIKEOUT = 0x0008,
+   CFE_PROTECTED = 0x0010,
+   CFE_LINK = 0x0020,
+   CFE_AUTOCOLOR = 0x40000000,
+   CFE_AUTOBACKCOLOR = CFM_BACKCOLOR,
+   CFE_SUBSCRIPT = 0x00010000,
+   CFE_SUPERSCRIPT = 0x00020000,
+
+   CFM_SUBSCRIPT = CFE_SUBSCRIPT | CFE_SUPERSCRIPT,
+   CFM_SUPERSCRIPT = CFM_SUBSCRIPT,
+
+   CFU_UNDERLINE = 1,
+
+   ENM_NONE = 0x00000000,
+   ENM_CHANGE = 0x00000001,
+   ENM_UPDATE = 0x00000002,
+   ENM_LINK = 0x04000000,
+   ENM_PROTECTED = 0x00200000,
+}
+enum RichTextBoxScrollBars : ubyte {
+   NONE,
+   HORIZONTAL,
+   VERTICAL,
+   BOTH,
+   FORCED_HORIZONTAL,
+   FORCED_VERTICAL,
+   FORCED_BOTH,
 }
 
-
-
-class RichTextBox: TextBoxBase { // docmain
+class RichTextBox : TextBoxBase {
    this() {
       super();
 
@@ -64,10 +125,9 @@ class RichTextBox: TextBoxBase { // docmain
       wcurs = null; // So that the control can change it accordingly.
       wclassStyle = richtextboxClassStyle;
 
-      version(DFL_NO_MENUS) {
-      }
-      else {
-         with(miredo = new MenuItem) {
+      version (DFL_NO_MENUS) {
+      } else {
+         with (miredo = new MenuItem) {
             text = "&Redo";
             click ~= &menuRedo;
             contextMenu.menuItems.insert(1, miredo);
@@ -77,36 +137,29 @@ class RichTextBox: TextBoxBase { // docmain
       }
    }
 
-
    private {
-      version(DFL_NO_MENUS) {
-      }
-      else
-      {
+      version (DFL_NO_MENUS) {
+      } else {
          void menuRedo(Object sender, EventArgs ea) {
             redo();
          }
-
 
          void menuPopup2(Object sender, EventArgs ea) {
             miredo.enabled = canRedo;
          }
 
-
          MenuItem miredo;
       }
    }
 
-
-   override @property Cursor cursor() { // getter
+   override @property Cursor cursor() {
       return wcurs; // Do return null and don't inherit.
    }
 
-   alias TextBoxBase.cursor cursor; // Overload.
+   alias cursor = TextBoxBase.cursor; // Overload.
 
-
-   override @property Dstring selectedText() { // getter
-      if(created) {
+   override @property Dstring selectedText() {
+      if (created) {
          /+
          uint len = selectionLength + 1;
          Dstring result = new char[len];
@@ -120,11 +173,10 @@ class RichTextBox: TextBoxBase { // docmain
       return null;
    }
 
-   alias TextBoxBase.selectedText selectedText; // Overload.
+   alias selectedText = TextBoxBase.selectedText; // Overload.
 
-
-   override @property void selectionLength(uint len) { // setter
-      if(created) {
+   override @property void selectionLength(uint len) {
+      if (created) {
          CHARRANGE chrg;
          SendMessageA(handle, EM_EXGETSEL, 0, cast(LPARAM)&chrg);
          chrg.cpMax = chrg.cpMin + len;
@@ -132,12 +184,11 @@ class RichTextBox: TextBoxBase { // docmain
       }
    }
 
-
    // Current selection length, in characters.
    // This does not necessarily correspond to the length of chars; some characters use multiple chars.
    // An end of line (\r\n) takes up 2 characters.
-   override @property uint selectionLength() { // getter
-      if(created) {
+   override @property uint selectionLength() {
+      if (created) {
          CHARRANGE chrg;
          SendMessageA(handle, EM_EXGETSEL, 0, cast(LPARAM)&chrg);
          assert(chrg.cpMax >= chrg.cpMin);
@@ -146,9 +197,8 @@ class RichTextBox: TextBoxBase { // docmain
       return 0;
    }
 
-
-   override @property void selectionStart(uint pos) { // setter
-      if(created) {
+   override @property void selectionStart(uint pos) {
+      if (created) {
          CHARRANGE chrg;
          SendMessageA(handle, EM_EXGETSEL, 0, cast(LPARAM)&chrg);
          assert(chrg.cpMax >= chrg.cpMin);
@@ -158,12 +208,11 @@ class RichTextBox: TextBoxBase { // docmain
       }
    }
 
-
    // Current selection starting index, in characters.
    // This does not necessarily correspond to the index of chars; some characters use multiple chars.
    // An end of line (\r\n) takes up 2 characters.
-   override @property uint selectionStart() { // getter
-      if(created) {
+   override @property uint selectionStart() {
+      if (created) {
          CHARRANGE chrg;
          SendMessageA(handle, EM_EXGETSEL, 0, cast(LPARAM)&chrg);
          return chrg.cpMin;
@@ -171,49 +220,44 @@ class RichTextBox: TextBoxBase { // docmain
       return 0;
    }
 
-
-   override @property void maxLength(uint len) { // setter
+   override @property void maxLength(uint len) {
       lim = len;
 
-      if(created) {
-         SendMessageA(handle, EM_EXLIMITTEXT, 0, cast(LPARAM)len);
+      if (created) {
+         SendMessageA(handle, EM_EXLIMITTEXT, 0, cast(LPARAM) len);
       }
    }
 
-   alias TextBoxBase.maxLength maxLength; // Overload.
+   alias maxLength = TextBoxBase.maxLength; // Overload.
 
-
-   override @property Size defaultSize() { // getter
+   override @property Size defaultSize() {
       return Size(120, 120); // ?
    }
 
-
    private void _setbk(Color c) {
-      if(created) {
-         if(c._systemColorIndex == COLOR_WINDOW) {
+      if (created) {
+         if (c._systemColorIndex == COLOR_WINDOW) {
             SendMessageA(handle, EM_SETBKGNDCOLOR, 1, 0);
          } else {
-            SendMessageA(handle, EM_SETBKGNDCOLOR, 0, cast(LPARAM)c.toRgb());
+            SendMessageA(handle, EM_SETBKGNDCOLOR, 0, cast(LPARAM) c.toRgb());
          }
       }
    }
 
-
-   override @property void backColor(Color c) { // setter
+   override @property void backColor(Color c) {
       _setbk(c);
       super.backColor(c);
    }
 
-   alias TextBoxBase.backColor backColor; // Overload.
-
+   alias backColor = TextBoxBase.backColor; // Overload.
 
    private void _setfc(Color c) {
-      if(created) {
+      if (created) {
          CHARFORMAT2A cf;
 
          cf.cbSize = cf.sizeof;
          cf.dwMask = CFM_COLOR;
-         if(c._systemColorIndex == COLOR_WINDOWTEXT) {
+         if (c._systemColorIndex == COLOR_WINDOWTEXT) {
             cf.dwEffects = CFE_AUTOCOLOR;
          } else {
             cf.crTextColor = c.toRgb();
@@ -223,28 +267,23 @@ class RichTextBox: TextBoxBase { // docmain
       }
    }
 
-
-   override @property void foreColor(Color c) { // setter
+   override @property void foreColor(Color c) {
       _setfc(c);
       super.foreColor(c);
    }
 
-   alias TextBoxBase.foreColor foreColor; // Overload.
+   alias foreColor = TextBoxBase.foreColor; // Overload.
 
-
-
-   final @property bool canRedo() { // getter
-      if(!created) {
+   final @property bool canRedo() {
+      if (!created) {
          return false;
       }
       return SendMessageA(handle, EM_CANREDO, 0, 0) != 0;
    }
 
-
-
    final bool canPaste(DataFormats.Format df) {
-      if(created) {
-         if(SendMessageA(handle, EM_CANPASTE, df.id, 0)) {
+      if (created) {
+         if (SendMessageA(handle, EM_CANPASTE, df.id, 0)) {
             return true;
          }
       }
@@ -252,29 +291,23 @@ class RichTextBox: TextBoxBase { // docmain
       return false;
    }
 
-
-
    final void redo() {
-      if(created) {
+      if (created) {
          SendMessageA(handle, EM_REDO, 0, 0);
       }
    }
 
-
-
    // "Paste special."
    final void paste(DataFormats.Format df) {
-      if(created) {
-         SendMessageA(handle, EM_PASTESPECIAL, df.id, cast(LPARAM)0);
+      if (created) {
+         SendMessageA(handle, EM_PASTESPECIAL, df.id, cast(LPARAM) 0);
       }
    }
 
-   alias TextBoxBase.paste paste; // Overload.
+   alias paste = TextBoxBase.paste; // Overload.
 
-
-
-   final @property void selectionCharOffset(int yoffset) { // setter
-      if(!created) {
+   final @property void selectionCharOffset(int yoffset) {
+      if (!created) {
          return;
       }
 
@@ -287,9 +320,8 @@ class RichTextBox: TextBoxBase { // docmain
       _setFormat(&cf);
    }
 
-   /// ditto
-   final @property int selectionCharOffset() { // getter
-      if(created) {
+   final @property int selectionCharOffset() {
+      if (created) {
          CHARFORMAT2A cf;
          cf.cbSize = cf.sizeof;
          cf.dwMask = CFM_OFFSET;
@@ -299,10 +331,8 @@ class RichTextBox: TextBoxBase { // docmain
       return 0;
    }
 
-
-
-   final @property void selectionColor(Color c) { // setter
-      if(!created) {
+   final @property void selectionColor(Color c) {
+      if (!created) {
          return;
       }
 
@@ -310,7 +340,7 @@ class RichTextBox: TextBoxBase { // docmain
 
       cf.cbSize = cf.sizeof;
       cf.dwMask = CFM_COLOR;
-      if(c._systemColorIndex == COLOR_WINDOWTEXT) {
+      if (c._systemColorIndex == COLOR_WINDOWTEXT) {
          cf.dwEffects = CFE_AUTOCOLOR;
       } else {
          cf.crTextColor = c.toRgb();
@@ -319,17 +349,16 @@ class RichTextBox: TextBoxBase { // docmain
       _setFormat(&cf);
    }
 
-   /// ditto
-   final @property Color selectionColor() { // getter
-      if(created) {
+   final @property Color selectionColor() {
+      if (created) {
          CHARFORMAT2A cf;
 
          cf.cbSize = cf.sizeof;
          cf.dwMask = CFM_COLOR;
          _getFormat(&cf);
 
-         if(cf.dwMask & CFM_COLOR) {
-            if(cf.dwEffects & CFE_AUTOCOLOR) {
+         if (cf.dwMask & CFM_COLOR) {
+            if (cf.dwEffects & CFE_AUTOCOLOR) {
                return Color.systemColor(COLOR_WINDOWTEXT);
             }
             return Color.fromRgb(cf.crTextColor);
@@ -338,10 +367,8 @@ class RichTextBox: TextBoxBase { // docmain
       return Color.empty;
    }
 
-
-
-   final @property void selectionBackColor(Color c) { // setter
-      if(!created) {
+   final @property void selectionBackColor(Color c) {
+      if (!created) {
          return;
       }
 
@@ -349,7 +376,7 @@ class RichTextBox: TextBoxBase { // docmain
 
       cf.cbSize = cf.sizeof;
       cf.dwMask = CFM_BACKCOLOR;
-      if(c._systemColorIndex == COLOR_WINDOW) {
+      if (c._systemColorIndex == COLOR_WINDOW) {
          cf.dwEffects = CFE_AUTOBACKCOLOR;
       } else {
          cf.crBackColor = c.toRgb();
@@ -358,17 +385,16 @@ class RichTextBox: TextBoxBase { // docmain
       _setFormat(&cf);
    }
 
-   /// ditto
-   final @property Color selectionBackColor() { // getter
-      if(created) {
+   final @property Color selectionBackColor() {
+      if (created) {
          CHARFORMAT2A cf;
 
          cf.cbSize = cf.sizeof;
          cf.dwMask = CFM_BACKCOLOR;
          _getFormat(&cf);
 
-         if(cf.dwMask & CFM_BACKCOLOR) {
-            if(cf.dwEffects & CFE_AUTOBACKCOLOR) {
+         if (cf.dwMask & CFM_BACKCOLOR) {
+            if (cf.dwEffects & CFE_AUTOBACKCOLOR) {
                return Color.systemColor(COLOR_WINDOW);
             }
             return Color.fromRgb(cf.crBackColor);
@@ -377,10 +403,8 @@ class RichTextBox: TextBoxBase { // docmain
       return Color.empty;
    }
 
-
-
-   final @property void selectionSubscript(bool byes) { // setter
-      if(!created) {
+   final @property void selectionSubscript(bool byes) {
+      if (!created) {
          return;
       }
 
@@ -388,7 +412,7 @@ class RichTextBox: TextBoxBase { // docmain
 
       cf.cbSize = cf.sizeof;
       cf.dwMask = CFM_SUPERSCRIPT | CFM_SUBSCRIPT;
-      if(byes) {
+      if (byes) {
          cf.dwEffects = CFE_SUBSCRIPT;
       } else {
          // Make sure it doesn't accidentally unset superscript.
@@ -396,20 +420,19 @@ class RichTextBox: TextBoxBase { // docmain
          cf2get.cbSize = cf2get.sizeof;
          cf2get.dwMask = CFM_SUPERSCRIPT | CFM_SUBSCRIPT;
          _getFormat(&cf2get);
-         if(cf2get.dwEffects & CFE_SUPERSCRIPT) {
-            return;   // Superscript is set, so don't bother.
+         if (cf2get.dwEffects & CFE_SUPERSCRIPT) {
+            return; // Superscript is set, so don't bother.
          }
-         if(!(cf2get.dwEffects & CFE_SUBSCRIPT)) {
-            return;   // Don't need to unset twice.
+         if (!(cf2get.dwEffects & CFE_SUBSCRIPT)) {
+            return; // Don't need to unset twice.
          }
       }
 
       _setFormat(&cf);
    }
 
-   /// ditto
-   final @property bool selectionSubscript() { // getter
-      if(created) {
+   final @property bool selectionSubscript() {
+      if (created) {
          CHARFORMAT2A cf;
 
          cf.cbSize = cf.sizeof;
@@ -421,10 +444,8 @@ class RichTextBox: TextBoxBase { // docmain
       return false;
    }
 
-
-
-   final @property void selectionSuperscript(bool byes) { // setter
-      if(!created) {
+   final @property void selectionSuperscript(bool byes) {
+      if (!created) {
          return;
       }
 
@@ -432,7 +453,7 @@ class RichTextBox: TextBoxBase { // docmain
 
       cf.cbSize = cf.sizeof;
       cf.dwMask = CFM_SUPERSCRIPT | CFM_SUBSCRIPT;
-      if(byes) {
+      if (byes) {
          cf.dwEffects = CFE_SUPERSCRIPT;
       } else {
          // Make sure it doesn't accidentally unset subscript.
@@ -440,20 +461,19 @@ class RichTextBox: TextBoxBase { // docmain
          cf2get.cbSize = cf2get.sizeof;
          cf2get.dwMask = CFM_SUPERSCRIPT | CFM_SUBSCRIPT;
          _getFormat(&cf2get);
-         if(cf2get.dwEffects & CFE_SUBSCRIPT) {
-            return;   // Subscript is set, so don't bother.
+         if (cf2get.dwEffects & CFE_SUBSCRIPT) {
+            return; // Subscript is set, so don't bother.
          }
-         if(!(cf2get.dwEffects & CFE_SUPERSCRIPT)) {
-            return;   // Don't need to unset twice.
+         if (!(cf2get.dwEffects & CFE_SUPERSCRIPT)) {
+            return; // Don't need to unset twice.
          }
       }
 
       _setFormat(&cf);
    }
 
-   /// ditto
-   final @property bool selectionSuperscript() { // getter
-      if(created) {
+   final @property bool selectionSuperscript() {
+      if (created) {
          CHARFORMAT2A cf;
 
          cf.cbSize = cf.sizeof;
@@ -465,13 +485,11 @@ class RichTextBox: TextBoxBase { // docmain
       return false;
    }
 
+   // FIX:
+   private enum DWORD FONT_MASK = CFM_BOLD | CFM_ITALIC | CFM_STRIKEOUT | CFM_UNDERLINE | CFM_CHARSET | CFM_FACE | CFM_SIZE | CFM_UNDERLINETYPE | CFM_WEIGHT;
 
-   private enum DWORD FONT_MASK = CFM_BOLD | CFM_ITALIC | CFM_STRIKEOUT |
-                                  CFM_UNDERLINE | CFM_CHARSET | CFM_FACE | CFM_SIZE | CFM_UNDERLINETYPE | CFM_WEIGHT;
-
-
-   final @property void selectionFont(Font f) { // setter
-      if(created) {
+   final @property void selectionFont(Font f) {
+      if (created) {
          // To-do: support Unicode font names.
 
          CHARFORMAT2A cf;
@@ -483,48 +501,47 @@ class RichTextBox: TextBoxBase { // docmain
          cf.dwMask = FONT_MASK;
 
          //cf.dwEffects = 0;
-         if(lf.lfWeight >= FW_BOLD) {
+         if (lf.lfWeight >= FW_BOLD) {
             cf.dwEffects |= CFE_BOLD;
          }
-         if(lf.lfItalic) {
+         if (lf.lfItalic) {
             cf.dwEffects |= CFE_ITALIC;
          }
-         if(lf.lfStrikeOut) {
+         if (lf.lfStrikeOut) {
             cf.dwEffects |= CFE_STRIKEOUT;
          }
-         if(lf.lfUnderline) {
+         if (lf.lfUnderline) {
             cf.dwEffects |= CFE_UNDERLINE;
          }
-         cf.yHeight = cast(typeof(cf.yHeight))Font.getEmSize(lf.lfHeight, GraphicsUnit.TWIP);
+         cf.yHeight = cast(typeof(cf.yHeight)) Font.getEmSize(lf.lfHeight, GraphicsUnit.TWIP);
          cf.bCharSet = lf.lfCharSet;
          strcpy(cf.szFaceName.ptr, lf.lfFaceName.ptr);
          cf.bUnderlineType = CFU_UNDERLINE;
-         cf.wWeight = cast(WORD)lf.lfWeight;
+         cf.wWeight = cast(WORD) lf.lfWeight;
 
          _setFormat(&cf);
       }
    }
 
-   /// ditto
    // Returns null if the selection has different fonts.
-   final @property Font selectionFont() { // getter
-      if(created) {
+   final @property Font selectionFont() {
+      if (created) {
          CHARFORMAT2A cf;
 
          cf.cbSize = cf.sizeof;
          cf.dwMask = FONT_MASK;
          _getFormat(&cf);
 
-         if((cf.dwMask & FONT_MASK) == FONT_MASK) {
+         if ((cf.dwMask & FONT_MASK) == FONT_MASK) {
             LOGFONTA lf;
-            with(lf) {
-               lfHeight = -Font.getLfHeight(cast(float)cf.yHeight, GraphicsUnit.TWIP);
+            with (lf) {
+               lfHeight = -Font.getLfHeight(cast(float) cf.yHeight, GraphicsUnit.TWIP);
                lfWidth = 0; // ?
                lfEscapement = 0; // ?
                lfOrientation = 0; // ?
                lfWeight = cf.wWeight;
-               if(cf.dwEffects & CFE_BOLD) {
-                  if(lfWeight < FW_BOLD) {
+               if (cf.dwEffects & CFE_BOLD) {
+                  if (lfWeight < FW_BOLD) {
                      lfWeight = FW_BOLD;
                   }
                }
@@ -548,10 +565,8 @@ class RichTextBox: TextBoxBase { // docmain
       return null;
    }
 
-
-
-   final @property void selectionBold(bool byes) { // setter
-      if(!created) {
+   final @property void selectionBold(bool byes) {
+      if (!created) {
          return;
       }
 
@@ -559,7 +574,7 @@ class RichTextBox: TextBoxBase { // docmain
 
       cf.cbSize = cf.sizeof;
       cf.dwMask = CFM_BOLD;
-      if(byes) {
+      if (byes) {
          cf.dwEffects |= CFE_BOLD;
       } else {
          cf.dwEffects &= ~CFE_BOLD;
@@ -567,9 +582,8 @@ class RichTextBox: TextBoxBase { // docmain
       _setFormat(&cf);
    }
 
-   /// ditto
-   final @property bool selectionBold() { // getter
-      if(created) {
+   final @property bool selectionBold() {
+      if (created) {
          CHARFORMAT2A cf;
 
          cf.cbSize = cf.sizeof;
@@ -581,10 +595,8 @@ class RichTextBox: TextBoxBase { // docmain
       return false;
    }
 
-
-
-   final @property void selectionUnderline(bool byes) { // setter
-      if(!created) {
+   final @property void selectionUnderline(bool byes) {
+      if (!created) {
          return;
       }
 
@@ -592,7 +604,7 @@ class RichTextBox: TextBoxBase { // docmain
 
       cf.cbSize = cf.sizeof;
       cf.dwMask = CFM_UNDERLINE;
-      if(byes) {
+      if (byes) {
          cf.dwEffects |= CFE_UNDERLINE;
       } else {
          cf.dwEffects &= ~CFE_UNDERLINE;
@@ -600,9 +612,8 @@ class RichTextBox: TextBoxBase { // docmain
       _setFormat(&cf);
    }
 
-   /// ditto
-   final @property bool selectionUnderline() { // getter
-      if(created) {
+   final @property bool selectionUnderline() {
+      if (created) {
          CHARFORMAT2A cf;
 
          cf.cbSize = cf.sizeof;
@@ -614,37 +625,34 @@ class RichTextBox: TextBoxBase { // docmain
       return false;
    }
 
-
-
-   final @property void scrollBars(RichTextBoxScrollBars sb) { // setter
+   final @property void scrollBars(RichTextBoxScrollBars sb) {
       LONG st;
-      st = _style() & ~(ES_DISABLENOSCROLL | WS_HSCROLL | WS_VSCROLL |
-                        ES_AUTOHSCROLL | ES_AUTOVSCROLL);
+      st = _style() & ~(ES_DISABLENOSCROLL | WS_HSCROLL | WS_VSCROLL | ES_AUTOHSCROLL | ES_AUTOVSCROLL);
 
-      final switch(sb) {
-         case RichTextBoxScrollBars.FORCED_BOTH:
-            st |= ES_DISABLENOSCROLL;
+      final switch (sb) {
+      case RichTextBoxScrollBars.FORCED_BOTH:
+         st |= ES_DISABLENOSCROLL;
          goto case RichTextBoxScrollBars.BOTH;
-         case RichTextBoxScrollBars.BOTH:
-            st |= WS_HSCROLL | WS_VSCROLL | ES_AUTOHSCROLL | ES_AUTOVSCROLL;
-            break;
+      case RichTextBoxScrollBars.BOTH:
+         st |= WS_HSCROLL | WS_VSCROLL | ES_AUTOHSCROLL | ES_AUTOVSCROLL;
+         break;
 
-         case RichTextBoxScrollBars.FORCED_HORIZONTAL:
-            st |= ES_DISABLENOSCROLL;
+      case RichTextBoxScrollBars.FORCED_HORIZONTAL:
+         st |= ES_DISABLENOSCROLL;
          goto case RichTextBoxScrollBars.HORIZONTAL;
-         case RichTextBoxScrollBars.HORIZONTAL:
-            st |= WS_HSCROLL | ES_AUTOHSCROLL;
-            break;
+      case RichTextBoxScrollBars.HORIZONTAL:
+         st |= WS_HSCROLL | ES_AUTOHSCROLL;
+         break;
 
-         case RichTextBoxScrollBars.FORCED_VERTICAL:
-            st |= ES_DISABLENOSCROLL;
+      case RichTextBoxScrollBars.FORCED_VERTICAL:
+         st |= ES_DISABLENOSCROLL;
          goto case RichTextBoxScrollBars.VERTICAL;
-         case RichTextBoxScrollBars.VERTICAL:
-            st |= WS_VSCROLL | ES_AUTOVSCROLL;
-            break;
+      case RichTextBoxScrollBars.VERTICAL:
+         st |= WS_VSCROLL | ES_AUTOVSCROLL;
+         break;
 
-         case RichTextBoxScrollBars.NONE:
-            break;
+      case RichTextBoxScrollBars.NONE:
+         break;
       }
 
       _style(st);
@@ -652,26 +660,25 @@ class RichTextBox: TextBoxBase { // docmain
       _crecreate();
    }
 
-   /// ditto
-   final @property RichTextBoxScrollBars scrollBars() { // getter
+   final @property RichTextBoxScrollBars scrollBars() {
       LONG wl = _style();
 
-      if(wl & WS_HSCROLL) {
-         if(wl & WS_VSCROLL) {
-            if(wl & ES_DISABLENOSCROLL) {
+      if (wl & WS_HSCROLL) {
+         if (wl & WS_VSCROLL) {
+            if (wl & ES_DISABLENOSCROLL) {
                return RichTextBoxScrollBars.FORCED_BOTH;
             }
             return RichTextBoxScrollBars.BOTH;
          }
 
-         if(wl & ES_DISABLENOSCROLL) {
+         if (wl & ES_DISABLENOSCROLL) {
             return RichTextBoxScrollBars.FORCED_HORIZONTAL;
          }
          return RichTextBoxScrollBars.HORIZONTAL;
       }
 
-      if(wl & WS_VSCROLL) {
-         if(wl & ES_DISABLENOSCROLL) {
+      if (wl & WS_VSCROLL) {
+         if (wl & ES_DISABLENOSCROLL) {
             return RichTextBoxScrollBars.FORCED_VERTICAL;
          }
          return RichTextBoxScrollBars.VERTICAL;
@@ -680,18 +687,15 @@ class RichTextBox: TextBoxBase { // docmain
       return RichTextBoxScrollBars.NONE;
    }
 
-
-
    override int getLineFromCharIndex(int charIndex) {
-      if(!isHandleCreated) {
-         return -1;   // ...
+      if (!isHandleCreated) {
+         return -1; // ...
       }
-      if(charIndex < 0) {
+      if (charIndex < 0) {
          return -1;
       }
       return SendMessageA(hwnd, EM_EXLINEFROMCHAR, 0, charIndex);
    }
-
 
    private void _getFormat(CHARFORMAT2A* cf, BOOL selection = TRUE)
    in {
@@ -700,9 +704,9 @@ class RichTextBox: TextBoxBase { // docmain
    body {
       //SendMessageA(handle, EM_GETCHARFORMAT, selection, cast(LPARAM)cf);
       //CallWindowProcA(richtextboxPrevWndProc, hwnd, EM_GETCHARFORMAT, selection, cast(LPARAM)cf);
-      dfl.internal.utf.callWindowProc(richtextboxPrevWndProc, hwnd, EM_GETCHARFORMAT, selection, cast(LPARAM)cf);
+      dfl.internal.utf.callWindowProc(richtextboxPrevWndProc, hwnd,
+         EM_GETCHARFORMAT, selection, cast(LPARAM) cf);
    }
-
 
    private void _setFormat(CHARFORMAT2A* cf, WPARAM scf = SCF_SELECTION)
    in {
@@ -716,14 +720,13 @@ class RichTextBox: TextBoxBase { // docmain
          throw new DflException("Unable to set text formatting");
       }
       +/
-      dfl.internal.utf.callWindowProc(richtextboxPrevWndProc, hwnd, EM_SETCHARFORMAT, scf, cast(LPARAM)cf);
+      dfl.internal.utf.callWindowProc(richtextboxPrevWndProc, hwnd,
+         EM_SETCHARFORMAT, scf, cast(LPARAM) cf);
    }
-
 
    private struct _StreamStr {
       Dstring str;
    }
-
 
    // Note: RTF should only be ASCII so no conversions are necessary.
    // TODO: verify this; I'm not certain.
@@ -743,9 +746,8 @@ class RichTextBox: TextBoxBase { // docmain
       //if(SendMessageA(handle, EM_STREAMIN, cast(WPARAM)fmt, cast(LPARAM)&es) != str.length)
       // throw new DflException("Unable to set RTF");
 
-      SendMessageA(handle, EM_STREAMIN, cast(WPARAM)fmt, cast(LPARAM)&es);
+      SendMessageA(handle, EM_STREAMIN, cast(WPARAM) fmt, cast(LPARAM)&es);
    }
-
 
    private Dstring _streamOut(UINT fmt)
    in {
@@ -759,47 +761,37 @@ class RichTextBox: TextBoxBase { // docmain
       es.dwCookie = cast(DWORD)&so;
       es.pfnCallback = &_streamingOutStr;
 
-      SendMessageA(handle, EM_STREAMOUT, cast(WPARAM)fmt, cast(LPARAM)&es);
+      SendMessageA(handle, EM_STREAMOUT, cast(WPARAM) fmt, cast(LPARAM)&es);
       return so.str;
    }
 
-
-
-   final @property void selectedRtf(Dstring rtf) { // setter
+   final @property void selectedRtf(Dstring rtf) {
       _streamIn(SF_RTF | SFF_SELECTION, rtf);
    }
 
-   /// ditto
-   final @property Dstring selectedRtf() { // getter
+   final @property Dstring selectedRtf() {
       return _streamOut(SF_RTF | SFF_SELECTION);
    }
 
-
-
-   final @property void rtf(Dstring newRtf) { // setter
+   final @property void rtf(Dstring newRtf) {
       _streamIn(SF_RTF, rtf);
    }
 
-   /// ditto
-   final @property Dstring rtf() { // getter
+   final @property Dstring rtf() {
       return _streamOut(SF_RTF);
    }
 
-
-
-   final @property void detectUrls(bool byes) { // setter
+   final @property void detectUrls(bool byes) {
       autoUrl = byes;
 
-      if(created) {
+      if (created) {
          SendMessageA(handle, EM_AUTOURLDETECT, byes, 0);
       }
    }
 
-   /// ditto
-   final @property bool detectUrls() { // getter
+   final @property bool detectUrls() {
       return autoUrl;
    }
-
 
    /+
    override void createHandle() {
@@ -812,7 +804,6 @@ class RichTextBox: TextBoxBase { // docmain
       onHandleCreated(EventArgs.empty);
    }
    +/
-
 
    /+
    override void createHandle() {
@@ -830,7 +821,6 @@ class RichTextBox: TextBoxBase { // docmain
    }
    +/
 
-
    protected override void createParams(ref CreateParams cp) {
       super.createParams(cp);
 
@@ -838,18 +828,14 @@ class RichTextBox: TextBoxBase { // docmain
       //cp.caption = null; // Set in createHandle() to allow larger buffers. // TextBoxBase.createHandle() does this.
    }
 
-
    //LinkClickedEventHandler linkClicked;
-   Event!(RichTextBox, LinkClickedEventArgs) linkClicked; ///
+   Event!(RichTextBox, LinkClickedEventArgs) linkClicked;
 
-
- protected:
-
+protected:
 
    void onLinkClicked(LinkClickedEventArgs ea) {
       linkClicked(this, ea);
    }
-
 
    private Dstring _getRange(LONG min, LONG max)
    in {
@@ -858,7 +844,7 @@ class RichTextBox: TextBoxBase { // docmain
       assert(max >= min);
    }
    body {
-      if(min == max) {
+      if (min == max) {
          return null;
       }
 
@@ -868,8 +854,8 @@ class RichTextBox: TextBoxBase { // docmain
       tr.chrg.cpMin = min;
       tr.chrg.cpMax = max;
       max = max - min + 1;
-      if(dfl.internal.utf.useUnicode) {
-         max = cast(uint)max << 1;
+      if (dfl.internal.utf.useUnicode) {
+         max = cast(uint) max << 1;
       }
       s = new char[max];
       tr.lpstrText = s.ptr;
@@ -877,46 +863,46 @@ class RichTextBox: TextBoxBase { // docmain
       //max = SendMessageA(handle, EM_GETTEXTRANGE, 0, cast(LPARAM)&tr);
       max = dfl.internal.utf.sendMessage(handle, EM_GETTEXTRANGE, 0, cast(LPARAM)&tr);
       Dstring result;
-      if(dfl.internal.utf.useUnicode) {
-         result = fromUnicode(cast(wchar*)s.ptr, max);
-      } else
-      { result = fromAnsi(s.ptr, max); }
+      if (dfl.internal.utf.useUnicode) {
+         result = fromUnicode(cast(wchar*) s.ptr, max);
+      } else {
+         result = fromAnsi(s.ptr, max);
+      }
       return result;
    }
-
 
    protected override void onReflectedMessage(ref Message m) {
       super.onReflectedMessage(m);
 
-      switch(m.msg) {
-         case WM_NOTIFY: {
-               NMHDR* nmh;
-               nmh = cast(NMHDR*)m.lParam;
+      switch (m.msg) {
+      case WM_NOTIFY: {
+            NMHDR* nmh;
+            nmh = cast(NMHDR*) m.lParam;
 
-               assert(nmh.hwndFrom == handle);
+            assert(nmh.hwndFrom == handle);
 
-               switch(nmh.code) {
-                  case EN_LINK: {
-                        ENLINK* enl;
-                        enl = cast(ENLINK*)nmh;
+            switch (nmh.code) {
+            case EN_LINK: {
+                  ENLINK* enl;
+                  enl = cast(ENLINK*) nmh;
 
-                        if(enl.msg == WM_LBUTTONUP) {
-                           if(!selectionLength) {
-                              onLinkClicked(new LinkClickedEventArgs(_getRange(enl.chrg.cpMin, enl.chrg.cpMax)));
-                           }
-                        }
+                  if (enl.msg == WM_LBUTTONUP) {
+                     if (!selectionLength) {
+                        onLinkClicked(new LinkClickedEventArgs(_getRange(enl.chrg.cpMin,
+                           enl.chrg.cpMax)));
                      }
-                     break;
-
-                  default:
+                  }
                }
-            }
-            break;
+               break;
 
-         default:
+            default:
+            }
+         }
+         break;
+
+      default:
       }
    }
-
 
    override void onHandleCreated(EventArgs ea) {
       super.onHandleCreated(ea);
@@ -931,32 +917,29 @@ class RichTextBox: TextBoxBase { // docmain
       SendMessageA(handle, EM_SETEVENTMASK, 0, ENM_CHANGE | ENM_CHANGE | ENM_LINK | ENM_PROTECTED);
    }
 
-
    override void prevWndProc(ref Message m) {
       m.result = CallWindowProcA(richtextboxPrevWndProc, m.hWnd, m.msg, m.wParam, m.lParam);
       //m.result = dfl.internal.utf.callWindowProc(richtextboxPrevWndProc, m.hWnd, m.msg, m.wParam, m.lParam);
    }
 
-
- private:
+private:
    bool autoUrl = true;
 }
 
-
-private extern(Windows) DWORD _streamingInStr(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG* pcb) nothrow {
+private extern (Windows) DWORD _streamingInStr(DWORD dwCookie, LPBYTE pbBuff, LONG cb,
+   LONG* pcb) nothrow {
    RichTextBox._StreamStr* si;
-   si = cast(typeof(si))dwCookie;
+   si = cast(typeof(si)) dwCookie;
 
-   if(!si.str.length) {
+   if (!si.str.length) {
       *pcb = 0;
       return 1; // ?
-   } else if(cb >= si.str.length) {
-      pbBuff[0 .. si.str.length] = (cast(BYTE[])si.str)[];
+   } else if (cb >= si.str.length) {
+      pbBuff[0 .. si.str.length] = (cast(BYTE[]) si.str)[];
       *pcb = si.str.length;
       si.str = null;
-   } else
-   {
-      pbBuff[0 .. cb] = (cast(BYTE[])si.str)[0 .. cb];
+   } else {
+      pbBuff[0 .. cb] = (cast(BYTE[]) si.str)[0 .. cb];
       *pcb = cb;
       si.str = si.str[cb .. si.str.length];
    }
@@ -964,14 +947,13 @@ private extern(Windows) DWORD _streamingInStr(DWORD dwCookie, LPBYTE pbBuff, LON
    return 0;
 }
 
-
-private extern(Windows) DWORD _streamingOutStr(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG* pcb) nothrow {
+private extern (Windows) DWORD _streamingOutStr(DWORD dwCookie, LPBYTE pbBuff, LONG cb,
+   LONG* pcb) nothrow {
    RichTextBox._StreamStr* so;
-   so = cast(typeof(so))dwCookie;
+   so = cast(typeof(so)) dwCookie;
 
-   so.str ~= cast(Dstring)pbBuff[0 .. cb];
+   so.str ~= cast(Dstring) pbBuff[0 .. cb];
    *pcb = cb;
 
    return 0;
 }
-

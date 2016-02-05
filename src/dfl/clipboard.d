@@ -1,28 +1,29 @@
 // Written by Christopher E. Miller
 // See the included license.txt for copyright and license details.
 
-
 /// Interfacing with the system clipboard for copy and paste operations.
 module dfl.clipboard;
 
-private import dfl.base, dfl.internal.winapi, dfl.data, dfl.internal.wincom,
-        dfl.internal.dlib;
+import core.sys.windows.windows;
+import core.sys.windows.objidl;
 
+import dfl.exception;
+import dfl.base;
+import dfl.data;
+import dfl.internal.dlib;
 
+class Clipboard {
+   private this() {
+   }
 
-class Clipboard { // docmain
-   private this() {}
+static:
 
-
- static:
-
-
-   dfl.data.IDataObject getDataObject() {
-      dfl.internal.wincom.IDataObject comdobj;
-      if(S_OK != OleGetClipboard(&comdobj)) {
+   IDataObjectD getDataObject() {
+      IDataObject comdobj;
+      if (S_OK != OleGetClipboard(&comdobj)) {
          throw new DflException("Unable to obtain clipboard data object");
       }
-      if(comdobj is comd) {
+      if (comdobj is comd) {
          return dd;
       }
       //delete dd;
@@ -30,7 +31,6 @@ class Clipboard { // docmain
       return dd = new ComToDdataObject(comdobj);
    }
 
-   /// ditto
    void setDataObject(Data obj, bool persist = false) {
       comd = null;
       /+
@@ -41,25 +41,26 @@ class Clipboard { // docmain
       dd = null;
       objref = null;
 
-      if(obj.info) {
-         if(cast(TypeInfo_Class)obj.info) {
+      if (obj.info) {
+         if (cast(TypeInfo_Class) obj.info) {
             Object foo;
             foo = obj.getObject();
 
             /+
             if(cast(Bitmap)foo) {
                // ...
-            } else +/ if(cast(dfl.data.IDataObject)foo) {
-               dd = cast(dfl.data.IDataObject)foo;
+            } else +/
+            if (cast(IDataObjectD) foo) {
+               dd = cast(IDataObjectD) foo;
                objref = foo;
             } else {
                // Can't set any old class object.
                throw new DflException("Unknown data object");
             }
-         } else if(obj.info == typeid(dfl.data.IDataObject)) {
-            dd = obj.getValue!(dfl.data.IDataObject)();
-            objref = cast(Object)dd;
-         } else if(cast(TypeInfo_Interface)obj.info) {
+         } else if (obj.info == typeid(IDataObjectD)) {
+            dd = obj.getValue!(IDataObjectD)();
+            objref = cast(Object) dd;
+         } else if (cast(TypeInfo_Interface) obj.info) {
             // Can't set any old interface.
             throw new DflException("Unknown data object");
          } else {
@@ -71,19 +72,19 @@ class Clipboard { // docmain
 
          assert(!(dd is null));
          comd = new DtoComDataObject(dd);
-         if(S_OK != OleSetClipboard(comd)) {
+         if (S_OK != OleSetClipboard(comd)) {
             comd = null;
             //delete dd;
             dd = null;
             goto err_set;
          }
 
-         if(persist) {
+         if (persist) {
             OleFlushClipboard();
          }
       } else {
          dd = null;
-         if(S_OK != OleSetClipboard(null)) {
+         if (S_OK != OleSetClipboard(null)) {
             goto err_set;
          }
       }
@@ -93,50 +94,41 @@ class Clipboard { // docmain
       throw new DflException("Unable to set clipboard data");
    }
 
-   /// ditto
-   void setDataObject(dfl.data.IDataObject obj, bool persist = false) {
+   void setDataObject(IDataObjectD obj, bool persist = false) {
       setDataObject(Data(obj), persist);
    }
-
-
 
    void setString(Dstring str, bool persist = false) {
       setDataObject(Data(str), persist);
    }
 
-   /// ditto
    Dstring getString() {
-      dfl.data.IDataObject ido;
+      IDataObjectD ido;
       ido = getDataObject();
-      if(ido.getDataPresent(DataFormats.utf8)) {
+      if (ido.getDataPresent(DataFormats.utf8)) {
          return ido.getData(DataFormats.utf8).getString();
       }
       return null; // ?
    }
-
-
 
    // ANSI text.
    void setText(ubyte[] ansiText, bool persist = false) {
       setDataObject(Data(ansiText), persist);
    }
 
-   /// ditto
    ubyte[] getText() {
-      dfl.data.IDataObject ido;
+      IDataObjectD ido;
       ido = getDataObject();
-      if(ido.getDataPresent(DataFormats.text)) {
+      if (ido.getDataPresent(DataFormats.text)) {
          return ido.getData(DataFormats.text).getText();
       }
       return null; // ?
    }
 
-
- private:
-   dfl.internal.wincom.IDataObject comd;
-   dfl.data.IDataObject dd;
+private:
+   IDataObject comd;
+   IDataObjectD dd;
    Object objref; // Prevent dd from being garbage collected!
-
 
    /+
    static ~this() {

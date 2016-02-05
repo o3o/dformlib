@@ -40,20 +40,20 @@ abstract class TextBoxBase : ControlSuperClass {
 
    @property void borderStyle(BorderStyle bs) {
       final switch (bs) {
-         case BorderStyle.FIXED_3D:
-            _style(_style() & ~WS_BORDER);
-            _exStyle(_exStyle() | WS_EX_CLIENTEDGE);
-            break;
+      case BorderStyle.FIXED_3D:
+         _style(_style() & ~WS_BORDER);
+         _exStyle(_exStyle() | WS_EX_CLIENTEDGE);
+         break;
 
-         case BorderStyle.FIXED_SINGLE:
-            _exStyle(_exStyle() & ~WS_EX_CLIENTEDGE);
-            _style(_style() | WS_BORDER);
-            break;
+      case BorderStyle.FIXED_SINGLE:
+         _exStyle(_exStyle() & ~WS_EX_CLIENTEDGE);
+         _style(_style() | WS_BORDER);
+         break;
 
-         case BorderStyle.NONE:
-            _style(_style() & ~WS_BORDER);
-            _exStyle(_exStyle() & ~WS_EX_CLIENTEDGE);
-            break;
+      case BorderStyle.NONE:
+         _style(_style() & ~WS_BORDER);
+         _exStyle(_exStyle() & ~WS_EX_CLIENTEDGE);
+         break;
       }
 
       if (created) {
@@ -178,9 +178,9 @@ abstract class TextBoxBase : ControlSuperClass {
          }
       +/
 
-         // TODO: check if correct implementation.
+      // TODO: check if correct implementation.
 
-         LONG st;
+      LONG st;
 
       if (byes) {
          st = _style() | ES_MULTILINE | ES_AUTOVSCROLL;
@@ -230,10 +230,10 @@ abstract class TextBoxBase : ControlSuperClass {
          }
       +/
 
-         if (created) {
-            //dfl.internal.utf.sendMessage(handle, EM_REPLACESEL, FALSE, sel);
-            dfl.internal.utf.sendMessageUnsafe(handle, EM_REPLACESEL, FALSE, sel);
-         }
+      if (created) {
+         //dfl.internal.utf.sendMessage(handle, EM_REPLACESEL, FALSE, sel);
+         dfl.internal.utf.sendMessageUnsafe(handle, EM_REPLACESEL, FALSE, sel);
+      }
    }
 
    @property Dstring selectedText() {
@@ -254,9 +254,9 @@ abstract class TextBoxBase : ControlSuperClass {
       return null;
       +/
 
-         if (created) {
-            return dfl.internal.utf.getSelectedText(handle);
-         }
+      if (created) {
+         return dfl.internal.utf.getSelectedText(handle);
+      }
       return null;
    }
 
@@ -313,7 +313,7 @@ abstract class TextBoxBase : ControlSuperClass {
       if (!(ctrlStyle & ControlStyles.CACHE_TEXT) && created()) //return cast(uint)SendMessageA(handle, WM_GETTEXTLENGTH, 0, 0);
       {
          return cast(uint) dfl.internal.utf.sendMessage(handle, WM_GETTEXTLENGTH, 0,
-               0);
+            0);
       }
       return wtext.length;
    }
@@ -327,11 +327,11 @@ abstract class TextBoxBase : ControlSuperClass {
          }
       +/
 
-         // TODO: check if correct implementation.
+      // TODO: check if correct implementation.
 
-         if (_wrap == byes) {
-            return;
-         }
+      if (_wrap == byes) {
+         return;
+      }
 
       _wrap = byes;
 
@@ -381,7 +381,7 @@ abstract class TextBoxBase : ControlSuperClass {
          }
       +/
 
-         text = null;
+      text = null;
    }
 
    final void clearUndo() {
@@ -474,17 +474,17 @@ abstract class TextBoxBase : ControlSuperClass {
       }
    +/
 
-      override void createHandle() {
-         if (!isHandleCreated) {
-            Dstring txt;
-            txt = wtext;
+   override void createHandle() {
+      if (!isHandleCreated) {
+         Dstring txt;
+         txt = wtext;
 
-            super.createHandle();
+         super.createHandle();
 
-            //dfl.internal.utf.setWindowText(hwnd, txt);
-            text = txt; // So that it can be overridden.
-         }
+         //dfl.internal.utf.setWindowText(hwnd, txt);
+         text = txt; // So that it can be overridden.
       }
+   }
 
    protected override void createParams(ref CreateParams cp) {
       super.createParams(cp);
@@ -726,22 +726,22 @@ abstract class TextBoxBase : ControlSuperClass {
       return def;
    }
 
-   protected:
+protected:
    protected override void onReflectedMessage(ref Message m) {
       super.onReflectedMessage(m);
 
       switch (m.msg) {
-         case WM_COMMAND:
-            switch (HIWORD(m.wParam)) {
-               case EN_CHANGE:
-                  onTextChanged(EventArgs.empty);
-                  break;
-
-               default:
-            }
+      case WM_COMMAND:
+         switch (HIWORD(m.wParam)) {
+         case EN_CHANGE:
+            onTextChanged(EventArgs.empty);
             break;
 
-            /+
+         default:
+         }
+         break;
+
+         /+
          case WM_CTLCOLORSTATIC:
          case WM_CTLCOLOREDIT:
                /+
@@ -751,7 +751,7 @@ abstract class TextBoxBase : ControlSuperClass {
                   break;
                +/
 
-         default:
+      default:
       }
    }
 
@@ -766,55 +766,55 @@ abstract class TextBoxBase : ControlSuperClass {
 
       //msg.result = CallWindowProcA(textBoxPrevWndProc, msg.hWnd, msg.msg, msg.wParam, msg.lParam);
       msg.result = dfl.internal.utf.callWindowProc(textBoxPrevWndProc, msg.hWnd,
-            msg.msg, msg.wParam, msg.lParam);
+         msg.msg, msg.wParam, msg.lParam);
    }
 
    protected override bool processKeyEventArgs(ref Message msg) { // package
       switch (msg.msg) {
-         case WM_KEYDOWN:
-         case WM_KEYUP:
-         case WM_CHAR:
-            if ('\t' == msg.wParam) {
-               // TODO: fix this. This case shouldn't be needed.
-               if (atab) {
-                  if (super.processKeyEventArgs(msg)) {
-                     return true; // Handled.
-                  }
-                  if (WM_KEYDOWN == msg.msg) {
-                     if (multiline) { // Only multiline textboxes can have real tabs..
-                        //selectedText = "\t";
-                        //SendMessageA(handle, EM_REPLACESEL, TRUE, cast(LPARAM)"\t".ptr); // Allow undo. // Crashes DMD 0.161.
-                        auto str = "\t".ptr;
-                        SendMessageA(handle, EM_REPLACESEL, TRUE, cast(LPARAM) str); // Allow undo.
-                     }
-                  }
+      case WM_KEYDOWN:
+      case WM_KEYUP:
+      case WM_CHAR:
+         if ('\t' == msg.wParam) {
+            // TODO: fix this. This case shouldn't be needed.
+            if (atab) {
+               if (super.processKeyEventArgs(msg)) {
                   return true; // Handled.
                }
+               if (WM_KEYDOWN == msg.msg) {
+                  if (multiline) { // Only multiline textboxes can have real tabs..
+                     //selectedText = "\t";
+                     //SendMessageA(handle, EM_REPLACESEL, TRUE, cast(LPARAM)"\t".ptr); // Allow undo. // Crashes DMD 0.161.
+                     auto str = "\t".ptr;
+                     SendMessageA(handle, EM_REPLACESEL, TRUE, cast(LPARAM) str); // Allow undo.
+                  }
+               }
+               return true; // Handled.
             }
-            break;
+         }
+         break;
 
-         default:
+      default:
       }
       return super.processKeyEventArgs(msg);
    }
 
    override void wndProc(ref Message msg) {
       switch (msg.msg) {
-         case WM_GETDLGCODE:
-            super.wndProc(msg);
-            if (atab) {
-               //if(GetKeyState(Keys.TAB) & 0x8000)
-               {
-                  //msg.result |= DLGC_WANTALLKEYS;
-                  msg.result |= DLGC_WANTTAB;
-               }
-            } else {
-               msg.result &= ~DLGC_WANTTAB;
+      case WM_GETDLGCODE:
+         super.wndProc(msg);
+         if (atab) {
+            //if(GetKeyState(Keys.TAB) & 0x8000)
+            {
+               //msg.result |= DLGC_WANTALLKEYS;
+               msg.result |= DLGC_WANTTAB;
             }
-            return;
+         } else {
+            msg.result &= ~DLGC_WANTTAB;
+         }
+         return;
 
-         default:
-            super.wndProc(msg);
+      default:
+         super.wndProc(msg);
       }
    }
 
@@ -822,7 +822,7 @@ abstract class TextBoxBase : ControlSuperClass {
       return Size(120, 23); // ?
    }
 
-   private:
+private:
    package uint lim = 30_000; // Documented as default.
    bool _wrap = true;
    bool _hscroll;
@@ -846,13 +846,13 @@ abstract class TextBoxBase : ControlSuperClass {
    }
    +/
 
-      @property void hscroll(bool byes) {
-         _hscroll = byes;
+   @property void hscroll(bool byes) {
+      _hscroll = byes;
 
-         if (byes && (!_wrap || !multiline)) {
-            _style(_style() | WS_HSCROLL | ES_AUTOHSCROLL);
-         }
+      if (byes && (!_wrap || !multiline)) {
+         _style(_style() | WS_HSCROLL | ES_AUTOHSCROLL);
       }
+   }
 
    @property bool hscroll() {
       return _hscroll;
@@ -877,16 +877,16 @@ class TextBox : TextBoxBase {
       LONG wl = _style() & ~(ES_UPPERCASE | ES_LOWERCASE);
 
       final switch (cc) {
-         case CharacterCasing.UPPER:
-            wl |= ES_UPPERCASE;
-            break;
+      case CharacterCasing.UPPER:
+         wl |= ES_UPPERCASE;
+         break;
 
-         case CharacterCasing.LOWER:
-            wl |= ES_LOWERCASE;
-            break;
+      case CharacterCasing.LOWER:
+         wl |= ES_LOWERCASE;
+         break;
 
-         case CharacterCasing.NORMAL:
-            break;
+      case CharacterCasing.NORMAL:
+         break;
       }
 
       _style(wl);
@@ -958,27 +958,27 @@ class TextBox : TextBoxBase {
                break;
          }
       +/
-         final switch (sb) {
-            case ScrollBars.BOTH:
-               _style(_style() | WS_VSCROLL);
-               hscroll = true;
-               break;
+      final switch (sb) {
+      case ScrollBars.BOTH:
+         _style(_style() | WS_VSCROLL);
+         hscroll = true;
+         break;
 
-            case ScrollBars.HORIZONTAL:
-               _style(_style() & ~WS_VSCROLL);
-               hscroll = true;
-               break;
+      case ScrollBars.HORIZONTAL:
+         _style(_style() & ~WS_VSCROLL);
+         hscroll = true;
+         break;
 
-            case ScrollBars.VERTICAL:
-               _style(_style() | WS_VSCROLL);
-               hscroll = false;
-               break;
+      case ScrollBars.VERTICAL:
+         _style(_style() | WS_VSCROLL);
+         hscroll = false;
+         break;
 
-            case ScrollBars.NONE:
-               _style(_style() & ~WS_VSCROLL);
-               hscroll = false;
-               break;
-         }
+      case ScrollBars.NONE:
+         _style(_style() & ~WS_VSCROLL);
+         hscroll = false;
+         break;
+      }
 
       if (created) {
          redrawEntire();
@@ -1005,17 +1005,17 @@ class TextBox : TextBoxBase {
       LONG wl = _style() & ~(ES_RIGHT | ES_CENTER | ES_LEFT);
 
       final switch (ha) {
-         case HorizontalAlignment.RIGHT:
-            wl |= ES_RIGHT;
-            break;
+      case HorizontalAlignment.RIGHT:
+         wl |= ES_RIGHT;
+         break;
 
-         case HorizontalAlignment.CENTER:
-            wl |= ES_CENTER;
-            break;
+      case HorizontalAlignment.CENTER:
+         wl |= ES_CENTER;
+         break;
 
-         case HorizontalAlignment.LEFT:
-            wl |= ES_LEFT;
-            break;
+      case HorizontalAlignment.LEFT:
+         wl |= ES_LEFT;
+         break;
       }
 
       _style(wl);
@@ -1067,6 +1067,6 @@ class TextBox : TextBoxBase {
       }
    +/
 
-   private:
-      dchar passchar = 0;
+private:
+   dchar passchar = 0;
 }
