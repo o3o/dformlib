@@ -7,20 +7,21 @@ PROJECT_VERSION = 0.1.0
 #SRC = $(wildcard src/dfl/*.d)
 #SRC += $(wildcard src/dfl/internal/*.d)
 
-SRC += src/dfl/internal/com.d
 #SRC += src/dfl/internal/d1.d
 #SRC += src/dfl/internal/wincom.d ?
+
 SRC += src/dfl/internal/clib.d
+SRC += src/dfl/internal/com.d
 SRC += src/dfl/internal/d2.d
 SRC += src/dfl/internal/dlib.d
 SRC += src/dfl/internal/utf.d
 SRC += src/dfl/internal/winapi.d
+
 SRC += src/dfl/exception.d
 SRC += src/dfl/event.d
 SRC += src/dfl/drawing.d
 SRC += src/dfl/base.d
 SRC += src/dfl/collections.d
-
 SRC += src/dfl/control.d
 SRC += src/dfl/data.d
 SRC += src/dfl/application.d
@@ -31,6 +32,11 @@ SRC += src/dfl/button.d
 SRC += src/dfl/textbox.d
 SRC += src/dfl/environment.d
 SRC += src/dfl/timer.d
+SRC += src/dfl/commondialog.d
+SRC += src/dfl/filedialog.d
+SRC += src/dfl/colordialog.d
+SRC += src/dfl/fontdialog.d
+SRC += src/dfl/folderdialog.d
 
 D_DIR = 
 ROOT_SOURCE_DIR = src
