@@ -19,6 +19,18 @@ SRC += src/dfl/exception.d
 SRC += src/dfl/event.d
 SRC += src/dfl/drawing.d
 SRC += src/dfl/base.d
+SRC += src/dfl/collections.d
+
+SRC += src/dfl/control.d
+SRC += src/dfl/data.d
+SRC += src/dfl/application.d
+SRC += src/dfl/menu.d
+SRC += src/dfl/form.d
+SRC += src/dfl/label.d
+SRC += src/dfl/button.d
+SRC += src/dfl/textbox.d
+SRC += src/dfl/environment.d
+SRC += src/dfl/timer.d
 
 D_DIR = 
 ROOT_SOURCE_DIR = src

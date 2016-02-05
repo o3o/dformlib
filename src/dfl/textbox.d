@@ -1,48 +1,45 @@
 // Written by Christopher E. Miller
 // See the included license.txt for copyright and license details.
 
-
-
 module dfl.textbox;
 
-private import dfl.internal.dlib;
+import core.sys.windows.windows;
 
-private import dfl.control, dfl.base, dfl.internal.winapi, dfl.application;
-private import dfl.drawing, dfl.event, dfl.internal.utf;
-debug(APP_PRINT) {
+import dfl.internal.dlib;
+import dfl.internal.utf;
+import dfl.control;
+import dfl.base;
+import dfl.application;
+import dfl.drawing;
+import dfl.event;
+
+debug (APP_PRINT) {
    private import dfl.internal.clib;
 }
 
-version(DFL_NO_MENUS) {
-}
-else {
+version (DFL_NO_MENUS) {
+} else {
    private import dfl.menu;
 }
 
-
-private extern(Windows) void _initTextBox();
-
+private extern (Windows) void _initTextBox();
 
 // Note: ControlStyles.CACHE_TEXT might not work correctly with a text box.
 // It's not actually a bug, but a limitation of this control.
 
+abstract class TextBoxBase : ControlSuperClass {
 
-abstract class TextBoxBase: ControlSuperClass { // docmain
-
-   final @property void acceptsTab(bool byes) { // setter
+   final @property void acceptsTab(bool byes) {
       atab = byes;
       setStyle(ControlStyles.WANT_TAB_KEY, atab);
    }
 
-   /// ditto
-   final @property bool acceptsTab() { // getter
+   final @property bool acceptsTab() {
       return atab;
    }
 
-
-
-   @property void borderStyle(BorderStyle bs) { // setter
-      final switch(bs) {
+   @property void borderStyle(BorderStyle bs) {
+      final switch (bs) {
          case BorderStyle.FIXED_3D:
             _style(_style() & ~WS_BORDER);
             _exStyle(_exStyle() | WS_EX_CLIENTEDGE);
@@ -59,68 +56,57 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
             break;
       }
 
-      if(created) {
+      if (created) {
          redrawEntire();
       }
    }
 
-   /// ditto
-   @property BorderStyle borderStyle() { // getter
-      if(_exStyle() & WS_EX_CLIENTEDGE) {
+   @property BorderStyle borderStyle() {
+      if (_exStyle() & WS_EX_CLIENTEDGE) {
          return BorderStyle.FIXED_3D;
-      } else if(_style() & WS_BORDER) {
+      } else if (_style() & WS_BORDER) {
          return BorderStyle.FIXED_SINGLE;
       }
       return BorderStyle.NONE;
    }
 
-
-
-   final @property bool canUndo() { // getter
-      if(!created) {
+   final @property bool canUndo() {
+      if (!created) {
          return false;
       }
       return SendMessageA(handle, EM_CANUNDO, 0, 0) != 0;
    }
 
-
-
-   final @property void hideSelection(bool byes) { // setter
-      if(byes) {
+   final @property void hideSelection(bool byes) {
+      if (byes) {
          _style(_style() & ~ES_NOHIDESEL);
       } else {
          _style(_style() | ES_NOHIDESEL);
       }
    }
 
-   /// ditto
-   final @property bool hideSelection() { // getter
+   final @property bool hideSelection() {
       return (_style() & ES_NOHIDESEL) == 0;
    }
 
-
-
-   final @property void lines(Dstring[] lns) { // setter
+   final @property void lines(Dstring[] lns) {
       Dstring result;
-      foreach(Dstring s; lns) {
+      foreach (Dstring s; lns) {
          result ~= s ~ "\r\n";
       }
-      if(result.length) { // Remove last \r\n.
+      if (result.length) { // Remove last \r\n.
          result = result[0 .. result.length - 2];
       }
       text = result;
    }
 
-   /// ditto
-   final @property Dstring[] lines() { // getter
+   final @property Dstring[] lines() {
       return stringSplitLines(text);
    }
 
-
-
-   @property void maxLength(uint len) { // setter
-      if(!len) {
-         if(multiline) {
+   @property void maxLength(uint len) {
+      if (!len) {
+         if (multiline) {
             lim = 0xFFFFFFFF;
          } else {
             lim = 0x7FFFFFFE;
@@ -129,42 +115,39 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
          lim = len;
       }
 
-      if(created) {
+      if (created) {
          Message m;
-         m = Message(handle, EM_SETLIMITTEXT, cast(WPARAM)lim, 0);
+         m = Message(handle, EM_SETLIMITTEXT, cast(WPARAM) lim, 0);
          prevWndProc(m);
       }
    }
 
-   /// ditto
-   @property uint maxLength() { // getter
-      if(created) {
-         lim = cast(uint)SendMessageA(handle, EM_GETLIMITTEXT, 0, 0);
+   @property uint maxLength() {
+      if (created) {
+         lim = cast(uint) SendMessageA(handle, EM_GETLIMITTEXT, 0, 0);
       }
       return lim;
    }
 
-
-
    final uint getLineCount() {
-      if(!multiline) {
+      if (!multiline) {
          return 1;
       }
 
-      if(created) {
-         return cast(uint)SendMessageA(handle, EM_GETLINECOUNT, 0, 0);
+      if (created) {
+         return cast(uint) SendMessageA(handle, EM_GETLINECOUNT, 0, 0);
       }
 
       Dstring s;
       size_t iw = 0;
       uint count = 1;
       s = text;
-      for(; iw != s.length; iw++) {
-         if('\r' == s[iw]) {
-            if(iw + 1 == s.length) {
+      for (; iw != s.length; iw++) {
+         if ('\r' == s[iw]) {
+            if (iw + 1 == s.length) {
                break;
             }
-            if('\n' == s[iw + 1]) {
+            if ('\n' == s[iw + 1]) {
                iw++;
                count++;
             }
@@ -173,41 +156,36 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       return count;
    }
 
-
-
-   final @property void modified(bool byes) { // setter
-      if(created) {
+   final @property void modified(bool byes) {
+      if (created) {
          SendMessageA(handle, EM_SETMODIFY, byes, 0);
       }
    }
 
-   /// ditto
-   final @property bool modified() { // getter
-      if(!created) {
+   final @property bool modified() {
+      if (!created) {
          return false;
       }
       return SendMessageA(handle, EM_GETMODIFY, 0, 0) != 0;
    }
 
-
-
-   @property void multiline(bool byes) { // setter
+   @property void multiline(bool byes) {
       /+
-      if(byes) {
-         _style(_style() & ~ES_AUTOHSCROLL | ES_MULTILINE);
-      } else {
-         _style(_style() & ~ES_MULTILINE | ES_AUTOHSCROLL);
-      }
+         if(byes) {
+            _style(_style() & ~ES_AUTOHSCROLL | ES_MULTILINE);
+         } else {
+            _style(_style() & ~ES_MULTILINE | ES_AUTOHSCROLL);
+         }
       +/
 
-      // TODO: check if correct implementation.
+         // TODO: check if correct implementation.
 
-      LONG st;
+         LONG st;
 
-      if(byes) {
+      if (byes) {
          st = _style() | ES_MULTILINE | ES_AUTOVSCROLL;
 
-         if(_wrap) {
+         if (_wrap) {
             st &= ~ES_AUTOHSCROLL;
          } else {
             st |= ES_AUTOHSCROLL;
@@ -224,19 +202,16 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       _crecreate();
    }
 
-   /// ditto
-   @property bool multiline() { // getter
+   @property bool multiline() {
       return (_style() & ES_MULTILINE) != 0;
    }
 
-
-
-   final @property void readOnly(bool byes) { // setter
-      if(created) {
+   final @property void readOnly(bool byes) {
+      if (created) {
          SendMessageA(handle, EM_SETREADONLY, byes, 0); // Should trigger WM_STYLECHANGED.
          invalidate(); // ?
       } else {
-         if(byes) {
+         if (byes) {
             _style(_style() | ES_READONLY);
          } else {
             _style(_style() & ~ES_READONLY);
@@ -244,55 +219,49 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       }
    }
 
-   /// ditto
-   final @property bool readOnly() { // getter
+   final @property bool readOnly() {
       return (_style() & ES_READONLY) != 0;
    }
 
-
-
-   @property void selectedText(Dstring sel) { // setter
+   @property void selectedText(Dstring sel) {
       /+
-      if(created) {
-         SendMessageA(handle, EM_REPLACESEL, FALSE, cast(LPARAM)unsafeStringz(sel));
-      }
-      +/
-
-      if(created) {
-         //dfl.internal.utf.sendMessage(handle, EM_REPLACESEL, FALSE, sel);
-         dfl.internal.utf.sendMessageUnsafe(handle, EM_REPLACESEL, FALSE, sel);
-      }
-   }
-
-   /// ditto
-   @property Dstring selectedText() { // getter
-      /+
-      if(created) {
-         uint v1, v2;
-         SendMessageA(handle, EM_GETSEL, cast(WPARAM)&v1, cast(LPARAM)&v2);
-         if(v1 == v2) {
-            return null;
+         if(created) {
+            SendMessageA(handle, EM_REPLACESEL, FALSE, cast(LPARAM)unsafeStringz(sel));
          }
-         assert(v2 > v1);
-         Dstring result = new char[v2 - v1 + 1];
-         result[result.length - 1] = 0;
-         result = result[0 .. result.length - 1];
-         result[] = text[v1 .. v2];
-         return result;
-      }
+      +/
+
+         if (created) {
+            //dfl.internal.utf.sendMessage(handle, EM_REPLACESEL, FALSE, sel);
+            dfl.internal.utf.sendMessageUnsafe(handle, EM_REPLACESEL, FALSE, sel);
+         }
+   }
+
+   @property Dstring selectedText() {
+      /+
+         if(created) {
+            uint v1, v2;
+            SendMessageA(handle, EM_GETSEL, cast(WPARAM)&v1, cast(LPARAM)&v2);
+            if(v1 == v2) {
+               return null;
+            }
+            assert(v2 > v1);
+            Dstring result = new char[v2 - v1 + 1];
+            result[result.length - 1] = 0;
+            result = result[0 .. result.length - 1];
+            result[] = text[v1 .. v2];
+            return result;
+         }
       return null;
       +/
 
-      if(created) {
-         return dfl.internal.utf.getSelectedText(handle);
-      }
+         if (created) {
+            return dfl.internal.utf.getSelectedText(handle);
+         }
       return null;
    }
 
-
-
-   @property void selectionLength(uint len) { // setter
-      if(created) {
+   @property void selectionLength(uint len) {
+      if (created) {
          uint v1, v2;
          SendMessageA(handle, EM_GETSEL, cast(WPARAM)&v1, cast(LPARAM)&v2);
          v2 = v1 + len;
@@ -300,12 +269,11 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       }
    }
 
-   /// ditto
    // Current selection length, in characters.
    // This does not necessarily correspond to the length of chars; some characters use multiple chars.
    // An end of line (\r\n) takes up 2 characters.
-   @property uint selectionLength() { // getter
-      if(created) {
+   @property uint selectionLength() {
+      if (created) {
          uint v1, v2;
          SendMessageA(handle, EM_GETSEL, cast(WPARAM)&v1, cast(LPARAM)&v2);
          assert(v2 >= v1);
@@ -314,10 +282,8 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       return 0;
    }
 
-
-
-   @property void selectionStart(uint pos) { // setter
-      if(created) {
+   @property void selectionStart(uint pos) {
+      if (created) {
          uint v1, v2;
          SendMessageA(handle, EM_GETSEL, cast(WPARAM)&v1, cast(LPARAM)&v2);
          assert(v2 >= v1);
@@ -326,12 +292,11 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       }
    }
 
-   /// ditto
    // Current selection starting index, in characters.
    // This does not necessarily correspond to the index of chars; some characters use multiple chars.
    // An end of line (\r\n) takes up 2 characters.
-   @property uint selectionStart() { // getter
-      if(created) {
+   @property uint selectionStart() {
+      if (created) {
          uint v1, v2;
          SendMessageA(handle, EM_GETSEL, cast(WPARAM)&v1, cast(LPARAM)&v2);
          return v1;
@@ -339,52 +304,48 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       return 0;
    }
 
-
-
    // Number of characters in the textbox.
    // This does not necessarily correspond to the number of chars; some characters use multiple chars.
    // An end of line (\r\n) takes up 2 characters.
    // Return may be larger than the amount of characters.
    // This is a lot faster than retrieving the text, but retrieving the text is completely accurate.
-   @property uint textLength() { // getter
-      if(!(ctrlStyle & ControlStyles.CACHE_TEXT) && created())
-         //return cast(uint)SendMessageA(handle, WM_GETTEXTLENGTH, 0, 0);
+   @property uint textLength() {
+      if (!(ctrlStyle & ControlStyles.CACHE_TEXT) && created()) //return cast(uint)SendMessageA(handle, WM_GETTEXTLENGTH, 0, 0);
       {
-         return cast(uint)dfl.internal.utf.sendMessage(handle, WM_GETTEXTLENGTH, 0, 0);
+         return cast(uint) dfl.internal.utf.sendMessage(handle, WM_GETTEXTLENGTH, 0,
+               0);
       }
       return wtext.length;
    }
 
-
-
-   @property final void wordWrap(bool byes) { // setter
+   @property final void wordWrap(bool byes) {
       /+
-      if(byes) {
-         _style(_style() | ES_AUTOVSCROLL);
-      } else {
-         _style(_style() & ~ES_AUTOVSCROLL);
-      }
+         if(byes) {
+            _style(_style() | ES_AUTOVSCROLL);
+         } else {
+            _style(_style() & ~ES_AUTOVSCROLL);
+         }
       +/
 
-      // TODO: check if correct implementation.
+         // TODO: check if correct implementation.
 
-      if(_wrap == byes) {
-         return;
-      }
+         if (_wrap == byes) {
+            return;
+         }
 
       _wrap = byes;
 
       // Always H-scroll when single line.
-      if(multiline) {
-         if(byes) {
+      if (multiline) {
+         if (byes) {
             _style(_style() & ~(ES_AUTOHSCROLL | WS_HSCROLL));
          } else {
             LONG st;
             st = _style();
 
-            st |=  ES_AUTOHSCROLL;
+            st |= ES_AUTOHSCROLL;
 
-            if(_hscroll) {
+            if (_hscroll) {
                st |= WS_HSCROLL;
             }
 
@@ -395,17 +356,14 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       _crecreate();
    }
 
-   /// ditto
-   final @property bool wordWrap() { // getter
+   final @property bool wordWrap() {
       //return (_style() & ES_AUTOVSCROLL) != 0;
 
       return _wrap;
    }
 
-
-
    final void appendText(Dstring txt) {
-      if(created) {
+      if (created) {
          selectionStart = textLength;
          selectedText = txt;
       } else {
@@ -413,40 +371,34 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       }
    }
 
-
-
    final void clear() {
       /+
-      // WM_CLEAR only clears the selection ?
-      if(created) {
-         SendMessageA(handle, WM_CLEAR, 0, 0);
-      } else {
-         wtext = null;
-      }
+         // WM_CLEAR only clears the selection ?
+         if(created) {
+            SendMessageA(handle, WM_CLEAR, 0, 0);
+         } else {
+            wtext = null;
+         }
       +/
 
-      text = null;
+         text = null;
    }
 
-
-
    final void clearUndo() {
-      if(created) {
+      if (created) {
          SendMessageA(handle, EM_EMPTYUNDOBUFFER, 0, 0);
       }
    }
 
-
-
    final void copy() {
-      if(created) {
+      if (created) {
          SendMessageA(handle, WM_COPY, 0, 0);
       } else {
          // There's never a selection if the window isn't created; so just empty the clipboard.
 
-         if(!OpenClipboard(null)) {
-            debug(APP_PRINT)
-            cprintf("Unable to OpenClipboard().\n");
+         if (!OpenClipboard(null)) {
+            debug (APP_PRINT)
+               cprintf("Unable to OpenClipboard().\n");
             //throw new DflException("Unable to set clipboard data.");
             return;
          }
@@ -455,17 +407,15 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       }
    }
 
-
-
    final void cut() {
-      if(created) {
+      if (created) {
          SendMessageA(handle, WM_CUT, 0, 0);
       } else {
          // There's never a selection if the window isn't created; so just empty the clipboard.
 
-         if(!OpenClipboard(null)) {
-            debug(APP_PRINT)
-            cprintf("Unable to OpenClipboard().\n");
+         if (!OpenClipboard(null)) {
+            debug (APP_PRINT)
+               cprintf("Unable to OpenClipboard().\n");
             //throw new DflException("Unable to set clipboard data.");
             return;
          }
@@ -474,81 +424,67 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       }
    }
 
-
-
    final void paste() {
-      if(created) {
+      if (created) {
          SendMessageA(handle, WM_PASTE, 0, 0);
       } else {
          // Can't do anything because there's no selection ?
       }
    }
 
-
-
    final void scrollToCaret() {
-      if(created) {
+      if (created) {
          SendMessageA(handle, EM_SCROLLCARET, 0, 0);
       }
    }
 
-
-
    final void select(uint start, uint length) {
-      if(created) {
+      if (created) {
          SendMessageA(handle, EM_SETSEL, start, start + length);
       }
    }
 
-   alias Control.select select; // Overload.
-
-
+   alias select = Control.select; // Overload.
 
    final void selectAll() {
-      if(created) {
+      if (created) {
          SendMessageA(handle, EM_SETSEL, 0, -1);
       }
    }
-
 
    override Dstring toString() {
       return text; // ?
    }
 
-
-
    final void undo() {
-      if(created) {
+      if (created) {
          SendMessageA(handle, EM_UNDO, 0, 0);
       }
    }
 
-
    /+
-   override void createHandle() {
-      if(isHandleCreated) {
-         return;
+      override void createHandle() {
+         if(isHandleCreated) {
+            return;
+         }
+
+         createClassHandle(TEXTBOX_CLASSNAME);
+
+         onHandleCreated(EventArgs.empty);
       }
-
-      createClassHandle(TEXTBOX_CLASSNAME);
-
-      onHandleCreated(EventArgs.empty);
-   }
    +/
 
+      override void createHandle() {
+         if (!isHandleCreated) {
+            Dstring txt;
+            txt = wtext;
 
-   override void createHandle() {
-      if(!isHandleCreated) {
-         Dstring txt;
-         txt = wtext;
+            super.createHandle();
 
-         super.createHandle();
-
-         //dfl.internal.utf.setWindowText(hwnd, txt);
-         text = txt; // So that it can be overridden.
+            //dfl.internal.utf.setWindowText(hwnd, txt);
+            text = txt; // So that it can be overridden.
+         }
       }
-   }
-
 
    protected override void createParams(ref CreateParams cp) {
       super.createParams(cp);
@@ -557,7 +493,6 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       cp.caption = null; // Set in createHandle() to allow larger buffers.
    }
 
-
    protected override void onHandleCreated(EventArgs ea) {
       super.onHandleCreated(ea);
 
@@ -565,45 +500,36 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       maxLength = lim; // Call virtual function.
    }
 
-
    private {
-      version(DFL_NO_MENUS) {
-      }
-      else
-      {
+      version (DFL_NO_MENUS) {
+      } else {
          void menuUndo(Object sender, EventArgs ea) {
             undo();
          }
-
 
          void menuCut(Object sender, EventArgs ea) {
             cut();
          }
 
-
          void menuCopy(Object sender, EventArgs ea) {
             copy();
          }
 
-
          void menuPaste(Object sender, EventArgs ea) {
             paste();
          }
-
 
          void menuDelete(Object sender, EventArgs ea) {
             // Only clear selection.
             SendMessageA(handle, WM_CLEAR, 0, 0);
          }
 
-
          void menuSelectAll(Object sender, EventArgs ea) {
             selectAll();
          }
 
-
          bool isClipboardText() {
-            if(!OpenClipboard(handle)) {
+            if (!OpenClipboard(handle)) {
                return false;
             }
 
@@ -614,7 +540,6 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
 
             return result;
          }
-
 
          void menuPopup(Object sender, EventArgs ea) {
             int slen, tlen;
@@ -632,11 +557,9 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
             misel.enabled = tlen != 0 && tlen != slen;
          }
 
-
          MenuItem miundo, micut, micopy, mipaste, midel, misel;
       }
    }
-
 
    this() {
       _initTextBox();
@@ -646,9 +569,8 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       ctrlStyle |= ControlStyles.SELECTABLE;
       wclassStyle = textBoxClassStyle;
 
-      version(DFL_NO_MENUS) {
-      }
-      else {
+      version (DFL_NO_MENUS) {
+      } else {
          MenuItem mi;
 
          cmenu = new ContextMenu;
@@ -702,85 +624,73 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       }
    }
 
-
-   override @property Color backColor() { // getter
-      if(Color.empty == backc) {
+   override @property Color backColor() {
+      if (Color.empty == backc) {
          return defaultBackColor;
       }
       return backc;
    }
 
-   alias Control.backColor backColor; // Overload.
+   alias backColor = Control.backColor; // Overload.
 
-
-   static @property Color defaultBackColor() { // getter
+   static @property Color defaultBackColor() {
       return Color.systemColor(COLOR_WINDOW);
    }
 
-
-   override @property Color foreColor() { // getter
-      if(Color.empty == forec) {
+   override @property Color foreColor() {
+      if (Color.empty == forec) {
          return defaultForeColor;
       }
       return forec;
    }
 
-   alias Control.foreColor foreColor; // Overload.
+   alias foreColor = Control.foreColor; // Overload.
 
-
-   static @property Color defaultForeColor() { //getter
+   static @property Color defaultForeColor() {
       return Color.systemColor(COLOR_WINDOWTEXT);
    }
 
-
-   override @property Cursor cursor() { // getter
-      if(!wcurs) {
+   override @property Cursor cursor() {
+      if (!wcurs) {
          return _defaultCursor;
       }
       return wcurs;
    }
 
-   alias Control.cursor cursor; // Overload.
-
-
+   alias cursor = Control.cursor; // Overload.
 
    int getFirstCharIndexFromLine(int line) {
-      if(!isHandleCreated) {
-         return -1;   // ...
+      if (!isHandleCreated) {
+         return -1; // ...
       }
-      if(line < 0) {
+      if (line < 0) {
          return -1;
       }
       return SendMessageA(hwnd, EM_LINEINDEX, line, 0);
    }
 
-   /// ditto
    int getFirstCharIndexOfCurrentLine() {
-      if(!isHandleCreated) {
-         return -1;   // ...
+      if (!isHandleCreated) {
+         return -1; // ...
       }
       return SendMessageA(hwnd, EM_LINEINDEX, -1, 0);
    }
 
-
-
    int getLineFromCharIndex(int charIndex) {
-      if(!isHandleCreated) {
-         return -1;   // ...
+      if (!isHandleCreated) {
+         return -1; // ...
       }
-      if(charIndex < 0) {
+      if (charIndex < 0) {
          return -1;
       }
       return SendMessageA(hwnd, EM_LINEFROMCHAR, charIndex, 0);
    }
 
-
-
    Point getPositionFromCharIndex(int charIndex) {
-      if(!isHandleCreated) {
-         return Point(0, 0);   // ...
+      if (!isHandleCreated) {
+         return Point(0, 0); // ...
       }
-      if(charIndex < 0) {
+      if (charIndex < 0) {
          return Point(0, 0);
       }
       POINT point;
@@ -788,29 +698,27 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       return Point(point.x, point.y);
    }
 
-   /// ditto
    int getCharIndexFromPosition(Point pt) {
-      if(!isHandleCreated) {
-         return -1;   // ...
+      if (!isHandleCreated) {
+         return -1; // ...
       }
-      if(!multiline) {
+      if (!multiline) {
          return 0;
       }
       auto lresult = SendMessageA(hwnd, EM_CHARFROMPOS, 0, MAKELPARAM(pt.x, pt.y));
-      if(-1 == lresult) {
+      if (-1 == lresult) {
          return -1;
       }
-      return cast(int)cast(short)(lresult & 0xFFFF);
+      return cast(int) cast(short)(lresult & 0xFFFF);
    }
 
-
-   package static @property Cursor _defaultCursor() { // getter
+   package static @property Cursor _defaultCursor() {
       static Cursor def = null;
 
-      if(!def) {
+      if (!def) {
          synchronized {
-            if(!def) {
-               def = new SafeCursor(LoadCursorA(null, IDC_IBEAM));
+            if (!def) {
+               def = new SafeCursor(LoadCursor(null, IDC_IBEAM));
             }
          }
       }
@@ -818,14 +726,13 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       return def;
    }
 
-
- protected:
+   protected:
    protected override void onReflectedMessage(ref Message m) {
       super.onReflectedMessage(m);
 
-      switch(m.msg) {
+      switch (m.msg) {
          case WM_COMMAND:
-            switch(HIWORD(m.wParam)) {
+            switch (HIWORD(m.wParam)) {
                case EN_CHANGE:
                   onTextChanged(EventArgs.empty);
                   break;
@@ -837,50 +744,48 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
             /+
          case WM_CTLCOLORSTATIC:
          case WM_CTLCOLOREDIT:
-            /+
-            //SetBkColor(cast(HDC)m.wParam, backColor.toRgb()); // ?
-            SetBkMode(cast(HDC)m.wParam, OPAQUE); // ?
-            +/
-            break;
-            +/
+               /+
+                  //SetBkColor(cast(HDC)m.wParam, backColor.toRgb()); // ?
+                  SetBkMode(cast(HDC)m.wParam, OPAQUE); // ?
+               +/
+                  break;
+               +/
 
          default:
       }
    }
 
-
    override void prevWndProc(ref Message msg) {
-      version(DFL_NO_MENUS) {
+      version (DFL_NO_MENUS) {
          // Don't prevent WM_CONTEXTMENU so at least it'll have a default menu.
-      }
-      else {
-         if(msg.msg == WM_CONTEXTMENU) { // Ignore the default context menu.
+      } else {
+         if (msg.msg == WM_CONTEXTMENU) { // Ignore the default context menu.
             return;
          }
       }
 
       //msg.result = CallWindowProcA(textBoxPrevWndProc, msg.hWnd, msg.msg, msg.wParam, msg.lParam);
-      msg.result = dfl.internal.utf.callWindowProc(textBoxPrevWndProc, msg.hWnd, msg.msg, msg.wParam, msg.lParam);
+      msg.result = dfl.internal.utf.callWindowProc(textBoxPrevWndProc, msg.hWnd,
+            msg.msg, msg.wParam, msg.lParam);
    }
 
-
    protected override bool processKeyEventArgs(ref Message msg) { // package
-      switch(msg.msg) {
+      switch (msg.msg) {
          case WM_KEYDOWN:
          case WM_KEYUP:
          case WM_CHAR:
-            if('\t' == msg.wParam) {
+            if ('\t' == msg.wParam) {
                // TODO: fix this. This case shouldn't be needed.
-               if(atab) {
-                  if(super.processKeyEventArgs(msg)) {
-                     return true;   // Handled.
+               if (atab) {
+                  if (super.processKeyEventArgs(msg)) {
+                     return true; // Handled.
                   }
-                  if(WM_KEYDOWN == msg.msg) {
-                     if(multiline) { // Only multiline textboxes can have real tabs..
+                  if (WM_KEYDOWN == msg.msg) {
+                     if (multiline) { // Only multiline textboxes can have real tabs..
                         //selectedText = "\t";
                         //SendMessageA(handle, EM_REPLACESEL, TRUE, cast(LPARAM)"\t".ptr); // Allow undo. // Crashes DMD 0.161.
                         auto str = "\t".ptr;
-                        SendMessageA(handle, EM_REPLACESEL, TRUE, cast(LPARAM)str); // Allow undo.
+                        SendMessageA(handle, EM_REPLACESEL, TRUE, cast(LPARAM) str); // Allow undo.
                      }
                   }
                   return true; // Handled.
@@ -893,12 +798,11 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       return super.processKeyEventArgs(msg);
    }
 
-
    override void wndProc(ref Message msg) {
-      switch(msg.msg) {
+      switch (msg.msg) {
          case WM_GETDLGCODE:
             super.wndProc(msg);
-            if(atab) {
+            if (atab) {
                //if(GetKeyState(Keys.TAB) & 0x8000)
                {
                   //msg.result |= DLGC_WANTALLKEYS;
@@ -914,13 +818,11 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
       }
    }
 
-
-   override @property Size defaultSize() { // getter
+   override @property Size defaultSize() {
       return Size(120, 23); // ?
    }
 
-
- private:
+   private:
    package uint lim = 30_000; // Documented as default.
    bool _wrap = true;
    bool _hscroll;
@@ -928,14 +830,14 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
    bool atab = false;
 
    /+
-   @property bool atab() { // getter
-      if(_style() & X) {
-         return true;
+      @property bool atab() {
+         if(_style() & X) {
+            return true;
+         }
+         return false;
       }
-      return false;
-   }
 
-   @property void atab(bool byes) { // setter
+   @property void atab(bool byes) {
       if(byes) {
          _style(_style() | X);
       } else {
@@ -944,44 +846,37 @@ abstract class TextBoxBase: ControlSuperClass { // docmain
    }
    +/
 
+      @property void hscroll(bool byes) {
+         _hscroll = byes;
 
-   @property void hscroll(bool byes) { // setter
-      _hscroll = byes;
-
-      if(byes && (!_wrap || !multiline)) {
-         _style(_style() | WS_HSCROLL | ES_AUTOHSCROLL);
+         if (byes && (!_wrap || !multiline)) {
+            _style(_style() | WS_HSCROLL | ES_AUTOHSCROLL);
+         }
       }
-   }
 
-
-   @property bool hscroll() { // getter
+   @property bool hscroll() {
       return _hscroll;
    }
 }
 
+class TextBox : TextBoxBase {
 
-
-class TextBox: TextBoxBase { // docmain
-
-   final @property void acceptsReturn(bool byes) { // setter
-      if(byes) {
+   final @property void acceptsReturn(bool byes) {
+      if (byes) {
          _style(_style() | ES_WANTRETURN);
       } else {
          _style(_style() & ~ES_WANTRETURN);
       }
    }
 
-   /// ditto
-   final @property bool acceptsReturn() { // getter
+   final @property bool acceptsReturn() {
       return (_style() & ES_WANTRETURN) != 0;
    }
 
-
-
-   final @property void characterCasing(CharacterCasing cc) { // setter
+   final @property void characterCasing(CharacterCasing cc) {
       LONG wl = _style() & ~(ES_UPPERCASE | ES_LOWERCASE);
 
-      final switch(cc) {
+      final switch (cc) {
          case CharacterCasing.UPPER:
             wl |= ES_UPPERCASE;
             break;
@@ -997,28 +892,24 @@ class TextBox: TextBoxBase { // docmain
       _style(wl);
    }
 
-   /// ditto
-   final @property CharacterCasing characterCasing() { // getter
+   final @property CharacterCasing characterCasing() {
       LONG wl = _style();
-      if(wl & ES_UPPERCASE) {
+      if (wl & ES_UPPERCASE) {
          return CharacterCasing.UPPER;
-      } else if(wl & ES_LOWERCASE) {
+      } else if (wl & ES_LOWERCASE) {
          return CharacterCasing.LOWER;
       }
       return CharacterCasing.NORMAL;
    }
 
-
-
    // Set to 0 (NUL) to remove.
-   final @property void passwordChar(dchar pwc) { // setter
-      if(pwc) {
+   final @property void passwordChar(dchar pwc) {
+      if (pwc) {
          // When the EM_SETPASSWORDCHAR message is received by an edit control,
          // the edit control redraws all visible characters by using the
          // character specified by the ch parameter.
 
-         if(created)
-            //SendMessageA(handle, EM_SETPASSWORDCHAR, pwc, 0);
+         if (created) //SendMessageA(handle, EM_SETPASSWORDCHAR, pwc, 0);
          {
             dfl.internal.utf.emSetPasswordChar(handle, pwc);
          } else {
@@ -1028,8 +919,7 @@ class TextBox: TextBoxBase { // docmain
          // The style ES_PASSWORD is removed if an EM_SETPASSWORDCHAR message
          // is sent with the ch parameter set to zero.
 
-         if(created)
-            //SendMessageA(handle, EM_SETPASSWORDCHAR, 0, 0);
+         if (created) //SendMessageA(handle, EM_SETPASSWORDCHAR, 0, 0);
          {
             dfl.internal.utf.emSetPasswordChar(handle, 0);
          } else {
@@ -1040,88 +930,81 @@ class TextBox: TextBoxBase { // docmain
       passchar = pwc;
    }
 
-   /// ditto
-   final @property dchar passwordChar() { // getter
-      if(created)
-         //passchar = cast(dchar)SendMessageA(handle, EM_GETPASSWORDCHAR, 0, 0);
+   final @property dchar passwordChar() {
+      if (created) //passchar = cast(dchar)SendMessageA(handle, EM_GETPASSWORDCHAR, 0, 0);
       {
          passchar = dfl.internal.utf.emGetPasswordChar(handle);
       }
       return passchar;
    }
 
-
-
-   final @property void scrollBars(ScrollBars sb) { // setter
+   final @property void scrollBars(ScrollBars sb) {
       /+
-      switch(sb) {
-         case ScrollBars.BOTH:
-            _style(_style() | WS_HSCROLL | WS_VSCROLL);
-            break;
+         switch(sb) {
+            case ScrollBars.BOTH:
+               _style(_style() | WS_HSCROLL | WS_VSCROLL);
+               break;
 
-         case ScrollBars.HORIZONTAL:
-            _style(_style() & ~WS_VSCROLL | WS_HSCROLL);
-            break;
+            case ScrollBars.HORIZONTAL:
+               _style(_style() & ~WS_VSCROLL | WS_HSCROLL);
+               break;
 
-         case ScrollBars.VERTICAL:
-            _style(_style() & ~WS_HSCROLL | WS_VSCROLL);
-            break;
+            case ScrollBars.VERTICAL:
+               _style(_style() & ~WS_HSCROLL | WS_VSCROLL);
+               break;
 
-         case ScrollBars.NONE:
-            _style(_style() & ~(WS_HSCROLL | WS_VSCROLL));
-            break;
-      }
+            case ScrollBars.NONE:
+               _style(_style() & ~(WS_HSCROLL | WS_VSCROLL));
+               break;
+         }
       +/
-      final switch(sb) {
-         case ScrollBars.BOTH:
-            _style(_style() | WS_VSCROLL);
-            hscroll = true;
-            break;
+         final switch (sb) {
+            case ScrollBars.BOTH:
+               _style(_style() | WS_VSCROLL);
+               hscroll = true;
+               break;
 
-         case ScrollBars.HORIZONTAL:
-            _style(_style() & ~WS_VSCROLL);
-            hscroll = true;
-            break;
+            case ScrollBars.HORIZONTAL:
+               _style(_style() & ~WS_VSCROLL);
+               hscroll = true;
+               break;
 
-         case ScrollBars.VERTICAL:
-            _style(_style() | WS_VSCROLL);
-            hscroll = false;
-            break;
+            case ScrollBars.VERTICAL:
+               _style(_style() | WS_VSCROLL);
+               hscroll = false;
+               break;
 
-         case ScrollBars.NONE:
-            _style(_style() & ~WS_VSCROLL);
-            hscroll = false;
-            break;
-      }
+            case ScrollBars.NONE:
+               _style(_style() & ~WS_VSCROLL);
+               hscroll = false;
+               break;
+         }
 
-      if(created) {
+      if (created) {
          redrawEntire();
       }
    }
 
-   /// ditto
-   final @property ScrollBars scrollBars() { // getter
+   final @property ScrollBars scrollBars() {
       LONG wl = _style();
 
       //if(wl & WS_HSCROLL)
-      if(hscroll) {
-         if(wl & WS_VSCROLL) {
+      if (hscroll) {
+         if (wl & WS_VSCROLL) {
             return ScrollBars.BOTH;
          }
          return ScrollBars.HORIZONTAL;
       }
-      if(wl & WS_VSCROLL) {
+      if (wl & WS_VSCROLL) {
          return ScrollBars.VERTICAL;
       }
       return ScrollBars.NONE;
    }
 
-
-
-   final @property void textAlign(HorizontalAlignment ha) { // setter
+   final @property void textAlign(HorizontalAlignment ha) {
       LONG wl = _style() & ~(ES_RIGHT | ES_CENTER | ES_LEFT);
 
-      final switch(ha) {
+      final switch (ha) {
          case HorizontalAlignment.RIGHT:
             wl |= ES_RIGHT;
             break;
@@ -1140,56 +1023,50 @@ class TextBox: TextBoxBase { // docmain
       _crecreate();
    }
 
-   /// ditto
-   final @property HorizontalAlignment textAlign() { // getter
+   final @property HorizontalAlignment textAlign() {
       LONG wl = _style();
 
-      if(wl & ES_RIGHT) {
+      if (wl & ES_RIGHT) {
          return HorizontalAlignment.RIGHT;
       }
-      if(wl & ES_CENTER) {
+      if (wl & ES_CENTER) {
          return HorizontalAlignment.CENTER;
       }
       return HorizontalAlignment.LEFT;
    }
 
-
    this() {
       wstyle |= ES_LEFT;
    }
 
-
    protected override @property void onHandleCreated(EventArgs ea) {
       super.onHandleCreated(ea);
 
-      if(passchar) {
+      if (passchar) {
          SendMessageA(hwnd, EM_SETPASSWORDCHAR, passchar, 0);
       }
    }
 
-
    /+
-   override @property void wndProc(ref Message msg) {
-      switch(msg.msg) {
+      override @property void wndProc(ref Message msg) {
+         switch(msg.msg) {
             /+
-         case WM_GETDLGCODE:
-            if(!acceptsReturn && (GetKeyState(Keys.RETURN) & 0x8000)) {
-               // Hack.
-               msg.result = DLGC_HASSETSEL | DLGC_WANTCHARS | DLGC_WANTARROWS;
-               return;
-            }
-            break;
-            +/
+            case WM_GETDLGCODE:
+               if(!acceptsReturn && (GetKeyState(Keys.RETURN) & 0x8000)) {
+                  // Hack.
+                  msg.result = DLGC_HASSETSEL | DLGC_WANTCHARS | DLGC_WANTARROWS;
+                  return;
+               }
+               break;
+               +/
 
-         default:
+            default:
+         }
+
+         super.wndProc(msg);
       }
-
-      super.wndProc(msg);
-   }
    +/
 
-
- private:
-   dchar passchar = 0;
+   private:
+      dchar passchar = 0;
 }
-

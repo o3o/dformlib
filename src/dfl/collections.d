@@ -7,9 +7,8 @@
 
 module dfl.collections;
 
-private import dfl.internal.dlib;
-
-private import dfl.base;
+import dfl.internal.dlib;
+import dfl.base;
 
 
 void _blankListCallback(TValue)(size_t idx, TValue val) { // package
@@ -69,7 +68,7 @@ bool CLEAR_EACH = false) { // package
    }
 
    static if(OVERLOAD_OBJECT) {
-      /// ditto
+
       void opIndexAssign(Object value, int index) {
          TValue tval;
          tval = cast(TValue)value;
@@ -82,7 +81,7 @@ bool CLEAR_EACH = false) { // package
    }
 
    static if(OVERLOAD_STRING) {
-      /// ditto
+
       void opIndexAssign(Dstring value, int index) {
          return opIndexAssign(new TValueString(value), index);
       }
@@ -90,7 +89,7 @@ bool CLEAR_EACH = false) { // package
 
 
 
-   @property TValue opIndex(int index) { // getter
+   @property TValue opIndex(int index) {
       return Array[index];
    }
 
@@ -101,14 +100,14 @@ bool CLEAR_EACH = false) { // package
    }
 
    static if(OVERLOAD_OBJECT) {
-      /// ditto
+
       void add(Object value) {
          _insert(cast(int)Array.length, value);
       }
    }
 
    static if(OVERLOAD_STRING) {
-      /// ditto
+
       void add(Dstring value) {
          _insert(cast(int)Array.length, new TValueString(value));
       }
@@ -172,14 +171,14 @@ bool CLEAR_EACH = false) { // package
    }
 
    static if(OVERLOAD_OBJECT) {
-      /// ditto
+
       bool contains(Object value) {
          return -1 != indexOf(value);
       }
    }
 
    static if(OVERLOAD_STRING) {
-      /// ditto
+
       bool contains(Dstring value) {
          return -1 != indexOf(value);
       }
@@ -192,7 +191,7 @@ bool CLEAR_EACH = false) { // package
    }
 
    static if(OVERLOAD_OBJECT) {
-      /// ditto
+
       int indexOf(Object value) {
          TValue tval;
          tval = cast(TValue)value;
@@ -210,7 +209,7 @@ bool CLEAR_EACH = false) { // package
    }
 
    static if(OVERLOAD_STRING) {
-      /// ditto
+
       int indexOf(Dstring value) {
          foreach(size_t idx, TValue onval; Array) {
             static if(is(TValue == TValueString)) {
@@ -266,7 +265,7 @@ bool CLEAR_EACH = false) { // package
    }
 
    static if(OVERLOAD_STRING) {
-      /// ditto
+
       private final void _insert(int index, Dstring value) {
          return _insert(index, new TValueString(value));
       }
@@ -279,14 +278,14 @@ bool CLEAR_EACH = false) { // package
    }
 
    static if(OVERLOAD_OBJECT) {
-      /// ditto
+
       void insert(int index, Object value) {
          _insert(index, value);
       }
    }
 
    static if(OVERLOAD_STRING) {
-      /// ditto
+
       void insert(int index, Dstring value) {
          return _insert(index, value);
       }
@@ -303,7 +302,7 @@ bool CLEAR_EACH = false) { // package
    }
 
    static if(OVERLOAD_OBJECT) {
-      /// ditto
+
       void remove(Object value) {
          TValue tval;
          tval = cast(TValue)value;
@@ -320,7 +319,7 @@ bool CLEAR_EACH = false) { // package
    }
 
    static if(OVERLOAD_STRING) {
-      /// ditto
+
       void remove(Dstring value) {
          int i;
          i = indexOf(value);
@@ -349,7 +348,7 @@ bool CLEAR_EACH = false) { // package
    deprecated alias length count;
 
 
-   @property size_t length() { // getter
+   @property size_t length() {
       return Array.length;
    }
 
@@ -376,7 +375,7 @@ bool CLEAR_EACH = false) { // package
    }
 
    static if(OVERLOAD_OBJECT) {
-      /// ditto
+
       void addRange(Object[] values) {
          foreach(Object value; values) {
             add(value);
@@ -385,7 +384,7 @@ bool CLEAR_EACH = false) { // package
    }
 
    static if(OVERLOAD_STRING) {
-      /// ditto
+
       void addRange(Dstring[] values) {
          foreach(Dstring value; values) {
             add(value);
@@ -411,7 +410,7 @@ template OpApplyAddIndex(alias ApplyFunc, TValue, bool ADD_APPLY_FUNC = false) {
 
 
    static if(ADD_APPLY_FUNC) {
-      /// ditto
+
       int opApply(int delegate(ref TValue val) dg) {
          return ApplyFunc(dg);
       }
@@ -433,7 +432,7 @@ template OpApplyWrapArray(TValue, alias Array) { // package
       return result;
    }
 
-   /// ditto
+
    int opApply(int delegate(ref size_t, ref TValue val) dg) {
       int result = 0;
       foreach(size_t idx, ref TValue val; Array) {

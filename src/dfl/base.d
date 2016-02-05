@@ -6,8 +6,8 @@ module dfl.base;
 import core.sys.windows.windows;
 import core.sys.windows.winuser;
 import core.stdc.stdlib: alloca;
-
 import core.stdc.string: strcpy;
+
 import dfl.internal.dlib;
 import dfl.internal.clib;
 

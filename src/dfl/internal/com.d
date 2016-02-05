@@ -20,20 +20,19 @@ private extern(C) {
 
 
 // Won't be killed by GC if not referenced in D and the refcount is > 0.
-class DflComObject: ComObject { // package
-   extern(Windows):
-
+class DflComObject: ComObject {
+   extern(Windows) {
       override ULONG AddRef() {
-      //cprintf("AddRef `%.*s`\n", cast(int)toString().length, toString().ptr);
-      return C_refCountInc(cast(void*)this);
-   }
+         //cprintf("AddRef `%.*s`\n", cast(int)toString().length, toString().ptr);
+         return C_refCountInc(cast(void*)this);
+      }
 
-   override ULONG Release() {
-      //cprintf("Release `%.*s`\n", cast(int)toString().length, toString().ptr);
-      return C_refCountDec(cast(void*)this);
+      override ULONG Release() {
+         //cprintf("Release `%.*s`\n", cast(int)toString().length, toString().ptr);
+         return C_refCountDec(cast(void*)this);
+      }
    }
 }
-
 
 class DStreamToIStream: DflComObject, IStream {
    this(DStream sourceDStream) {

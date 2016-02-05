@@ -1,26 +1,24 @@
 // Written by Christopher E. Miller
 // See the included license.txt for copyright and license details.
 
-
-
 module dfl.label;
+import core.sys.windows.windows;
 
-private import dfl.base, dfl.control, dfl.internal.winapi, dfl.application,
-        dfl.event, dfl.drawing, dfl.internal.dlib;
+import dfl.base;
+import dfl.control;
+import dfl.event;
+import dfl.drawing;
+import dfl.internal.dlib;
 
-
-
-class Label: Control { // docmain
+class Label : Control {
    this() {
       resizeRedraw = true; // Word wrap and center correctly.
 
       tfmt = new TextFormat(TextFormatFlags.WORD_BREAK | TextFormatFlags.LINE_LIMIT);
    }
 
-
-
-   @property void borderStyle(BorderStyle bs) { // setter
-      final switch(bs) {
+   @property void borderStyle(BorderStyle bs) {
+      final switch (bs) {
          case BorderStyle.FIXED_3D:
             _style(_style() & ~WS_BORDER);
             _exStyle(_exStyle() | WS_EX_CLIENTEDGE);
@@ -37,25 +35,23 @@ class Label: Control { // docmain
             break;
       }
 
-      if(isHandleCreated) {
+      if (isHandleCreated) {
          redrawEntire();
       }
    }
 
-   /// ditto
-   @property BorderStyle borderStyle() { // getter
-      if(_exStyle() & WS_EX_CLIENTEDGE) {
+
+   @property BorderStyle borderStyle() {
+      if (_exStyle() & WS_EX_CLIENTEDGE) {
          return BorderStyle.FIXED_3D;
-      } else if(_style() & WS_BORDER) {
+      } else if (_style() & WS_BORDER) {
          return BorderStyle.FIXED_SINGLE;
       }
       return BorderStyle.NONE;
    }
 
-
-
-   final @property void useMnemonic(bool byes) { // setter
-      if(byes) {
+   final @property void useMnemonic(bool byes) {
+      if (byes) {
          tfmt.formatFlags = tfmt.formatFlags & ~TextFormatFlags.NO_PREFIX;
          _style(_style() & ~SS_NOPREFIX);
       } else {
@@ -63,19 +59,17 @@ class Label: Control { // docmain
          _style(_style() | SS_NOPREFIX);
       }
 
-      if(isHandleCreated) {
+      if (isHandleCreated) {
          invalidate();
       }
    }
 
-   /// ditto
-   final @property bool useMnemonic() { // getter
+
+   final @property bool useMnemonic() {
       return (tfmt.formatFlags & TextFormatFlags.NO_PREFIX) == 0;
    }
 
-
-
-   @property Size preferredSize() { // getter
+   @property Size preferredSize() {
       Size result;
       Graphics g;
       g = isHandleCreated ? createGraphics() : Graphics.getScreen();
@@ -84,7 +78,6 @@ class Label: Control { // docmain
       return result;
    }
 
-
    private void doAutoSize(Dstring text) {
       //if(isHandleCreated)
       {
@@ -92,46 +85,42 @@ class Label: Control { // docmain
       }
    }
 
-
-   override @property void text(Dstring newText) { // setter
+   override @property void text(Dstring newText) {
       super.text = newText;
 
-      if(autosz) {
+      if (autosz) {
          doAutoSize(newText);
       }
 
       invalidate(false);
    }
 
-   alias Control.text text; // Overload.
+   alias text = Control.text; // Overload.
 
-
-
-   @property void autoSize(bool byes) { // setter
-      if(byes != autosz) {
+   @property void autoSize(bool byes) {
+      if (byes != autosz) {
          autosz = byes;
 
-         if(byes) {
+         if (byes) {
             doAutoSize(text);
          }
       }
    }
 
-   /// ditto
-   @property bool autoSize() { // getter
+
+   @property bool autoSize() {
       return autosz;
    }
 
-
-
-   @property void textAlign(ContentAlignment calign) { // setter
-      final switch(calign) {
+   @property void textAlign(ContentAlignment calign) {
+      final switch (calign) {
          case ContentAlignment.TOP_LEFT:
             tfmt.alignment = TextAlignment.TOP | TextAlignment.LEFT;
             break;
 
          case ContentAlignment.BOTTOM_CENTER:
-            tfmt.alignment = TextAlignment.BOTTOM | TextAlignment.CENTER;
+            tfmt.alignment
+               = TextAlignment.BOTTOM | TextAlignment.CENTER;
             break;
 
          case ContentAlignment.BOTTOM_LEFT:
@@ -143,7 +132,8 @@ class Label: Control { // docmain
             break;
 
          case ContentAlignment.MIDDLE_CENTER:
-            tfmt.alignment = TextAlignment.MIDDLE | TextAlignment.CENTER;
+            tfmt.alignment
+               = TextAlignment.MIDDLE | TextAlignment.CENTER;
             break;
 
          case ContentAlignment.MIDDLE_LEFT:
@@ -166,31 +156,31 @@ class Label: Control { // docmain
       invalidate(); // ?
    }
 
-   /// ditto
-   @property ContentAlignment textAlign() { // getter
+
+   @property ContentAlignment textAlign() {
       TextAlignment ta;
       ta = tfmt.alignment;
 
-      if(ta & TextAlignment.BOTTOM) {
-         if(ta & TextAlignment.RIGHT) {
+      if (ta & TextAlignment.BOTTOM) {
+         if (ta & TextAlignment.RIGHT) {
             return ContentAlignment.BOTTOM_RIGHT;
-         } else if(ta & TextAlignment.CENTER) {
+         } else if (ta & TextAlignment.CENTER) {
             return ContentAlignment.BOTTOM_CENTER;
          } else { // Left.
             return ContentAlignment.BOTTOM_LEFT;
          }
-      } else if(ta & TextAlignment.MIDDLE) {
-         if(ta & TextAlignment.RIGHT) {
+      } else if (ta & TextAlignment.MIDDLE) {
+         if (ta & TextAlignment.RIGHT) {
             return ContentAlignment.MIDDLE_RIGHT;
-         } else if(ta & TextAlignment.CENTER) {
+         } else if (ta & TextAlignment.CENTER) {
             return ContentAlignment.MIDDLE_CENTER;
          } else { // Left.
             return ContentAlignment.MIDDLE_LEFT;
          }
       } else { // Top.
-         if(ta & TextAlignment.RIGHT) {
+         if (ta & TextAlignment.RIGHT) {
             return ContentAlignment.TOP_RIGHT;
-         } else if(ta & TextAlignment.CENTER) {
+         } else if (ta & TextAlignment.CENTER) {
             return ContentAlignment.TOP_CENTER;
          } else { // Left.
             return ContentAlignment.TOP_LEFT;
@@ -198,11 +188,9 @@ class Label: Control { // docmain
       }
    }
 
-
-   protected override @property Size defaultSize() { // getter
+   protected override @property Size defaultSize() {
       return Size(100, 23);
    }
-
 
    protected override void onPaint(PaintEventArgs ea) {
       int x, y, w, h;
@@ -210,7 +198,7 @@ class Label: Control { // docmain
 
       text = this.text;
 
-      if(tfmt.alignment & TextAlignment.MIDDLE) {
+      if (tfmt.alignment & TextAlignment.MIDDLE) {
          // Graphics.drawText() does not support middle alignment
          // if the text is multiline, so need to do extra work.
          Size sz;
@@ -222,7 +210,7 @@ class Label: Control { // docmain
          y = (this.clientSize.height - sz.height) / 2;
          w = clientSize.width;
          h = sz.height;
-      } else if(tfmt.alignment & TextAlignment.BOTTOM) {
+      } else if (tfmt.alignment & TextAlignment.BOTTOM) {
          // Graphics.drawText() does not support bottom alignment
          // if the text is multiline, so need to do extra work.
          Size sz;
@@ -245,45 +233,42 @@ class Label: Control { // docmain
       //c = foreColor;
       c = foreColor.solidColor(backColor);
 
-      if(enabled) {
+      if (enabled) {
          ea.graphics.drawText(text, font, c, Rect(x, y, w, h), tfmt);
       } else {
-         version(LABEL_GRAYSTRING) {
+         version (LABEL_GRAYSTRING) {
             // GrayString() is pretty ugly.
             GrayStringA(ea.graphics.handle, null, &_disabledOutputProc,
-                        cast(LPARAM)cast(void*)this, -1, x, y, w, h);
-         }
-         else {
-            ea.graphics.drawTextDisabled(text, font, c, backColor, Rect(x, y, w, h), tfmt);
+                  cast(LPARAM) cast(void*) this, -1, x, y, w, h);
+         } else {
+            ea.graphics.drawTextDisabled(text, font, c, backColor, Rect(x, y, w, h),
+                  tfmt);
          }
       }
 
       super.onPaint(ea);
    }
 
-
    /+
-   protected override void onHandleCreated(EventArgs ea) {
-      super.onHandleCreated(ea);
+      protected override void onHandleCreated(EventArgs ea) {
+         super.onHandleCreated(ea);
 
-      /+
-      if(autosz) {
-         doAutoSize(text);
+         /+
+            if(autosz) {
+               doAutoSize(text);
+            }
+         +/
       }
-      +/
-   }
    +/
 
+      protected override void onEnabledChanged(EventArgs ea) {
+         invalidate(false);
 
-   protected override void onEnabledChanged(EventArgs ea) {
-      invalidate(false);
-
-      super.onEnabledChanged(ea);
-   }
-
+         super.onEnabledChanged(ea);
+      }
 
    protected override void onFontChanged(EventArgs ea) {
-      if(autosz) {
+      if (autosz) {
          doAutoSize(text);
       }
 
@@ -292,9 +277,8 @@ class Label: Control { // docmain
       super.onFontChanged(ea);
    }
 
-
    protected override void wndProc(ref Message m) {
-      switch(m.msg) {
+      switch (m.msg) {
          case WM_GETDLGCODE:
             super.wndProc(m);
             //if(useMnemonic)
@@ -306,10 +290,9 @@ class Label: Control { // docmain
       }
    }
 
-
    protected override bool processMnemonic(dchar charCode) {
-      if(visible && enabled) {
-         if(isMnemonic(charCode, text)) {
+      if (visible && enabled) {
+         if (isMnemonic(charCode, text)) {
             select(true, true);
             return true;
          }
@@ -317,47 +300,43 @@ class Label: Control { // docmain
       return false;
    }
 
-
- private:
+   private:
    TextFormat _tfmt;
    bool autosz = false;
 
-
-   final @property void tfmt(TextFormat tf) { // setter
+   final @property void tfmt(TextFormat tf) {
       _tfmt = tf;
    }
 
-
-   final @property TextFormat tfmt() { // getter
+   final @property TextFormat tfmt() {
       /+
-      // This causes it to invert.
-      if(rightToLeft) {
-         _tfmt.formatFlags = _tfmt.formatFlags | TextFormatFlags.DIRECTION_RIGHT_TO_LEFT;
-      } else {
-         _tfmt.formatFlags = _tfmt.formatFlags & ~TextFormatFlags.DIRECTION_RIGHT_TO_LEFT;
-      }
+         // This causes it to invert.
+         if(rightToLeft) {
+            _tfmt.formatFlags = _tfmt.formatFlags | TextFormatFlags.DIRECTION_RIGHT_TO_LEFT;
+         } else {
+            _tfmt.formatFlags = _tfmt.formatFlags & ~TextFormatFlags.DIRECTION_RIGHT_TO_LEFT;
+         }
       +/
 
-      return _tfmt;
+         return _tfmt;
    }
 }
 
-
-version(LABEL_GRAYSTRING) {
-   private extern(Windows) BOOL _disabledOutputProc(HDC hdc, LPARAM lpData, int cchData) {
+version (LABEL_GRAYSTRING) {
+   private extern (Windows) BOOL _disabledOutputProc(HDC hdc, LPARAM lpData, int cchData) {
       BOOL result = TRUE;
       try {
          scope Graphics g = new Graphics(hdc, false);
          Label l;
-         with(l = cast(Label)cast(void*)lpData) {
-            g.drawText(text, font, foreColor,
-                       Rect(0, 0, clientSize.width, clientSize.height), tfmt);
+         with (l = cast(Label) cast(void*) lpData) {
+            g.drawText(text, font, foreColor, Rect(0, 0, clientSize.width,
+                     clientSize.height), tfmt);
          }
-      } catch(DThrowable e) {
+      }
+      catch (DThrowable e) {
          Application.onThreadException(e);
          result = FALSE;
       }
       return result;
    }
 }
-

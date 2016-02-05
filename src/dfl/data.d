@@ -12,12 +12,9 @@ import core.sys.windows.wtypes; // for DVASPECT
 
 import dfl.base;
 import dfl.exception;
-
+import dfl.internal.com;
 import dfl.internal.dlib;
 import dfl.internal.utf;
-import dfl.internal.com;
-
-//alias IDataObjectD = dfl.data.IDataObject;
 
 class DataFormats {
    static class Format {

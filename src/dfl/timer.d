@@ -1,47 +1,44 @@
 // Written by Christopher E. Miller
 // See the included license.txt for copyright and license details.
 
-
-
 module dfl.timer;
 
-private import dfl.internal.winapi, dfl.event, dfl.base, dfl.application,
-        dfl.internal.dlib;
-debug(APP_PRINT) {
+import core.sys.windows.windows;
+import dfl.exception;
+import dfl.event;
+import dfl.base;
+import dfl.application;
+import dfl.internal.dlib;
+
+debug (APP_PRINT) {
    private import dfl.internal.clib;
 }
 
-
-class Timer { // docmain
+class Timer {
    //EventHandler tick;
-   Event!(Timer, EventArgs) tick; ///
+   Event!(Timer, EventArgs) tick;
 
-
-
-   @property void enabled(bool on) { // setter
-      if(on) {
+   @property void enabled(bool on) {
+      if (on) {
          start();
       } else {
          stop();
       }
    }
 
-   /// ditto
-   @property bool enabled() { // getter
+   @property bool enabled() {
       return timerId != 0;
    }
 
-
-
-   final @property void interval(size_t timeout) { // setter
-      if(!timeout) {
+   final @property void interval(size_t timeout) {
+      if (!timeout) {
          throw new DflException("Invalid timer interval");
       }
 
-      if(this._timeout != timeout) {
+      if (this._timeout != timeout) {
          this._timeout = timeout;
 
-         if(timerId) {
+         if (timerId) {
             // I don't know if this is the correct behavior.
             // Reset the timer for the new timeout...
             stop();
@@ -50,30 +47,26 @@ class Timer { // docmain
       }
    }
 
-   /// ditto
-   final @property size_t interval() { // getter
+   final @property size_t interval() {
       return _timeout;
    }
 
-
-
    final void start() {
-      if(timerId) {
+      if (timerId) {
          return;
       }
 
       assert(_timeout > 0);
 
       timerId = SetTimer(null, 0, _timeout, &timerProc);
-      if(!timerId) {
+      if (!timerId) {
          throw new DflException("Unable to start timer");
       }
       allTimers[timerId] = this;
    }
 
-   /// ditto
    final void stop() {
-      if(timerId) {
+      if (timerId) {
          //delete allTimers[timerId];
          allTimers.remove(timerId);
          KillTimer(null, timerId);
@@ -81,21 +74,17 @@ class Timer { // docmain
       }
    }
 
-
-
    this() {
    }
 
-   /// ditto
    this(void delegate(Timer) dg) {
       this();
-      if(dg) {
+      if (dg) {
          this._dg = dg;
          tick ~= &_dgcall;
       }
    }
 
-   /// ditto
    this(void delegate(Object, EventArgs) dg) {
       assert(dg !is null);
 
@@ -103,7 +92,6 @@ class Timer { // docmain
       tick ~= dg;
    }
 
-   /// ditto
    this(void delegate(Timer, EventArgs) dg) {
       assert(dg !is null);
 
@@ -111,30 +99,24 @@ class Timer { // docmain
       tick ~= dg;
    }
 
-
    ~this() {
       dispose();
    }
 
-
- protected:
+protected:
 
    void dispose() {
       stop();
    }
 
-
-
    void onTick(EventArgs ea) {
       tick(this, ea);
    }
 
-
- private:
+private:
    DWORD _timeout = 100;
    UINT timerId = 0;
    void delegate(Timer) _dg;
-
 
    void _dgcall(Object sender, EventArgs ea) {
       assert(_dg !is null);
@@ -142,24 +124,20 @@ class Timer { // docmain
    }
 }
 
-
 private:
 
 Timer[UINT] allTimers;
 
-
-extern(Windows) void timerProc(HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwTime) nothrow {
-   try
-   {
-      if(idEvent in allTimers) {
+extern (Windows) void timerProc(HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwTime) nothrow {
+   try {
+      if (idEvent in allTimers) {
          allTimers[idEvent].onTick(EventArgs.empty);
-      } else
-      {
-         debug(APP_PRINT)
-         cprintf("Unknown timer 0x%X.\n", idEvent);
+      } else {
+         debug (APP_PRINT)
+            cprintf("Unknown timer 0x%X.\n", idEvent);
       }
-   } catch(DThrowable e) {
+   }
+   catch (DThrowable e) {
       Application.onThreadException(e);
    }
 }
-
