@@ -11,7 +11,7 @@ PROJECT_VERSION = 0.1.0
 #SRC += src/dfl/internal/wincom.d ?
 #SRC += src/dfl/package.d
 #SRC += src/dfl/socket.d
-#SRC += src/dfl/usercontrol.d
+
 SRC += src/dfl/internal/clib.d
 SRC += src/dfl/internal/com.d
 SRC += src/dfl/internal/d2.d
