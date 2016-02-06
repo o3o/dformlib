@@ -1,7 +1,15 @@
 module dfl.clippingform;
 
-private import dfl, dfl.internal.winapi;
-private import core.memory;
+import core.sys.windows.windows;
+
+import dfl.clipboard;
+import dfl.drawing;
+import dfl.form;
+import dfl.event;
+import dfl.control;
+import dfl.base;
+
+import core.memory;
 
 private extern (Windows) {
    struct RGNDATAHEADER {
@@ -26,38 +34,35 @@ private extern (Windows) {
       FLOAT eDy;
    }
 
-   enum {RDH_RECTANGLES = 1}
-   enum {BI_RGB = 0}
-   enum {DIB_RGB_COLORS = 0}
+   enum {
+      RDH_RECTANGLES = 1
+   }
+   enum {
+      BI_RGB = 0
+   }
+   enum {
+      DIB_RGB_COLORS = 0
+   }
 
    HRGN ExtCreateRegion(void*, DWORD, RGNDATA*);
    int GetDIBits(HDC, HBITMAP, UINT, UINT, PVOID, LPBITMAPINFO, UINT);
 }
 
-
-
 struct RegionRects {
- private:
+private:
    RGNDATA* _rgn = null;
    size_t _capacity = 0;
    size_t _width = 0;
    size_t _height = 0;
- public:
+public:
 
-
-   const @property
-   size_t width() {
+   const @property size_t width() {
       return _width;
    }
 
-
-
-   const @property
-   size_t height() {
+   const @property size_t height() {
       return _height;
    }
-
-
 
    void clear() {
       if (_rgn) {
@@ -69,53 +74,42 @@ struct RegionRects {
       _height = 0;
    }
 
-
-
    void add(RECT rc) {
       if (_capacity == 0) {
          _capacity = 1024;
-         _rgn = cast(RGNDATA*) GC.malloc(
-                   RGNDATAHEADER.sizeof + RECT.sizeof * _capacity);
+         _rgn = cast(RGNDATA*) GC.malloc(RGNDATAHEADER.sizeof + RECT.sizeof * _capacity);
          _rgn.rdh.nCount = 0;
       } else if (_rgn.rdh.nCount == _capacity) {
          _capacity *= 2;
-         _rgn = cast(RGNDATA*) GC.realloc(cast(void*)_rgn,
-                                          RGNDATAHEADER.sizeof + RECT.sizeof * _capacity);
+         _rgn = cast(RGNDATA*) GC.realloc(cast(void*) _rgn,
+            RGNDATAHEADER.sizeof + RECT.sizeof * _capacity);
       }
-      (cast(RECT*)_rgn.Buffer.ptr)[_rgn.rdh.nCount++] = rc;
+      (cast(RECT*) _rgn.Buffer.ptr)[_rgn.rdh.nCount++] = rc;
    }
 
-
-   /// ditto
    void add(int l, int t, int r, int b) {
       add(RECT(l, t, r, b));
    }
 
-
-   /// ditto
    void opCatAssign(RECT rc) {
       add(rc);
    }
 
-
-
-   @property
-   Region region() {
+   @property Region region() {
       if (_rgn is null) {
          return null;
       }
       with (_rgn.rdh) {
          dwSize = RGNDATAHEADER.sizeof;
-         iType  = RDH_RECTANGLES;
-         nRgnSize = RGNDATAHEADER.sizeof + RECT.sizeof*nCount;
-         rcBound = RECT(0,0,_width,_height);
+         iType = RDH_RECTANGLES;
+         nRgnSize = RGNDATAHEADER.sizeof + RECT.sizeof * nCount;
+         rcBound = RECT(0, 0, _width, _height);
       }
       if (auto hRgn = ExtCreateRegion(null, _rgn.rdh.nRgnSize, _rgn)) {
          return new Region(hRgn);
       }
       throw new Exception("Failed to make a region data.");
    }
-
 
    private Region createClippingRegionFromHDC(HBITMAP hBitmap) {
       HDC hDC = CreateCompatibleDC(null);
@@ -125,18 +119,18 @@ struct RegionRects {
          throw new Exception("Failed to get device context data.");
       }
       BITMAPINFOHEADER bi;
-      with(bi) {
-         biSize        = BITMAPINFOHEADER.sizeof;
-         biWidth       = w;
-         biHeight      = h;
-         biPlanes      = 1;
-         biBitCount    = 32;
+      with (bi) {
+         biSize = BITMAPINFOHEADER.sizeof;
+         biWidth = w;
+         biHeight = h;
+         biPlanes = 1;
+         biBitCount = 32;
          biCompression = BI_RGB;
       }
       auto pxs = new COLORREF[w];
       COLORREF tr;
       for (int y = 1; y < h; ++y) {
-         GetDIBits(hDC, hBitmap, h-y, 1, pxs.ptr, cast(BITMAPINFO*)&bi, DIB_RGB_COLORS);
+         GetDIBits(hDC, hBitmap, h - y, 1, pxs.ptr, cast(BITMAPINFO*)&bi, DIB_RGB_COLORS);
          if (y == 1) {
             tr = pxs[0];
          }
@@ -150,62 +144,51 @@ struct RegionRects {
                   break;
                }
             }
-            add(sx, y-1, x-1, y);
+            add(sx, y - 1, x - 1, y);
          }
       }
       return region;
    }
 
-
-
    Region create(MemoryGraphics g) {
       clear();
       _width = g.width;
       _height = g.height;
-      return createClippingRegionFromHDC(cast(HBITMAP)g.hbitmap);
+      return createClippingRegionFromHDC(cast(HBITMAP) g.hbitmap);
    }
 
-
-   /// ditto
    Region create(Image img) {
       clear();
       _width = img.width;
       _height = img.height;
-      if (auto bmp = cast(Bitmap)img) {
-         return createClippingRegionFromHDC(cast(HBITMAP)bmp.handle);
+      if (auto bmp = cast(Bitmap) img) {
+         return createClippingRegionFromHDC(cast(HBITMAP) bmp.handle);
       }
       auto g = new MemoryGraphics(img.width, img.height);
-      img.draw(g, Point(0,0));
+      img.draw(g, Point(0, 0));
       return create(g);
    }
 }
 
-
-
-class ClippingForm: Form {
- private:
+class ClippingForm : Form {
+private:
    Image m_Image;
    RegionRects m_RegionRects;
- protected:
+protected:
    override void createParams(ref CreateParams cp) {
       super.createParams(cp);
       cp.style = WS_EX_TOPMOST | WS_EX_TOOLWINDOW;
    }
- public:
 
-
+public:
 
    @property Image clipping() {
       return m_Image;
    }
 
-
-   /// ditto
    @property void clipping(Image img) {
       m_Image = img;
    }
-
-
 
    override void onHandleCreated(EventArgs ea) {
       if (m_Image) {
@@ -214,11 +197,9 @@ class ClippingForm: Form {
       super.onHandleCreated(ea);
    }
 
-
-
    override void onPaint(PaintEventArgs pea) {
       if (m_Image) {
-         m_Image.draw(pea.graphics, Point(0,0));
+         m_Image.draw(pea.graphics, Point(0, 0));
       } else {
          super.onPaint(pea);
       }

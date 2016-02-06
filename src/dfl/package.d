@@ -45,14 +45,41 @@ version(build) {
 }
 
 
-public import dfl.base, dfl.menu, dfl.control, dfl.usercontrol,
-       dfl.form, dfl.drawing, dfl.panel, dfl.event,
-       dfl.application, dfl.button, dfl.socket,
-       dfl.timer, dfl.environment, dfl.label, dfl.textbox,
-       dfl.listbox, dfl.splitter, dfl.groupbox, dfl.messagebox,
-       dfl.registry, dfl.notifyicon, dfl.collections, dfl.data,
-       dfl.clipboard, dfl.commondialog, dfl.richtextbox, dfl.tooltip,
-       dfl.combobox, dfl.treeview, dfl.picturebox, dfl.tabcontrol,
-       dfl.listview, dfl.statusbar, dfl.progressbar, dfl.resources,
-       dfl.imagelist, dfl.toolbar;
-
+public:
+import dfl.base;
+import dfl.menu;
+import dfl.control;
+import dfl.usercontrol;
+import dfl.form;
+import dfl.drawing;
+import dfl.panel;
+import dfl.event;
+import dfl.application;
+import dfl.button;
+//import dfl.socket;
+import dfl.timer;
+import dfl.environment;
+import dfl.label;
+import dfl.textbox;
+import dfl.listbox;
+import dfl.splitter;
+import dfl.groupbox;
+import dfl.messagebox;
+import dfl.registry;
+import dfl.notifyicon;
+import dfl.collections;
+import dfl.data;
+import dfl.clipboard;
+import dfl.commondialog;
+import dfl.richtextbox;
+import dfl.tooltip;
+import dfl.combobox;
+import dfl.treeview;
+import dfl.picturebox;
+import dfl.tabcontrol;
+import dfl.listview;
+import dfl.statusbar;
+import dfl.progressbar;
+import dfl.resources;
+import dfl.imagelist;
+import dfl.toolbar;

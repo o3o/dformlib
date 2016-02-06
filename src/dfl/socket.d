@@ -1,80 +1,71 @@
 // Written by Christopher E. Miller
 // See the included license.txt for copyright and license details.
 
-
-
 module dfl.socket;
 
-
-version(WINE) {
+version (WINE) {
    version = DFL_NoSocket;
 }
 
+version (DFL_NoSocket) {
+} else {
 
-version(DFL_NoSocket) {
-}
-else {
-
-   private import dfl.internal.dlib, dfl.internal.clib;
+   import core.sys.windows.windows;
+   import dfl.internal.dlib;
+   import dfl.internal.clib;
 
    private {
-      private import std.socket, core.bitop;
-      private import std.c.windows.winsock;
+      import std.socket;
+      import core.bitop;
+      import std.c.windows.winsock;
 
-      alias InternetHost DInternetHost;
-      alias InternetAddress DInternetAddress;
+      alias DInternetHost = InternetHost;
+      alias DInternetAddress = InternetAddress;
 
-      socket_t getSocketHandle(Socket sock) nothrow @nogc
-      {
+      socket_t getSocketHandle(Socket sock) nothrow @nogc {
          return sock.handle;
       }
    }
 
-   alias std.socket.Socket DflSocket; ///
+   alias DflSocket = std.socket.Socket;
 
-   private import dfl.internal.winapi, dfl.application, dfl.base, dfl.internal.utf;
-
+   import dfl.application;
+   import dfl.base;
+   import dfl.internal.utf;
 
    private {
-      enum
-      {
-         FD_READ =       0x01,
-         FD_WRITE =      0x02,
-         FD_OOB =        0x04,
-         FD_ACCEPT =     0x08,
-         FD_CONNECT =    0x10,
-         FD_CLOSE =      0x20,
-         FD_QOS =        0x40,
-         FD_GROUP_QOS =  0x80,
+      enum {
+         FD_READ = 0x01,
+         FD_WRITE = 0x02,
+         FD_OOB = 0x04,
+         FD_ACCEPT = 0x08,
+         FD_CONNECT = 0x10,
+         FD_CLOSE = 0x20,
+         FD_QOS = 0x40,
+         FD_GROUP_QOS = 0x80,
       }
 
-
-      extern(Windows) int WSAAsyncSelect(socket_t s, HWND hWnd, UINT wMsg, int lEvent) nothrow @nogc;
+      extern (Windows) int WSAAsyncSelect(socket_t s, HWND hWnd, UINT wMsg, int lEvent) nothrow @nogc;
    }
-
-
 
    // Can be OR'ed.
    enum EventType {
-      NONE = 0, ///
+      NONE = 0,
 
-      READ =       FD_READ, /// ditto
-      WRITE =      FD_WRITE, /// ditto
-      OOB =        FD_OOB, /// ditto
-      ACCEPT =     FD_ACCEPT, /// ditto
-      CONNECT =    FD_CONNECT, /// ditto
-      CLOSE =      FD_CLOSE, /// ditto
+      READ = FD_READ,
+      WRITE = FD_WRITE,
+      OOB = FD_OOB,
+      ACCEPT = FD_ACCEPT,
+      CONNECT = FD_CONNECT,
+      CLOSE = FD_CLOSE,
 
-      QOS =        FD_QOS,
-      GROUP_QOS =  FD_GROUP_QOS,
+      QOS = FD_QOS,
+      GROUP_QOS = FD_GROUP_QOS,
    }
-
-
 
    // -err- will be 0 if no error.
    // -type- will always contain only one flag.
-   alias void delegate(DflSocket sock, EventType type, int err) RegisterEventCallback;
-
+   alias RegisterEventCallback = void delegate(DflSocket sock, EventType type, int err);
 
    // Calling this twice on the same socket cancels out previously
    // registered events for the socket.
@@ -83,14 +74,14 @@ else {
       assert(sock !is null, "registerEvent: socket cannot be null");
       assert(callback !is null, "registerEvent: callback cannot be null");
 
-      if(!hwNet) {
+      if (!hwNet) {
          _init();
       }
 
       sock.blocking = false; // So the getter will be correct.
 
       // SOCKET_ERROR
-      if(-1 == WSAAsyncSelect(getSocketHandle(sock), hwNet, WM_DFL_NETEVENT, cast(int)events)) {
+      if (-1 == WSAAsyncSelect(getSocketHandle(sock), hwNet, WM_DFL_NETEVENT, cast(int) events)) {
          throw new DflException("Unable to register socket events");
       }
 
@@ -101,7 +92,6 @@ else {
       allEvents[getSocketHandle(sock)] = ei;
    }
 
-
    void unregisterEvent(DflSocket sock) @trusted @nogc nothrow { // deprecated
       WSAAsyncSelect(getSocketHandle(sock), hwNet, 0, 0);
 
@@ -109,77 +99,62 @@ else {
       allEvents.remove(getSocketHandle(sock));
    }
 
-
-
-   class AsyncSocket: DflSocket { // docmain
+   class AsyncSocket : DflSocket {
 
       this(AddressFamily af, SocketType type, ProtocolType protocol) {
          super(af, type, protocol);
          super.blocking = false;
       }
 
-      /// ditto
       this(AddressFamily af, SocketType type) {
          super(af, type);
          super.blocking = false;
       }
 
-      /// ditto
       this(AddressFamily af, SocketType type, Dstring protocolName) {
          super(af, type, protocolName);
          super.blocking = false;
       }
 
-      /// ditto
       // For use with accept().
       protected this() pure @safe nothrow {
       }
-
-
 
       void event(EventType events, RegisterEventCallback callback) {
          registerEvent(this, events, callback);
       }
 
-
       protected override AsyncSocket accepting() {
          return new AsyncSocket;
       }
-
 
       override void close() {
          unregisterEvent(this);
          super.close();
       }
 
-
-      override @property bool blocking() const { // getter
+      override @property bool blocking() const {
          return false;
       }
 
-
-      override @property void blocking(bool byes) { // setter
-         if(byes) {
+      override @property void blocking(bool byes) {
+         if (byes) {
             assert(0);
          }
       }
 
    }
 
-
-
-   class AsyncTcpSocket: AsyncSocket { // docmain
+   class AsyncTcpSocket : AsyncSocket {
 
       this(AddressFamily family) {
          super(family, SocketType.STREAM, ProtocolType.TCP);
       }
 
-      /// ditto
       this() {
-         this(cast(AddressFamily)AddressFamily.INET);
+         this(cast(AddressFamily) AddressFamily.INET);
       }
 
-      /// ditto
       // Shortcut.
       this(Address connectTo, EventType events, RegisterEventCallback eventCallback) {
          this(connectTo.addressFamily());
@@ -188,20 +163,16 @@ else {
       }
    }
 
-
-
-   class AsyncUdpSocket: AsyncSocket { // docmain
+   class AsyncUdpSocket : AsyncSocket {
 
       this(AddressFamily family) {
          super(family, SocketType.DGRAM, ProtocolType.UDP);
       }
 
-      /// ditto
       this() {
-         this(cast(AddressFamily)AddressFamily.INET);
+         this(cast(AddressFamily) AddressFamily.INET);
       }
    }
-
 
    /+
    private class GetHostWaitHandle: WaitHandle {
@@ -214,7 +185,7 @@ else {
 
       alias WaitHandle.handle handle; // Overload.
 
-      override @property void handle(HANDLE h) { // setter
+      override @property void handle(HANDLE h) {
          assert(0);
       }
 
@@ -237,17 +208,17 @@ else {
       }
 
 
-      @property WaitHandle asyncWaitHandle() { // getter
+      @property WaitHandle asyncWaitHandle() {
          return wh;
       }
 
 
-      @property bool completedSynchronously() { // getter
+      @property bool completedSynchronously() {
          return false;
       }
 
 
-      @property bool isCompleted() { // getter
+      @property bool isCompleted() {
          return wh.handle != WaitHandle.INVALID_HANDLE;
       }
 
@@ -265,63 +236,52 @@ else {
    }
    +/
 
-
    private void _getHostErr() {
       throw new DflException("Get host failure"); // Needs a better message.. ?
    }
 
-
-   private class _InternetHost: DInternetHost {
-    private:
+   private class _InternetHost : DInternetHost {
+   private:
       this(void* hostentBytes) {
-         super.validHostent(cast(hostent*)hostentBytes);
-         super.populate(cast(hostent*)hostentBytes);
+         super.validHostent(cast(hostent*) hostentBytes);
+         super.populate(cast(hostent*) hostentBytes);
       }
    }
 
-
-
    // If -err- is nonzero, it is a winsock error code and -inetHost- is null.
-   alias void delegate(DInternetHost inetHost, int err) GetHostCallback;
+   alias GetHostCallback = void delegate(DInternetHost inetHost, int err);
 
-
-
-   class GetHost { // docmain
+   class GetHost {
 
       void cancel() {
          WSACancelAsyncRequest(h);
          h = null;
       }
 
-
-    private:
+   private:
       HANDLE h;
       GetHostCallback callback;
       DThrowable exception;
-      ubyte[/+MAXGETHOSTSTRUCT+/ 1024] hostentBytes;
-
+      ubyte[ /+MAXGETHOSTSTRUCT+/ 1024] hostentBytes;
 
       void _gotEvent(LPARAM lparam) {
          h = null;
 
          int err;
          err = HIWORD(lparam);
-         if(err) {
+         if (err) {
             callback(null, err);
          } else {
             callback(new _InternetHost(hostentBytes.ptr), 0);
          }
       }
 
-
       this() {
       }
    }
 
-
-
-   GetHost asyncGetHostByName(Dstring name, GetHostCallback callback) { // docmain
-      if(!hwNet) {
+   GetHost asyncGetHostByName(Dstring name, GetHostCallback callback) {
+      if (!hwNet) {
          _init();
       }
 
@@ -330,8 +290,8 @@ else {
 
       result = new GetHost;
       h = WSAAsyncGetHostByName(hwNet, WM_DFL_HOSTEVENT, unsafeStringz(name),
-                                cast(char*)result.hostentBytes, result.hostentBytes.length);
-      if(!h) {
+         cast(char*) result.hostentBytes, result.hostentBytes.length);
+      if (!h) {
          _getHostErr();
       }
 
@@ -342,10 +302,8 @@ else {
       return result;
    }
 
-
-
-   GetHost asyncGetHostByAddr(uint32_t addr, GetHostCallback callback) { // docmain
-      if(!hwNet) {
+   GetHost asyncGetHostByAddr(uint32_t addr, GetHostCallback callback) {
+      if (!hwNet) {
          _init();
       }
 
@@ -353,11 +311,12 @@ else {
       GetHost result;
 
       result = new GetHost;
-      version(LittleEndian)
-      addr = bswap(addr);
-      h = WSAAsyncGetHostByAddr(hwNet, WM_DFL_HOSTEVENT, cast(char*)&addr, addr.sizeof,
-                                AddressFamily.INET, cast(char*)result.hostentBytes, result.hostentBytes.length);
-      if(!h) {
+      version (LittleEndian)
+         addr = bswap(addr);
+      h = WSAAsyncGetHostByAddr(hwNet, WM_DFL_HOSTEVENT, cast(char*)&addr,
+         addr.sizeof, AddressFamily.INET, cast(char*) result.hostentBytes,
+         result.hostentBytes.length);
+      if (!h) {
          _getHostErr();
       }
 
@@ -368,20 +327,17 @@ else {
       return result;
    }
 
-   /// ditto
    // Shortcut.
-   GetHost asyncGetHostByAddr(Dstring addr, GetHostCallback callback) { // docmain
+   GetHost asyncGetHostByAddr(Dstring addr, GetHostCallback callback) {
       uint uiaddr;
       uiaddr = DInternetAddress.parse(addr);
-      if(DInternetAddress.ADDR_NONE == uiaddr) {
+      if (DInternetAddress.ADDR_NONE == uiaddr) {
          _getHostErr();
       }
       return asyncGetHostByAddr(uiaddr, callback);
    }
 
-
-
-   class SocketQueue { // docmain
+   class SocketQueue {
 
       this(DflSocket sock)
       in {
@@ -391,19 +347,14 @@ else {
          this.sock = sock;
       }
 
-
-
-      final @property DflSocket socket() { // getter
+      final @property DflSocket socket() {
          return sock;
       }
-
-
 
       void reset() {
          writebuf = null;
          readbuf = null;
       }
-
 
       /+
       // DMD 0.92 says error: function toString overrides but is not covariant with toString
@@ -412,22 +363,17 @@ else {
       }
       +/
 
-
-
       void[] peek() {
          return readbuf[0 .. rpos];
       }
 
-      /// ditto
       void[] peek(uint len) {
-         if(len >= rpos) {
+         if (len >= rpos) {
             return peek();
          }
 
          return readbuf[0 .. len];
       }
-
-
 
       void[] receive() {
          ubyte[] result;
@@ -439,9 +385,8 @@ else {
          return result;
       }
 
-      /// ditto
       void[] receive(uint len) {
-         if(len >= rpos) {
+         if (len >= rpos) {
             return receive();
          }
 
@@ -454,51 +399,43 @@ else {
          return result;
       }
 
-
-
       void send(void[] buf) {
-         if(canwrite) {
+         if (canwrite) {
             assert(!writebuf.length);
 
             int st;
-            if(buf.length > 4096) {
+            if (buf.length > 4096) {
                st = 4096;
             } else {
                st = buf.length;
             }
 
             st = sock.send(buf[0 .. st]);
-            if(st > 0) {
-               if(buf.length - st) {
+            if (st > 0) {
+               if (buf.length - st) {
                   // dup so it can be appended to.
-                  writebuf = (cast(ubyte[])buf)[st .. buf.length].dup;
+                  writebuf = (cast(ubyte[]) buf)[st .. buf.length].dup;
                }
             } else {
                // dup so it can be appended to.
-               writebuf = (cast(ubyte[])buf).dup;
+               writebuf = (cast(ubyte[]) buf).dup;
             }
 
             //canwrite = false;
          } else {
-            writebuf ~= cast(ubyte[])buf;
+            writebuf ~= cast(ubyte[]) buf;
          }
       }
 
-
-
       // Number of bytes in send queue.
-      @property uint sendBytes() { // getter
+      @property uint sendBytes() {
          return writebuf.length;
       }
 
-
-
       // Number of bytes in recv queue.
-      @property uint receiveBytes() { // getter
+      @property uint receiveBytes() {
          return rpos;
       }
-
-
 
       // Same signature as RegisterEventCallback for simplicity.
       void event(DflSocket _sock, EventType type, int err)
@@ -506,48 +443,44 @@ else {
          assert(_sock is sock);
       }
       body {
-         switch(type) {
-            case EventType.READ:
-               readEvent();
-               break;
+         switch (type) {
+         case EventType.READ:
+            readEvent();
+            break;
 
-            case EventType.WRITE:
-               writeEvent();
-               break;
+         case EventType.WRITE:
+            writeEvent();
+            break;
 
-            default:
+         default:
          }
       }
 
-
-
       // Call on a read event so that incoming data may be buffered.
       void readEvent() {
-         if(readbuf.length - rpos < 1024) {
+         if (readbuf.length - rpos < 1024) {
             readbuf.length = readbuf.length + 2048;
          }
 
          int rd = sock.receive(readbuf[rpos .. readbuf.length]);
-         if(rd > 0) {
-            rpos += cast(uint)rd;
+         if (rd > 0) {
+            rpos += cast(uint) rd;
          }
       }
 
-
-
       // Call on a write event so that buffered outgoing data may be sent.
       void writeEvent() {
-         if(writebuf.length) {
+         if (writebuf.length) {
             ubyte[] buf;
 
-            if(writebuf.length > 4096) {
+            if (writebuf.length > 4096) {
                buf = writebuf[0 .. 4096];
             } else {
                buf = writebuf;
             }
 
             int st = sock.send(buf);
-            if(st > 0) {
+            if (st > 0) {
                writebuf = writebuf[st .. writebuf.length];
             }
          } else {
@@ -555,26 +488,22 @@ else {
          }
       }
 
-
       deprecated {
-         alias receiveBytes recvBytes;
-         alias receive recv;
+         alias recvBytes = receiveBytes;
+         alias recv = receive;
       }
 
-
-    private:
+   private:
       ubyte[] writebuf;
       ubyte[] readbuf;
       uint rpos;
       DflSocket sock;
       //bool canwrite = false;
 
-
-      @property bool canwrite() { // getter
+      @property bool canwrite() {
          return writebuf.length == 0;
       }
    }
-
 
 private:
 
@@ -584,7 +513,6 @@ private:
       DThrowable exception;
    }
 
-
    enum UINT WM_DFL_NETEVENT = WM_USER + 104;
    enum UINT WM_DFL_HOSTEVENT = WM_USER + 105;
    enum NETEVENT_CLASSNAME = "DFL_NetEvent";
@@ -593,41 +521,41 @@ private:
    GetHost[HANDLE] allGetHosts;
    HWND hwNet;
 
-
-   extern(Windows) LRESULT netWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) nothrow {
-      switch(msg) {
-         case WM_DFL_NETEVENT:
-            if(cast(socket_t)wparam in allEvents) {
-               EventInfo ei = allEvents[cast(socket_t)wparam];
-               try {
-                  ei.callback(ei.sock, cast(EventType)LOWORD(lparam), HIWORD(lparam));
-               } catch (DThrowable e) {
-                  ei.exception = e;
-               }
+   extern (Windows) LRESULT netWndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) nothrow {
+      switch (msg) {
+      case WM_DFL_NETEVENT:
+         if (cast(socket_t) wparam in allEvents) {
+            EventInfo ei = allEvents[cast(socket_t) wparam];
+            try {
+               ei.callback(ei.sock, cast(EventType) LOWORD(lparam), HIWORD(lparam));
             }
-            break;
-
-         case WM_DFL_HOSTEVENT:
-            if(cast(HANDLE)wparam in allGetHosts) {
-               GetHost gh;
-               gh = allGetHosts[cast(HANDLE)wparam];
-               assert(gh !is null);
-               //delete allGetHosts[cast(HANDLE)wparam];
-               allGetHosts.remove(cast(HANDLE)wparam);
-               try {
-                  gh._gotEvent(lparam);
-               } catch (DThrowable e) {
-                  gh.exception = e;
-               }
+            catch (DThrowable e) {
+               ei.exception = e;
             }
-            break;
+         }
+         break;
 
-         default:
+      case WM_DFL_HOSTEVENT:
+         if (cast(HANDLE) wparam in allGetHosts) {
+            GetHost gh;
+            gh = allGetHosts[cast(HANDLE) wparam];
+            assert(gh !is null);
+            //delete allGetHosts[cast(HANDLE)wparam];
+            allGetHosts.remove(cast(HANDLE) wparam);
+            try {
+               gh._gotEvent(lparam);
+            }
+            catch (DThrowable e) {
+               gh.exception = e;
+            }
+         }
+         break;
+
+      default:
       }
 
       return 1;
    }
-
 
    void _init() {
       WNDCLASSEXA wce;
@@ -636,27 +564,27 @@ private:
       wce.lpfnWndProc = &netWndProc;
       wce.hInstance = GetModuleHandleA(null);
 
-      if(!RegisterClassExA(&wce)) {
-         debug(APP_PRINT)
-         cprintf("RegisterClassEx() failed for network event class.\n");
+      if (!RegisterClassExA(&wce)) {
+         debug (APP_PRINT)
+            cprintf("RegisterClassEx() failed for network event class.\n");
 
       init_err:
          throw new DflException("Unable to initialize asynchronous socket library");
       }
 
-      hwNet = CreateWindowExA(0, NETEVENT_CLASSNAME.ptr, "", 0, 0, 0, 0, 0, HWND_MESSAGE, null, wce.hInstance, null);
-      if(!hwNet) {
+      hwNet = CreateWindowExA(0, NETEVENT_CLASSNAME.ptr, "", 0, 0, 0, 0, 0,
+         HWND_MESSAGE, null, wce.hInstance, null);
+      if (!hwNet) {
          // Guess it doesn't support HWND_MESSAGE, so just try null parent.
 
-         hwNet = CreateWindowExA(0, NETEVENT_CLASSNAME.ptr, "", 0, 0, 0, 0, 0, null, null, wce.hInstance, null);
-         if(!hwNet) {
-            debug(APP_PRINT)
-            cprintf("CreateWindowEx() failed for network event window.\n");
+         hwNet = CreateWindowExA(0, NETEVENT_CLASSNAME.ptr, "", 0, 0, 0, 0, 0,
+            null, null, wce.hInstance, null);
+         if (!hwNet) {
+            debug (APP_PRINT)
+               cprintf("CreateWindowEx() failed for network event window.\n");
 
             goto init_err;
          }
       }
    }
-
 }
-
