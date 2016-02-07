@@ -1,6 +1,4 @@
 # dformlib
-[![Build Status](https://travis-ci.org/o3o/dformlib.svg?branch=master)](https://travis-ci.org/o3o/dformlib)
-
 Yet another fork of Christopher Miller [D Form Library](http://www.dprogramming.com/), based on [Rayerd work](https://github.com/Rayerd/dfl).
 
 
@@ -10,6 +8,14 @@ Yet another fork of Christopher Miller [D Form Library](http://www.dprogramming.
 
 The simplest way to compile with dformlib is to use [dub](http://code.dlang.org/) package.
 
+```
+$ dub build
+```
+
+Or you can use make:
+```
+$ make
+```
 
 ## Examples
 
@@ -21,11 +27,11 @@ int main() {
    Label myLabel;
 
    myForm = new Form;
-   myForm.text = "DFL Example";
+   myForm.text = "dformlib Example";
 
    myLabel = new Label;
    myLabel.font = new Font("Verdana", 14f);
-   myLabel.text = "Hello, DFL World!";
+   myLabel.text = "Hello, dformlib World!";
    myLabel.location = Point(15, 15);
    myLabel.autoSize = true;
    myLabel.parent = myForm;
@@ -37,6 +43,16 @@ int main() {
 ```
 
 See also _examples_ directory and [here](https://github.com/SeijiFujita/dfl-examples-d2).
+
+## Related Projects
+
+| Project                                          | Author        | Notes                                    | DUB |
+| -----------------------------                    | -------       | -------                                  | --- |
+| [dfl](http://wiki.dprogramming.com/Dfl/HomePage) | C. Miller     | Abandoned                                | no  |
+| [DFL](https://github.com/rahim14/DFL)            | Rahim Firouzi | With Entice Design                       | yes |
+| [DFL2](https://github.com/FrankLIKE/dfl2)        | FrankLike     |                                          | yes |
+| [DGui](https://bitbucket.org/dgui/dgui)          | Antonio Trogu | Components can be positioned using Docks | yes |
+
 
 ## License
 
