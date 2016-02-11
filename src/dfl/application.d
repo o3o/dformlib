@@ -22,7 +22,7 @@ import dfl.label;
 import dfl.textbox;
 
 // FIX: deprecated
-alias HANDLE HTHEME;
+alias HTHEME = HANDLE;
 
 version = DFL_NO_RESOURCES;
 version (DFL_NO_RESOURCES) {
@@ -230,7 +230,7 @@ static:
    }
 
    /+
-   // ///
+   // 
    @property bool visualStyles() nothrow {
       // IsAppThemed:
       // "Do not call this function during DllMain or global objects contructors.

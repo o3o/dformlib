@@ -5,8 +5,8 @@ module dfl.base;
 
 import core.sys.windows.windows;
 import core.sys.windows.winuser;
-import core.stdc.stdlib: alloca;
-import core.stdc.string: strcpy;
+import core.stdc.stdlib : alloca;
+import core.stdc.string : strcpy;
 
 import dfl.internal.dlib;
 import dfl.internal.clib;
@@ -16,18 +16,17 @@ import dfl.drawing;
 import dfl.event;
 import dfl.exception;
 
-alias HWND HWindow;
+alias HWindow = HWND;
 
 interface IWindow {
    @property HWindow handle();
 }
 
-alias IWindow IWin32Window; // deprecated
+alias IWin32Window = IWindow; // deprecated
 
+alias DflThrowable = DThrowable;
 
-alias DThrowable DflThrowable;
-
-class StringObject: DObject {
+class StringObject : DObject {
    Dstring value;
    this(Dstring str) pure nothrow {
       this.value = str;
@@ -54,14 +53,13 @@ class StringObject: DObject {
    }
 }
 
-enum Keys: uint {
-   NONE =     0, /// No keys specified.
+enum Keys : uint {
+   NONE = 0, /// No keys specified.
 
-
-   SHIFT =    0x10000, /// Modifier keys.
-   CONTROL =  0x20000,
-   ALT =      0x40000,
-   WINDOWS =  0x80000,
+   SHIFT = 0x10000, /// Modifier keys.
+   CONTROL = 0x20000,
+   ALT = 0x40000,
+   WINDOWS = 0x80000,
 
    A = 'A', /// Letters.
    B = 'B',
@@ -137,94 +135,94 @@ enum Keys: uint {
    NUM_PAD8 = 104,
    NUM_PAD9 = 105,
 
-   ADD = 107, ///
+   ADD = 107,
    APPS = 93, /// Application.
-   ATTN = 246, ///
+   ATTN = 246,
    BACK = 8, /// Backspace.
-   CANCEL = 3, ///
-   CAPITAL = 20, ///
+   CANCEL = 3,
+   CAPITAL = 20,
    CAPS_LOCK = 20,
-   CLEAR = 12, ///
-   CONTROL_KEY = 17, ///
-   CRSEL = 247, ///
-   DECIMAL = 110, ///
-   DEL = 46, ///
-   DELETE = DEL, ///
-   PERIOD = 190, ///
+   CLEAR = 12,
+   CONTROL_KEY = 17,
+   CRSEL = 247,
+   DECIMAL = 110,
+   DEL = 46,
+   DELETE = DEL,
+   PERIOD = 190,
    DOT = PERIOD,
-   DIVIDE = 111, ///
+   DIVIDE = 111,
    DOWN = 40, /// Down arrow.
-   END = 35, ///
-   ENTER = 13, ///
-   ERASE_EOF = 249, ///
-   ESCAPE = 27, ///
-   EXECUTE = 43, ///
-   EXSEL = 248, ///
+   END = 35,
+   ENTER = 13,
+   ERASE_EOF = 249,
+   ESCAPE = 27,
+   EXECUTE = 43,
+   EXSEL = 248,
    FINAL_MODE = 4, /// IME final mode.
    HANGUL_MODE = 21, /// IME Hangul mode.
    HANGUEL_MODE = 21,
    HANJA_MODE = 25, /// IME Hanja mode.
-   HELP = 47, ///
-   HOME = 36, ///
-   IME_ACCEPT = 30, ///
-   IME_CONVERT = 28, ///
-   IME_MODE_CHANGE = 31, ///
-   IME_NONCONVERT = 29, ///
-   INSERT = 45, ///
-   JUNJA_MODE = 23, ///
-   KANA_MODE = 21, ///
-   KANJI_MODE = 25, ///
+   HELP = 47,
+   HOME = 36,
+   IME_ACCEPT = 30,
+   IME_CONVERT = 28,
+   IME_MODE_CHANGE = 31,
+   IME_NONCONVERT = 29,
+   INSERT = 45,
+   JUNJA_MODE = 23,
+   KANA_MODE = 21,
+   KANJI_MODE = 25,
    LEFT_CONTROL = 162, /// Left Ctrl.
    LEFT = 37, /// Left arrow.
-   LINE_FEED = 10, ///
+   LINE_FEED = 10,
    LEFT_MENU = 164, /// Left Alt.
-   LEFT_SHIFT = 160, ///
+   LEFT_SHIFT = 160,
    LEFT_WIN = 91, /// Left Windows logo.
    MENU = 18, /// Alt.
-   MULTIPLY = 106, ///
+   MULTIPLY = 106,
    NEXT = 34, /// Page down.
    NO_NAME = 252, // Reserved for future use.
-   NUM_LOCK = 144, ///
+   NUM_LOCK = 144,
    OEM8 = 223, // OEM specific.
    OEM_CLEAR = 254,
    PA1 = 253,
-   PAGE_DOWN = 34, ///
-   PAGE_UP = 33, ///
-   PAUSE = 19, ///
-   PLAY = 250, ///
-   PRINT = 42, ///
-   PRINT_SCREEN = 44, ///
-   PROCESS_KEY = 229, ///
+   PAGE_DOWN = 34,
+   PAGE_UP = 33,
+   PAUSE = 19,
+   PLAY = 250,
+   PRINT = 42,
+   PRINT_SCREEN = 44,
+   PROCESS_KEY = 229,
    RIGHT_CONTROL = 163, /// Right Ctrl.
-   RETURN = 13, ///
+   RETURN = 13,
    RIGHT = 39, /// Right arrow.
    RIGHT_MENU = 165, /// Right Alt.
-   RIGHT_SHIFT = 161, ///
+   RIGHT_SHIFT = 161,
    RIGHT_WIN = 92, /// Right Windows logo.
    SCROLL = 145, /// Scroll lock.
-   SELECT = 41, ///
-   SEPARATOR = 108, ///
-   SHIFT_KEY = 16, ///
+   SELECT = 41,
+   SEPARATOR = 108,
+   SHIFT_KEY = 16,
    SNAPSHOT = 44, /// Print screen.
-   SPACE = 32, ///
+   SPACE = 32,
    SPACEBAR = SPACE, // Extra.
-   SUBTRACT = 109, ///
-   TAB = 9, ///
+   SUBTRACT = 109,
+   TAB = 9,
    UP = 38, /// Up arrow.
-   ZOOM = 251, ///
+   ZOOM = 251,
 
    // Windows 2000+
-   BROWSER_BACK = 166, ///
+   BROWSER_BACK = 166,
    BROWSER_FAVORITES = 171,
    BROWSER_FORWARD = 167,
    BROWSER_HOME = 172,
    BROWSER_REFRESH = 168,
    BROWSER_SEARCH = 170,
    BROWSER_STOP = 169,
-   LAUNCH_APPLICATION1 = 182, ///
+   LAUNCH_APPLICATION1 = 182,
    LAUNCH_APPLICATION2 = 183,
    LAUNCH_MAIL = 180,
-   MEDIA_NEXT_TRACK = 176, ///
+   MEDIA_NEXT_TRACK = 176,
    MEDIA_PLAY_PAUSE = 179,
    MEDIA_PREVIOUS_TRACK = 177,
    MEDIA_STOP = 178,
@@ -240,8 +238,8 @@ enum Keys: uint {
    OEM_QUOTES = 222,
    OEM_SEMICOLON = 186,
    OEM_TILDE = 192,
-   SELECT_MEDIA = 181, ///
-   VOLUME_DOWN = 174, ///
+   SELECT_MEDIA = 181,
+   VOLUME_DOWN = 174,
    VOLUME_MUTE = 173,
    VOLUME_UP = 175,
 
@@ -252,30 +250,27 @@ enum Keys: uint {
    MODIFIERS = 0xFFFF0000,
 }
 
-enum MouseButtons: uint {
+enum MouseButtons : uint {
    /// No mouse buttons specified.
-   NONE =      0,
+   NONE = 0,
 
-   LEFT =      0x100000, ///
-   RIGHT =     0x200000,
-   MIDDLE =    0x400000,
-
-   // Windows 2000+
+   LEFT = 0x100000,
+   RIGHT = 0x200000,
+   MIDDLE = 0x400000,// Windows 2000+
    //XBUTTON1 =  0x800000,
    //XBUTTON2 =  0x1000000,
 }
 
-enum CheckState: ubyte {
-   UNCHECKED = BST_UNCHECKED, ///
+enum CheckState : ubyte {
+   UNCHECKED = BST_UNCHECKED,
    CHECKED = BST_CHECKED,
    INDETERMINATE = BST_INDETERMINATE,
 }
 
-
 struct Message {
    union {
       struct {
-         HWND hWnd; ///
+         HWND hWnd;
          UINT msg;
          WPARAM wParam;
          LPARAM lParam;
@@ -283,8 +278,8 @@ struct Message {
 
       package MSG _winMsg; // .time and .pt are not always valid.
    }
-   LRESULT result; ///
 
+   LRESULT result;
 
    /// Construct a Message struct.
    this(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) pure nothrow {
@@ -302,23 +297,19 @@ interface IMessageFilter {
    bool preFilterMessage(ref Message m);
 }
 
-
 abstract class WaitHandle {
    enum WAIT_TIMEOUT = dfl.internal.winapi.WAIT_TIMEOUT; // DMD 1.028: needs fqn, otherwise conflicts with std.thread
    enum INVALID_HANDLE = .INVALID_HANDLE_VALUE;
 
-
    this() {
       h = INVALID_HANDLE;
    }
-
 
    // Used internally.
    this(HANDLE h, bool owned = true) {
       this.h = h;
       this.owned = owned;
    }
-
 
    @property HANDLE handle() nothrow {
       return h;
@@ -334,7 +325,7 @@ abstract class WaitHandle {
    }
 
    ~this() {
-      if(owned) {
+      if (owned) {
          close();
       }
    }
@@ -344,20 +335,20 @@ abstract class WaitHandle {
       HANDLE* hs;
       // Some implementations fail with > 64 handles, but that will return WAIT_FAILED;
       // all implementations fail with >= 128 handles due to WAIT_ABANDONED_0 being 128.
-      if(handles.length >= 128) {
+      if (handles.length >= 128) {
          goto fail;
       }
 
       //hs = new HANDLE[handles.length];
-      hs = cast(HANDLE*)alloca(HANDLE.sizeof * handles.length);
+      hs = cast(HANDLE*) alloca(HANDLE.sizeof * handles.length);
 
-      foreach(size_t i, WaitHandle wh; handles) {
+      foreach (size_t i, WaitHandle wh; handles) {
          hs[i] = wh.handle;
       }
 
       result = WaitForMultipleObjects(handles.length, hs, waitall, msTimeout);
-      if(WAIT_FAILED == result) {
-fail:
+      if (WAIT_FAILED == result) {
+      fail:
          throw new DflException("Wait failure");
       }
       return result;
@@ -375,11 +366,10 @@ fail:
       return waitAny(handles, INFINITE);
    }
 
-
    static int waitAny(WaitHandle[] handles, DWORD msTimeout) {
       DWORD result;
       result = _wait(handles, false, msTimeout);
-      return cast(int)result; // Same return info.
+      return cast(int) result; // Same return info.
    }
 
    void waitOne() {
@@ -389,7 +379,7 @@ fail:
    void waitOne(DWORD msTimeout) {
       DWORD result;
       result = WaitForSingleObject(handle, msTimeout);
-      if(WAIT_FAILED == result) {
+      if (WAIT_FAILED == result) {
          throw new DflException("Wait failure");
       }
    }
@@ -408,12 +398,10 @@ interface IAsyncResult {
    @property bool isCompleted();
 }
 
-
 /+
 class AsyncResult: IAsyncResult {
 }
 +/
-
 
 interface IButtonControl {
    @property DialogResult dialogResult();
@@ -424,18 +412,16 @@ interface IButtonControl {
    void performClick(); // Raise click event.
 }
 
+enum DialogResult : ubyte {
+   NONE,
 
-
-enum DialogResult: ubyte {
-   NONE, ///
-
-   ABORT = IDABORT, ///
-   CANCEL = IDCANCEL, ///
-   IGNORE = IDIGNORE, ///
-   NO = IDNO, ///
-   OK = IDOK, ///
-   RETRY = IDRETRY, ///
-   YES = IDYES, ///
+   ABORT = IDABORT,
+   CANCEL = IDCANCEL,
+   IGNORE = IDIGNORE,
+   NO = IDNO,
+   OK = IDOK,
+   RETRY = IDRETRY,
+   YES = IDYES,
 
    // Extra.
    CLOSE = IDCLOSE,
@@ -443,106 +429,105 @@ enum DialogResult: ubyte {
 }
 
 interface IDialogResult {
-   // ///
+   // 
    @property DialogResult dialogResult();
    //
    @property void dialogResult(DialogResult);
 }
 
-enum SortOrder: ubyte {
-   NONE, ///
+enum SortOrder : ubyte {
+   NONE,
 
-   ASCENDING, ///
+   ASCENDING,
    DESCENDING,
 }
 
-enum View: ubyte {
-   LARGE_ICON, ///
-   SMALL_ICON, ///
-   LIST, ///
-   DETAILS, ///
+enum View : ubyte {
+   LARGE_ICON,
+   SMALL_ICON,
+   LIST,
+   DETAILS,
 }
 
-enum ItemBoundsPortion: ubyte {
-   ENTIRE, ///
-   ICON, ///
+enum ItemBoundsPortion : ubyte {
+   ENTIRE,
+   ICON,
    ITEM_ONLY, /// Excludes other stuff like check boxes.
    LABEL, /// Item's text.
 }
 
-enum ItemActivation: ubyte {
-   STANDARD, ///
-   ONE_CLICK, ///
-   TWO_CLICK, ///
+enum ItemActivation : ubyte {
+   STANDARD,
+   ONE_CLICK,
+   TWO_CLICK,
 }
 
-enum ColumnHeaderStyle: ubyte {
-   CLICKABLE, ///
-   NONCLICKABLE, ///
+enum ColumnHeaderStyle : ubyte {
+   CLICKABLE,
+   NONCLICKABLE,
    NONE, /// No column header.
 }
 
-enum BorderStyle: ubyte {
-   NONE, ///
+enum BorderStyle : ubyte {
+   NONE,
 
-   FIXED_3D, ///
+   FIXED_3D,
    FIXED_SINGLE,
 }
 
-enum FlatStyle: ubyte {
-   STANDARD, ///
+enum FlatStyle : ubyte {
+   STANDARD,
    FLAT,
    POPUP,
    SYSTEM,
 }
 
-enum Appearance: ubyte {
-   NORMAL, ///
-   BUTTON, ///
+enum Appearance : ubyte {
+   NORMAL,
+   BUTTON,
 }
 
-
-enum ContentAlignment: ubyte {
-   TOP_LEFT, ///
-   BOTTOM_CENTER, ///
-   BOTTOM_LEFT, ///
-   BOTTOM_RIGHT, ///
-   MIDDLE_CENTER, ///
-   MIDDLE_LEFT, ///
-   MIDDLE_RIGHT, ///
-   TOP_CENTER, ///
-   TOP_RIGHT, ///
+enum ContentAlignment : ubyte {
+   TOP_LEFT,
+   BOTTOM_CENTER,
+   BOTTOM_LEFT,
+   BOTTOM_RIGHT,
+   MIDDLE_CENTER,
+   MIDDLE_LEFT,
+   MIDDLE_RIGHT,
+   TOP_CENTER,
+   TOP_RIGHT,
 }
 
-enum CharacterCasing: ubyte {
-   NORMAL, ///
-   LOWER, ///
-   UPPER, ///
+enum CharacterCasing : ubyte {
+   NORMAL,
+   LOWER,
+   UPPER,
 }
 
 // Not flags.
-enum ScrollBars: ubyte {
-   NONE, ///
+enum ScrollBars : ubyte {
+   NONE,
 
-   HORIZONTAL, ///
+   HORIZONTAL,
    VERTICAL,
    BOTH,
 }
 
-enum HorizontalAlignment: ubyte {
-   LEFT, ///
+enum HorizontalAlignment : ubyte {
+   LEFT,
    RIGHT,
    CENTER,
 }
 
-enum DrawMode: ubyte {
-   NORMAL, ///
-   OWNER_DRAW_FIXED, ///
+enum DrawMode : ubyte {
+   NORMAL,
+   OWNER_DRAW_FIXED,
    OWNER_DRAW_VARIABLE,
 }
 
-enum DrawItemState: uint {
-   NONE = 0, ///
+enum DrawItemState : uint {
+   NONE = 0,
    SELECTED = 1,
    DISABLED = 2,
    CHECKED = 8,
@@ -555,273 +540,215 @@ enum DrawItemState: uint {
    COMBO_BOX_EDIT = 0x1000,
 }
 
-
-
-enum RightToLeft: ubyte {
-   INHERIT = 2, ///
+enum RightToLeft : ubyte {
+   INHERIT = 2,
    YES = 1,
    NO = 0,
 }
 
-
-
-enum ColorDepth: ubyte {
-   DEPTH_4BIT = 0x04, ///
+enum ColorDepth : ubyte {
+   DEPTH_4BIT = 0x04,
    DEPTH_8BIT = 0x08,
    DEPTH_16BIT = 0x10,
    DEPTH_24BIT = 0x18,
    DEPTH_32BIT = 0x20,
 }
 
-
-
-class PaintEventArgs: EventArgs {
+class PaintEventArgs : EventArgs {
 
    this(Graphics graphics, Rect clipRect) pure nothrow {
       g = graphics;
       cr = clipRect;
    }
 
-
-
    final @property Graphics graphics() pure nothrow {
       return g;
    }
-
-
 
    final @property Rect clipRectangle() pure nothrow {
       return cr;
    }
 
-
-   private:
+private:
    Graphics g;
    Rect cr;
 }
 
-
-
-class CancelEventArgs: EventArgs {
+class CancelEventArgs : EventArgs {
 
    // Initialize cancel to false.
    this() pure nothrow {
       cncl = false;
    }
 
-
    this(bool cancel) pure nothrow {
       cncl = cancel;
    }
-
-
 
    final @property void cancel(bool byes) pure nothrow {
       cncl = byes;
    }
 
-
    final @property bool cancel() pure nothrow {
       return cncl;
    }
 
-
-   private:
+private:
    bool cncl;
 }
 
-
-class SizingEventArgs: EventArgs {
+class SizingEventArgs : EventArgs {
 
    // Initialize cancel to false.
    this(Size sz) pure nothrow {
       _sz = sz;
    }
 
-
    @property Size size() pure nothrow {
       return _sz;
    }
-
 
    @property void size(Size sz) pure nothrow {
       _sz = sz;
    }
 
-
    @property void width(int w) pure nothrow {
       _sz.width = w;
    }
-
 
    @property int width() pure nothrow {
       return _sz.width;
    }
 
-
    @property void height(int h) pure nothrow {
       _sz.height = h;
    }
-
 
    @property int height() pure nothrow {
       return _sz.height;
    }
 
-
-   private:
+private:
    Size _sz;
 }
 
-
-class MovingEventArgs: EventArgs {
+class MovingEventArgs : EventArgs {
 
    // Initialize cancel to false.
    this(Point loc) pure nothrow {
       _loc = loc;
    }
 
-
    @property Point location() pure nothrow {
       return _loc;
    }
-
 
    @property void location(Point loc) pure nothrow {
       _loc = loc;
    }
 
-
    @property void x(int posX) pure nothrow {
       _loc.x = posX;
    }
-
 
    @property int x() pure nothrow {
       return _loc.x;
    }
 
-
    @property void y(int posY) pure nothrow {
       _loc.y = posY;
    }
-
 
    @property int y() pure nothrow {
       return _loc.y;
    }
 
-
-   private:
+private:
    Point _loc;
 }
 
-
-class KeyEventArgs: EventArgs {
+class KeyEventArgs : EventArgs {
 
    this(Keys keys) pure nothrow {
       ks = keys;
    }
 
-
-
    final @property bool alt() pure nothrow {
       return (ks & Keys.ALT) != 0;
    }
-
-
 
    final @property bool control() pure nothrow {
       return (ks & Keys.CONTROL) != 0;
    }
 
-
-
    final @property void handled(bool byes) pure nothrow {
       hand = byes;
    }
-
 
    final @property bool handled() pure nothrow {
       return hand;
    }
 
-
-
    final @property Keys keyCode() pure nothrow {
       return ks & Keys.KEY_CODE;
    }
-
-
 
    final @property Keys keyData() pure nothrow {
       return ks;
    }
 
-
-
    // -keyData- as an int.
    final @property int keyValue() pure nothrow {
-      return cast(int)ks;
+      return cast(int) ks;
    }
-
-
 
    final @property Keys modifiers() pure nothrow {
       return ks & Keys.MODIFIERS;
    }
 
-
-
    final @property bool shift() pure nothrow {
       return (ks & Keys.SHIFT) != 0;
    }
-
-
 
    final @property bool windows() pure nothrow {
       return (ks & Keys.WINDOWS) != 0;
    }
 
-
-   private:
+private:
    Keys ks;
    bool hand = false;
 }
 
-
-
-class KeyPressEventArgs: KeyEventArgs {
+class KeyPressEventArgs : KeyEventArgs {
    private dchar _keych;
    this(dchar ch) {
       this(ch, (ch >= 'A' && ch <= 'Z') ? Keys.SHIFT : Keys.NONE);
    }
 
-
    this(dchar ch, Keys modifiers)
-      in {
-         assert((modifiers & Keys.MODIFIERS) == modifiers, "modifiers parameter can only contain modifiers");
-      } body {
-         _keych = ch;
+   in {
+      assert((modifiers & Keys.MODIFIERS) == modifiers,
+         "modifiers parameter can only contain modifiers");
+   }
+   body {
+      _keych = ch;
 
-         int vk;
-         if(dfl.internal.utf.useUnicode) {
-            vk = 0xFF & VkKeyScanW(cast(WCHAR)ch);
-         } else {
-            vk = 0xFF & VkKeyScanA(cast(char)ch);
-         }
-
-         super(cast(Keys)(vk | modifiers));
+      int vk;
+      if (dfl.internal.utf.useUnicode) {
+         vk = 0xFF & VkKeyScanW(cast(WCHAR) ch);
+      } else {
+         vk = 0xFF & VkKeyScanA(cast(char) ch);
       }
+
+      super(cast(Keys)(vk | modifiers));
+   }
 
    final @property dchar keyChar() {
       return _keych;
    }
 }
 
-
-
-class MouseEventArgs: EventArgs {
+class MouseEventArgs : EventArgs {
    private MouseButtons btn;
    private int clks;
    private int _x, _y;
@@ -855,7 +782,6 @@ class MouseEventArgs: EventArgs {
       return _y;
    }
 }
-
 
 /+
 
@@ -904,9 +830,7 @@ class LabelEditEventArgs: EventArgs {
 }
 +/
 
-
-
-class ColumnClickEventArgs: EventArgs {
+class ColumnClickEventArgs : EventArgs {
 
    private int col;
    this(int col) pure nothrow {
@@ -918,8 +842,7 @@ class ColumnClickEventArgs: EventArgs {
    }
 }
 
-
-class DrawItemEventArgs: EventArgs {
+class DrawItemEventArgs : EventArgs {
    private Graphics gpx;
    private Font fnt; // Suggestion; the parent's font.
    private Rect rect;
@@ -927,9 +850,8 @@ class DrawItemEventArgs: EventArgs {
    private DrawItemState distate;
    private Color fcolor, bcolor; // Suggestion; depends on item state.
    this(Graphics g, Font f, Rect r, int i, DrawItemState dis) pure nothrow {
-      this(g, f, r, i , dis, Color.empty, Color.empty);
+      this(g, f, r, i, dis, Color.empty, Color.empty);
    }
-
 
    this(Graphics g, Font f, Rect r, int i, DrawItemState dis, Color fc, Color bc) pure nothrow {
       gpx = g;
@@ -984,11 +906,11 @@ class DrawItemEventArgs: EventArgs {
       }
       +/
 
-         gpx.fillRectangle(bcolor, rect);
+      gpx.fillRectangle(bcolor, rect);
    }
 
    void drawFocusRectangle() {
-      if(distate & DrawItemState.FOCUS) {
+      if (distate & DrawItemState.FOCUS) {
          RECT _rect;
          rect.getRect(&_rect);
          DrawFocusRect(gpx.handle, &_rect);
@@ -996,8 +918,7 @@ class DrawItemEventArgs: EventArgs {
    }
 }
 
-
-class MeasureItemEventArgs: EventArgs {
+class MeasureItemEventArgs : EventArgs {
 
    this(Graphics g, int index, int itemHeight) {
       gpx = g;
@@ -1005,56 +926,41 @@ class MeasureItemEventArgs: EventArgs {
       iheight = itemHeight;
    }
 
-
    this(Graphics g, int index) {
       this(g, index, 0);
    }
-
-
 
    final @property Graphics graphics() {
       return gpx;
    }
 
-
-
    final @property int index() {
       return idx;
    }
-
-
 
    final @property void itemHeight(int height) {
       iheight = height;
    }
 
-
    final @property int itemHeight() {
       return iheight;
    }
-
-
 
    final @property void itemWidth(int width) {
       iwidth = width;
    }
 
-
    final @property int itemWidth() {
       return iwidth;
    }
 
-
-   private:
+private:
    Graphics gpx;
    int idx, iheight, iwidth = 0;
 }
 
-
-
 class Cursor {
    private static Cursor _cur;
-
 
    // Used internally.
    this(HCURSOR hcur, bool owned = true) {
@@ -1062,22 +968,17 @@ class Cursor {
       this.owned = owned;
    }
 
-
    ~this() {
-      if(owned) {
+      if (owned) {
          dispose();
       }
    }
-
-
 
    void dispose() {
       assert(owned);
       DestroyCursor(hcur);
       hcur = HCURSOR.init;
    }
-
-
 
    static @property void current(Cursor cur) {
       // Keep a reference so that it doesn't get garbage collected until set again.
@@ -1086,13 +987,10 @@ class Cursor {
       SetCursor(cur ? cur.hcur : HCURSOR.init);
    }
 
-
    static @property Cursor current() {
       HCURSOR hcur = GetCursor();
       return hcur ? new Cursor(hcur, false) : null;
    }
-
-
 
    static @property void clip(Rect r) {
       RECT rect;
@@ -1100,19 +998,15 @@ class Cursor {
       ClipCursor(&rect);
    }
 
-
    static @property Rect clip() {
       RECT rect;
       GetClipCursor(&rect);
       return Rect(&rect);
    }
 
-
-
    final @property HCURSOR handle() {
       return hcur;
    }
-
 
    /+
       // TODO:
@@ -1128,12 +1022,10 @@ class Cursor {
       }
    +/
 
-
-
-      // Uses the actual size.
-      final void draw(Graphics g, Point pt) {
-         DrawIconEx(g.handle, pt.x, pt.y, hcur, 0, 0, 0, HBRUSH.init, DI_NORMAL);
-      }
+   // Uses the actual size.
+   final void draw(Graphics g, Point pt) {
+      DrawIconEx(g.handle, pt.x, pt.y, hcur, 0, 0, 0, HBRUSH.init, DI_NORMAL);
+   }
 
    /+
 
@@ -1142,37 +1034,32 @@ class Cursor {
       }
    +/
 
-
-
-      final void drawStretched(Graphics g, Rect r) {
-         // DrawIconEx operates differently if the width or height is zero
-         // so bail out if zero and pretend the zero size cursor was drawn.
-         int width = r.width;
-         if(!width) {
-            return;
-         }
-         int height = r.height;
-         if(!height) {
-            return;
-         }
-
-         DrawIconEx(g.handle, r.x, r.y, hcur, width, height, 0, HBRUSH.init, DI_NORMAL);
+   final void drawStretched(Graphics g, Rect r) {
+      // DrawIconEx operates differently if the width or height is zero
+      // so bail out if zero and pretend the zero size cursor was drawn.
+      int width = r.width;
+      if (!width) {
+         return;
+      }
+      int height = r.height;
+      if (!height) {
+         return;
       }
 
+      DrawIconEx(g.handle, r.x, r.y, hcur, width, height, 0, HBRUSH.init, DI_NORMAL);
+   }
 
    override Dequ opEquals(Object o) {
-      Cursor cur = cast(Cursor)o;
-      if(!cur) {
-         return 0;   // Not equal.
+      Cursor cur = cast(Cursor) o;
+      if (!cur) {
+         return 0; // Not equal.
       }
       return opEquals(cur);
    }
 
-
    Dequ opEquals(Cursor cur) {
       return hcur == cur.hcur;
    }
-
 
    /// Show/hide the current mouse cursor; reference counted.
    // show/hide are ref counted.
@@ -1180,18 +1067,15 @@ class Cursor {
       ShowCursor(false);
    }
 
-
    // show/hide are ref counted.
    static void show() {
       ShowCursor(true);
    }
 
-
    /// The position of the current mouse cursor.
    static @property void position(Point pt) {
       SetCursorPos(pt.x, pt.y);
    }
-
 
    static @property Point position() {
       Point pt;
@@ -1199,75 +1083,68 @@ class Cursor {
       return pt;
    }
 
-
-   private:
+private:
    HCURSOR hcur;
    bool owned = true;
 }
 
-
 class Cursors {
-   private this() {}
-
+   private this() {
+   }
 
    static {
-
-
 
       @property Cursor appStarting() {
          return new Cursor(LoadCursor(HINSTANCE.init, IDC_APPSTARTING), false);
       }
 
-
       @property Cursor arrow() {
          return new Cursor(LoadCursor(HINSTANCE.init, IDC_ARROW), false);
       }
 
-
       @property Cursor cross() {
          return new Cursor(LoadCursor(HINSTANCE.init, IDC_CROSS), false);
       }
-
 
       //@property Cursor default()
       @property Cursor defaultCursor() {
          return arrow;
       }
 
-
       @property Cursor hand() {
-         version(SUPPORTS_HAND_CURSOR) { // Windows 98+
+         version (SUPPORTS_HAND_CURSOR) { // Windows 98+
             return new Cursor(LoadCursor(HINSTANCE.init, IDC_HAND), false);
          } else {
             static HCURSOR hcurHand;
 
-            if(!hcurHand) {
+            if (!hcurHand) {
                hcurHand = LoadCursor(HINSTANCE.init, IDC_HAND);
-               if(!hcurHand) { // Must be Windows 95, so load the cursor from winhlp32.exe.
+               if (!hcurHand) { // Must be Windows 95, so load the cursor from winhlp32.exe.
                   UINT len;
                   char[MAX_PATH] winhlppath = void;
 
                   len = GetWindowsDirectoryA(winhlppath.ptr, winhlppath.length - 16);
-                  if(!len || len > winhlppath.length - 16) {
-load_failed:
+                  if (!len || len > winhlppath.length - 16) {
+                  load_failed:
                      return arrow; // Just fall back to a normal arrow.
                   }
                   strcpy(winhlppath.ptr + len, "\\winhlp32.exe");
 
                   HINSTANCE hinstWinhlp;
-                  hinstWinhlp = LoadLibraryExA(winhlppath.ptr, HANDLE.init, LOAD_LIBRARY_AS_DATAFILE);
-                  if(!hinstWinhlp) {
+                  hinstWinhlp = LoadLibraryExA(winhlppath.ptr, HANDLE.init,
+                     LOAD_LIBRARY_AS_DATAFILE);
+                  if (!hinstWinhlp) {
                      goto load_failed;
                   }
 
                   HCURSOR hcur;
-                  hcur = LoadCursorA(hinstWinhlp, cast(char*)106);
-                  if(!hcur) { // No such cursor resource.
+                  hcur = LoadCursorA(hinstWinhlp, cast(char*) 106);
+                  if (!hcur) { // No such cursor resource.
                      FreeLibrary(hinstWinhlp);
                      goto load_failed;
                   }
                   hcurHand = CopyCursor(hcur);
-                  if(!hcurHand) {
+                  if (!hcurHand) {
                      FreeLibrary(hinstWinhlp);
                      //throw new DflException("Unable to copy cursor resource");
                      goto load_failed;
@@ -1283,16 +1160,14 @@ load_failed:
          }
       }
 
-
       @property Cursor help() {
          HCURSOR hcur;
          hcur = LoadCursor(HINSTANCE.init, IDC_HELP);
-         if(!hcur) { // IDC_HELP might not be supported on Windows 95, so fall back to a normal arrow.
+         if (!hcur) { // IDC_HELP might not be supported on Windows 95, so fall back to a normal arrow.
             return arrow;
          }
          return new Cursor(hcur);
       }
-
 
       @property Cursor hSplit() {
          // ...
@@ -1307,7 +1182,6 @@ load_failed:
       @property Cursor iBeam() {
          return new Cursor(LoadCursor(HINSTANCE.init, IDC_IBEAM), false);
       }
-
 
       @property Cursor no() {
          return new Cursor(LoadCursor(HINSTANCE.init, IDC_NO), false);
@@ -1333,7 +1207,6 @@ load_failed:
          return new Cursor(LoadCursor(HINSTANCE.init, IDC_SIZEWE), false);
       }
 
-
       /*
 
       // Insertion point.
@@ -1346,4 +1219,3 @@ load_failed:
       }
    }
 }
-
