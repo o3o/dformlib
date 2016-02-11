@@ -8,4 +8,3 @@ module dfl.internal.d2;
 template ConstType(T) {
    alias const(T) ConstType;
 }
-

@@ -747,7 +747,7 @@ class SaveFileDialog : FileDialog {
 }
 
 private extern (Windows) LRESULT ofnHookProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) nothrow {
-   alias HANDLE = dfl.internal.winapi.HANDLE; // Otherwise, odd conflict with wine.
+   // FIX: alias HANDLE = dfl.internal.winapi.HANDLE; // Otherwise, odd conflict with wine.
 
    enum PROP_STR = "DFL_FileDialog";
    FileDialog fd;

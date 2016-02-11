@@ -5,7 +5,8 @@ module dfl.groupbox;
 
 import core.sys.windows.windows;
 
-import dfl.internal.winapi: OpenThemeData, IsAppThemed, GetThemeColor, CloseThemeData;
+//import dfl.internal.winapi: OpenThemeData, IsAppThemed, GetThemeColor, CloseThemeData;
+import dfl.internal.visualstyles;
 
 import dfl.application;
 import dfl.base;

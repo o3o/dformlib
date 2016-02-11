@@ -16,7 +16,8 @@ SRC += src/dfl/internal/com.d
 SRC += src/dfl/internal/d2.d
 SRC += src/dfl/internal/dlib.d
 SRC += src/dfl/internal/utf.d
-SRC += src/dfl/internal/winapi.d
+#SRC += src/dfl/internal/winapi.d
+SRC += src/dfl/internal/visualstyles.d
 
 SRC += src/dfl/application.d
 SRC += src/dfl/base.d

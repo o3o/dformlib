@@ -1,10 +1,12 @@
-// Written by Christopher E. Miller
+// napWritten by Christopher E. Miller
 // See the included license.txt for copyright and license details.
 
 module dfl.base;
 
 import core.sys.windows.windows;
 import core.sys.windows.winuser;
+//import core.sys.wndows.winerror;
+
 import core.stdc.stdlib : alloca;
 import core.stdc.string : strcpy;
 
@@ -298,8 +300,8 @@ interface IMessageFilter {
 }
 
 abstract class WaitHandle {
-   enum WAIT_TIMEOUT = dfl.internal.winapi.WAIT_TIMEOUT; // DMD 1.028: needs fqn, otherwise conflicts with std.thread
-   enum INVALID_HANDLE = .INVALID_HANDLE_VALUE;
+   // FIX: enum WAIT_TIMEOUT = WAIT_TIMEOUT; // DMD 1.028: needs fqn, otherwise conflicts with std.thread
+   enum INVALID_HANDLE = INVALID_HANDLE_VALUE;
 
    this() {
       h = INVALID_HANDLE;
@@ -429,7 +431,7 @@ enum DialogResult : ubyte {
 }
 
 interface IDialogResult {
-   // 
+   //
    @property DialogResult dialogResult();
    //
    @property void dialogResult(DialogResult);

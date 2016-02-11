@@ -19,7 +19,7 @@ import dfl.internal.clib;
 import dfl.internal.com;
 import dfl.internal.dlib;
 import dfl.internal.utf;
-import dfl.internal.winapi: SetWindowTheme;
+import dfl.internal.visualstyles: SetWindowTheme;
 
 //fix  from application: remve
 enum UINT WNDCLASS_STYLE = 0x0008;

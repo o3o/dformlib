@@ -3,6 +3,7 @@
 
 module dfl.statusbar;
 import core.sys.windows.windows;
+import core.sys.windows.commctrl;
 
 import dfl.application;
 import dfl.base;
@@ -13,7 +14,7 @@ import dfl.exception;
 import dfl.internal.dlib;
 import dfl.internal.dlib;
 import dfl.internal.utf;
-import dfl.internal.winapi;
+// FIX: import dfl.internal.winapi;
 
 private extern (Windows) void _initStatusbar();
 
@@ -42,8 +43,7 @@ class StatusBarPanel : DObject {
       this._width = width;
    }
 
-   this() {
-   }
+   this() {}
 
    override Dstring toString() {
       return _txt;
@@ -153,7 +153,6 @@ class StatusBarPanel : DObject {
    }
 
    // style
-
    final @property void text(Dstring txt) {
       if (_parent && _parent.isHandleCreated) {
          int idx = _parent.panels.indexOf(this);

@@ -2329,7 +2329,7 @@ class Picture : Image {
          prevPen = SelectObject(hdc, pen.handle);
          prevBrush = SelectObject(hdc, cast(HBRUSH) GetStockObject(NULL_BRUSH)); // Don't fill it in.
 
-         dfl.internal.winapi.Rectangle(hdc, x, y, x + width, y + height);
+         Rectangle(hdc, x, y, x + width, y + height);
 
          // Reset stuff.
          SelectObject(hdc, prevPen);
@@ -2355,7 +2355,7 @@ class Picture : Image {
          prevBrush = SelectObject(hdc, cast(HBRUSH) GetStockObject(NULL_BRUSH)); // Don't fill it in.
 
          foreach (ref Rect r; rs) {
-            dfl.internal.winapi.Rectangle(hdc, r.x, r.y, r.x + r.width, r.y + r.height);
+            Rectangle(hdc, r.x, r.y, r.x + r.width, r.y + r.height);
          }
 
          // Reset stuff.
@@ -2398,7 +2398,7 @@ class Picture : Image {
 
       final bool copyTo(HDC dest, int destX, int destY, int width, int height,
          int srcX = 0, int srcY = 0, DWORD rop = SRCCOPY) { // package
-         return cast(bool) dfl.internal.winapi.BitBlt(dest, destX, destY,
+         return cast(bool) BitBlt(dest, destX, destY,
             width, height, this.handle, srcX, srcY, rop);
       }
 
