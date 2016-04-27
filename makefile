@@ -2,7 +2,7 @@
 NAME = dformlib.lib
 NAME_DEBUG = dformlib.lib
 NAME_REL = dformlib.rel.lib
-PROJECT_VERSION = 0.1.0
+PROJECT_VERSION = 0.2.2
 
 #SRC = $(wildcard src/dfl/*.d)
 #SRC += $(wildcard src/dfl/internal/*.d)
