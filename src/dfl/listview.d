@@ -1865,7 +1865,7 @@ class ListView : ControlSuperClass {
                      +/
 
             case LVN_ITEMCHANGED: {
-                  auto nmlv = cast(NM_LISTVIEW*) nmh;
+                  auto nmlv = cast(NMLISTVIEW*) nmh;
                   if (-1 != nmlv.iItem) {
                      if (nmlv.uChanged & LVIF_STATE) {
                         UINT stchg = nmlv.uNewState ^ nmlv.uOldState;
@@ -1889,7 +1889,7 @@ class ListView : ControlSuperClass {
                break;
 
             case LVN_COLUMNCLICK: {
-                  auto nmlv = cast(NM_LISTVIEW*) nmh;
+                  auto nmlv = cast(NMLISTVIEW*) nmh;
                   scope ccea = new ColumnClickEventArgs(nmlv.iSubItem);
                   onColumnClick(ccea);
                }

@@ -55,9 +55,6 @@ enum AnchorStyles : ubyte {
    BOTTOM_LEFT = BOTTOM | LEFT,
    BOTTOM_RIGHT = BOTTOM | RIGHT,
    +/
-
-
-
 }
 
 /// Flags for setting control bounds.
@@ -74,12 +71,12 @@ enum BoundsSpecified : ubyte {
 
 /// Layout docking style.
 enum DockStyle : ubyte {
-   NONE, ///
-   BOTTOM, ///
-   FILL, ///
-   LEFT, ///
-   RIGHT, ///
-   TOP, ///
+   NONE,
+   BOTTOM,
+   FILL,
+   LEFT,
+   RIGHT,
+   TOP
 }
 
 private {
@@ -167,7 +164,7 @@ enum ControlStyles : uint {
 
 /// Control creation parameters.
 struct CreateParams {
-   Dstring className; ///
+   Dstring className;
    Dstring caption;
    void* param;
    HWND parent;
@@ -5633,7 +5630,7 @@ create_err:
       }
    }
 
-   private enum CCompat : ubyte {
+   enum CCompat : ubyte {
       NONE = 0,
       DFL095 = 1,
    }

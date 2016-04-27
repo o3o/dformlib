@@ -775,7 +775,7 @@ class Bitmap : Image {
 
    // Load from a bmp file.
    this(Dstring fileName) {
-      this.hbm = cast(HBITMAP) dfl.internal.utf.loadImage(null, fileName,
+      this.hbm = cast(HBITMAP) loadImage(null, fileName,
          IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
       if (!this.hbm) {
          throw new DflException("Unable to load bitmap from file '" ~ fileName ~ "'");

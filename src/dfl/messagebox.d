@@ -5,6 +5,7 @@ module dfl.messagebox;
 
 import core.sys.windows.windows;
 import dfl.internal.dlib;
+static import dfl.internal.utf;
 import dfl.base;
 
 enum MsgBoxButtons {

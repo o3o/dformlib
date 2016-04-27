@@ -12,6 +12,7 @@ import dfl.application;
 import dfl.event;
 import dfl.drawing;
 import dfl.internal.dlib;
+import dfl.internal.utf : callWindowProc;
 
 private extern (Windows) void _initButton();
 
@@ -107,24 +108,22 @@ abstract class ButtonBase : ControlSuperClass {
       }
    +/
 
-      protected override void createParams(ref CreateParams cp) {
-         super.createParams(cp);
+   protected override void createParams(ref CreateParams cp) {
+      super.createParams(cp);
 
-         cp.className = BUTTON_CLASSNAME;
-         if (isdef) {
-            cp.menu = cast(HMENU) IDOK;
-            if (!(cp.style & WS_DISABLED)) {
-               cp.style |= BS_DEFPUSHBUTTON;
-            }
-         } else if (cp.style & WS_DISABLED) {
-            cp.style &= ~BS_DEFPUSHBUTTON;
+      cp.className = BUTTON_CLASSNAME;
+      if (isdef) {
+         cp.menu = cast(HMENU) IDOK;
+         if (!(cp.style & WS_DISABLED)) {
+            cp.style |= BS_DEFPUSHBUTTON;
          }
+      } else if (cp.style & WS_DISABLED) {
+         cp.style &= ~BS_DEFPUSHBUTTON;
       }
+   }
 
    protected override void prevWndProc(ref Message msg) {
-      //msg.result = CallWindowProcA(buttonPrevWndProc, msg.hWnd, msg.msg, msg.wParam, msg.lParam);
-      msg.result = dfl.internal.utf.callWindowProc(buttonPrevWndProc, msg.hWnd,
-            msg.msg, msg.wParam, msg.lParam);
+      msg.result = callWindowProc(buttonPrevWndProc, msg.hWnd, msg.msg, msg.wParam, msg.lParam);
    }
 
    protected override void onReflectedMessage(ref Message m) {
@@ -151,12 +150,12 @@ abstract class ButtonBase : ControlSuperClass {
       switch (msg.msg) {
          case WM_LBUTTONDOWN:
             onMouseDown(new MouseEventArgs(MouseButtons.LEFT, 0,
-                     cast(short) LOWORD(msg.lParam), cast(short) HIWORD(msg.lParam), 0));
+                  cast(short) LOWORD(msg.lParam), cast(short) HIWORD(msg.lParam), 0));
             break;
 
          case WM_LBUTTONUP:
             onMouseUp(new MouseEventArgs(MouseButtons.LEFT, 1,
-                     cast(short) LOWORD(msg.lParam), cast(short) HIWORD(msg.lParam), 0));
+                  cast(short) LOWORD(msg.lParam), cast(short) HIWORD(msg.lParam), 0));
             break;
 
          default:
@@ -179,15 +178,15 @@ abstract class ButtonBase : ControlSuperClass {
       }
    +/
 
-      this() {
-         _initButton();
+   this() {
+      _initButton();
 
-         wstyle |= WS_TABSTOP /+ | BS_NOTIFY +/ ;
-         ctrlStyle |= ControlStyles.SELECTABLE;
-         wclassStyle = buttonClassStyle;
-      }
+      wstyle |= WS_TABSTOP /+ | BS_NOTIFY +/ ;
+      ctrlStyle |= ControlStyles.SELECTABLE;
+      wclassStyle = buttonClassStyle;
+   }
 
-   protected:
+protected:
 
    final @property void isDefault(bool byes) {
       isdef = byes;
@@ -216,7 +215,7 @@ abstract class ButtonBase : ControlSuperClass {
       return Size(75, 23);
    }
 
-   private:
+private:
    bool isdef = false;
 
 package:
@@ -290,25 +289,25 @@ class Button : ButtonBase, IButtonControl {
    protected override void wndProc(ref Message m) {
       switch (m.msg) {
          case WM_ENABLE: {
-                            // Fixing the thick border of a default button when enabling and disabling it.
+            // Fixing the thick border of a default button when enabling and disabling it.
 
-                            // To-do: check if correct implementation.
+            // To-do: check if correct implementation.
 
-                            DWORD bst;
-                            bst = _bstyle();
-                            if (bst & BS_DEFPUSHBUTTON) {
-                               //_bstyle(bst); // Force the border to be updated. Only works when enabling.
-                               if (!m.wParam) {
-                                  _bstyle(bst & ~BS_DEFPUSHBUTTON);
-                               }
-                            } else if (m.wParam) {
-                               //if(GetDlgCtrlID(m.hWnd) == IDOK)
-                               if (isdef) {
-                                  _bstyle(bst | BS_DEFPUSHBUTTON);
-                               }
-                            }
-                         }
-                         break;
+            DWORD bst;
+            bst = _bstyle();
+            if (bst & BS_DEFPUSHBUTTON) {
+               //_bstyle(bst); // Force the border to be updated. Only works when enabling.
+               if (!m.wParam) {
+                  _bstyle(bst & ~BS_DEFPUSHBUTTON);
+               }
+            } else if (m.wParam) {
+               //if(GetDlgCtrlID(m.hWnd) == IDOK)
+               if (isdef) {
+                  _bstyle(bst | BS_DEFPUSHBUTTON);
+               }
+            }
+         }
+         break;
 
          default:
       }
@@ -331,52 +330,27 @@ class Button : ButtonBase, IButtonControl {
    }
 
    final @property void image(Image img)
-      in {
-         if (img) {
-            assert(!this.text.length, "Button image with text not supported");
-         }
+   in {
+      if (img) {
+         assert(!this.text.length, "Button image with text not supported");
       }
+   }
    body {
-      /+
-         if(_picbm) {
-            _picbm.dispose();
-            _picbm = null;
-         }
-      +/
-
-         _img = null; // In case of exception.
+      _img = null; // In case of exception.
       LONG imgst = 0;
       if (img) {
-         /+
-            if(cast(Bitmap)img) {
+         switch (img._imgtype(null)) {
+            case 1:
                imgst = BS_BITMAP;
-            } else if(cast(Icon)img) {
+               break;
+
+            case 2:
                imgst = BS_ICON;
-            } else {
-               if(cast(Picture)img) {
-                  _picbm = (cast(Picture)img).toBitmap();
-                  imgst = BS_BITMAP;
-                  goto not_unsupported;
-               }
+               break;
 
+            default:
                throw new DflException("Unsupported image format");
-not_unsupported: ;
-            }
-         +/
-            switch (img._imgtype(null)) {
-               case 1:
-                  imgst = BS_BITMAP;
-                  break;
-
-               case 2:
-                  imgst = BS_ICON;
-                  break;
-
-               default:
-                  throw new DflException("Unsupported image format");
-not_unsupported:
-                  ;
-            }
+         }
       }
 
       _img = img;
@@ -390,9 +364,9 @@ not_unsupported:
    }
 
    private void setImg(LONG bsImageStyle)
-      in {
-         assert(isHandleCreated);
-      }
+   in {
+      assert(isHandleCreated);
+   }
    body {
       WPARAM wparam = 0;
       LPARAM lparam = 0;
@@ -409,9 +383,9 @@ not_unsupported:
             return;
          }
       +/
-         if (!_img) {
-            return;
-         }
+      if (!_img) {
+         return;
+      }
       HGDIOBJ hgo;
       switch (_img._imgtype(&hgo)) {
          case 1:
@@ -449,7 +423,7 @@ not_unsupported:
       +/
    }
 
-   private:
+private:
    DialogResult dresult = DialogResult.NONE;
    Image _img = null;
    //Bitmap _picbm = null; // If -_img- is a Picture, need to keep a separate Bitmap.
@@ -493,7 +467,7 @@ class CheckBox : ButtonBase {
       /+
          return (_bstyle() & BS_AUTOCHECKBOX) == BS_AUTOCHECKBOX;
       +/
-         return _autocheck;
+      return _autocheck;
    }
 
    this() {
@@ -508,17 +482,17 @@ class CheckBox : ButtonBase {
       }
    +/
 
-      final @property void checked(bool byes) {
-         if (byes) {
-            _check = CheckState.CHECKED;
-         } else {
-            _check = CheckState.UNCHECKED;
-         }
-
-         if (isHandleCreated) {
-            SendMessageA(handle, BM_SETCHECK, cast(WPARAM) _check, 0);
-         }
+   final @property void checked(bool byes) {
+      if (byes) {
+         _check = CheckState.CHECKED;
+      } else {
+         _check = CheckState.UNCHECKED;
       }
+
+      if (isHandleCreated) {
+         SendMessageA(handle, BM_SETCHECK, cast(WPARAM) _check, 0);
+      }
+   }
 
    // Returns true for indeterminate too.
    final @property bool checked() {
@@ -555,7 +529,7 @@ class CheckBox : ButtonBase {
       SendMessageA(handle, BM_SETCHECK, cast(WPARAM) _check, 0);
    }
 
-   private:
+private:
    CheckState _check = CheckState.UNCHECKED; // Not always accurate.
    bool _autocheck = true;
 
@@ -597,14 +571,14 @@ class RadioButton : ButtonBase {
       // Enabling/disabling the window before creation messes
       // up the autocheck style flag, so handle it manually.
       +/
-         _autocheck = byes;
+      _autocheck = byes;
    }
 
    final @property bool autoCheck() {
       /+ // Also commented out when using BS_AUTORADIOBUTTON.
          return (_bstyle() & BS_AUTOCHECKBOX) == BS_AUTOCHECKBOX;
       +/
-         return _autocheck;
+      return _autocheck;
    }
 
    this() {
@@ -639,17 +613,17 @@ class RadioButton : ButtonBase {
       }
    +/
 
-      final @property void checked(bool byes) {
-         if (byes) {
-            _check = CheckState.CHECKED;
-         } else {
-            _check = CheckState.UNCHECKED;
-         }
-
-         if (isHandleCreated) {
-            SendMessageA(handle, BM_SETCHECK, cast(WPARAM) _check, 0);
-         }
+   final @property void checked(bool byes) {
+      if (byes) {
+         _check = CheckState.CHECKED;
+      } else {
+         _check = CheckState.UNCHECKED;
       }
+
+      if (isHandleCreated) {
+         SendMessageA(handle, BM_SETCHECK, cast(WPARAM) _check, 0);
+      }
+   }
 
    // Returns true for indeterminate too.
    final @property bool checked() {
@@ -690,43 +664,17 @@ class RadioButton : ButtonBase {
          }
       +/
 
-         SendMessageA(handle, BM_SETCHECK, cast(WPARAM) _check, 0);
+      SendMessageA(handle, BM_SETCHECK, cast(WPARAM) _check, 0);
    }
 
-   /+
-      protected override void onReflectedMessage(ref Message m) {
-         super.onReflectedMessage(m);
-
-         switch(m.msg) {
-            /+
-               // Without this, with XP styles, the background just ends up transparent; not the requested color.
-               // This erases the text when XP styles aren't enabled.
-            case WM_CTLCOLORSTATIC:
-            case WM_CTLCOLORBTN: {
-                                    //if(hasVisualStyle)
-                                    {
-                                       RECT rect;
-                                       rect.right = width;
-                                       rect.bottom = height;
-                                       FillRect(cast(HDC)m.wParam, &rect, hbrBg);
-                                    }
-                                 }
-                                 break;
-                                 +/
-
-            default:
-         }
+   /+ package +/ /+ protected +/ override int _rtype() {
+      if (autoCheck) {
+         return 1 | 8; // Radio button + auto check.
       }
-   +/
+      return 1; // Radio button.
+   }
 
-      /+ package +/ /+ protected +/ override int _rtype() { // package
-         if (autoCheck) {
-            return 1 | 8; // Radio button + auto check.
-         }
-         return 1; // Radio button.
-      }
-
-   private:
+private:
    CheckState _check = CheckState.UNCHECKED; // Not always accurate.
    bool _autocheck = true;
 

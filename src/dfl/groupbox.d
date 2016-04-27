@@ -7,6 +7,7 @@ import core.sys.windows.windows;
 
 //import dfl.internal.winapi: OpenThemeData, IsAppThemed, GetThemeColor, CloseThemeData;
 import dfl.internal.visualstyles;
+static import dfl.internal.utf;
 
 import dfl.application;
 import dfl.base;

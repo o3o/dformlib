@@ -11,6 +11,7 @@ import dfl.drawing;
 import dfl.event;
 import dfl.exception;
 import dfl.internal.dlib;
+static import dfl.internal.utf;
 
 version (DFL_NO_IMAGELIST) {
 } else {

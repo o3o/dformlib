@@ -3,6 +3,7 @@
 
 module dfl.form;
 import core.sys.windows.windows;
+import std.string : format;
 
 import dfl.application;
 import dfl.base;
@@ -13,6 +14,7 @@ import dfl.event;
 import dfl.exception;
 import dfl.internal.dlib;
 import dfl.internal.utf;
+
 
 debug (APP_PRINT) {
    private import dfl.internal.clib;
@@ -93,7 +95,6 @@ class FormShortcutEventArgs : EventArgs {
 version = OLD_MODAL_CLOSE; // New version destroys control info.
 
 class Form : ContainerControl, IDialogResult {
-
    final @property void acceptButton(IButtonControl btn) {
       if (acceptBtn) {
          acceptBtn.notifyDefault(false);
@@ -383,7 +384,7 @@ create_err:
                wstyle & ~WS_VISIBLE, x, ly, width, height, parent, menu, inst, param);
          if (!hwnd) {
             debug {
-               er = std.string.format(
+               er = format(
                      "CreateWindowEx failed {className=%s;exStyle=0x%X;style=0x%X;parent=0x%X;menu=0x%X;inst=0x%X;}",
                      className, exStyle, style, cast(void*) parent,
                      cast(void*) menu, cast(void*) inst);
@@ -1226,19 +1227,7 @@ show_normal:
          }
       }
 
-   final @property void owner(Form frm) /+out {
-      if(frm) {
-         bool found = false;
-         foreach(Form elem; frm._owned) {
-            if(elem is this) {
-               found = true;
-               break;
-            }
-         }
-         assert(found);
-      }
-   }+/
-   body {
+   final @property void owner(Form frm) {
       if (wowner is frm) {
          return;
       }

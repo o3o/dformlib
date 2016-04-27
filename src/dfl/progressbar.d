@@ -11,6 +11,7 @@ import dfl.control;
 import dfl.drawing;
 import dfl.event;
 import dfl.exception;
+static import dfl.internal.utf;
 
 private extern (Windows) void _initProgressbar();
 

@@ -11,6 +11,7 @@ import core.stdc.stdlib : alloca;
 import core.stdc.string : strcpy;
 
 import dfl.internal.dlib;
+static import dfl.internal.utf;
 import dfl.internal.clib;
 
 // FIX: import dfl.internal.winapi;

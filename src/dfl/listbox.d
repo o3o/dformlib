@@ -14,6 +14,7 @@ import dfl.control;
 import dfl.drawing;
 import dfl.event;
 import dfl.internal.dlib;
+static import dfl.internal.utf;
 
 
 private extern (C) void* memmove(void*, void*, size_t len);

@@ -14,6 +14,7 @@ import dfl.drawing;
 import dfl.event;
 import dfl.exception;
 import dfl.internal.dlib;
+static import dfl.internal.utf;
 import dfl.panel;
 
 private extern (Windows) void _initTabcontrol();

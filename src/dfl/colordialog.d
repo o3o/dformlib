@@ -6,8 +6,6 @@ module dfl.colordialog;
 import core.sys.windows.windows;
 import dfl.commondialog;
 import dfl.base;
-// FIX: import dfl.internal.winapi;
-// FIX: import dfl.internal.wincom;
 
 import dfl.internal.utf;
 import dfl.application;
