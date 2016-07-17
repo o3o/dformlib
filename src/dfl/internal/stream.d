@@ -25,7 +25,7 @@
  * the suitability of this software for any purpose. It is provided
  * "as is" without express or implied warranty.
  */
-deprecated("It will be removed from Phobos in October 2016. If you still need it, go to https://github.com/DigitalMars/undeaD") module std.stream;
+//deprecated("It will be removed from Phobos in October 2016. If you still need it, go to https://github.com/DigitalMars/undeaD") module std.stream;
 // @@@DEPRECATED_2016-10@@@
 
 
