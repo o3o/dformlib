@@ -614,7 +614,7 @@ class OpenFileDialog : FileDialog {
       return (ofn.Flags & OFN_HIDEREADONLY) == 0;
    }
 
-   private import std.stream; // TO-DO: remove this import; use dfl.internal.dlib.
+   private import dfl.internal.stream; // TO-DO: remove this import; use dfl.internal.dlib.
 
    final Stream openFile() {
       return new File(fileName(), FileMode.In);
@@ -702,7 +702,7 @@ class SaveFileDialog : FileDialog {
       return (ofn.Flags & OFN_OVERWRITEPROMPT) != 0;
    }
 
-   private import std.stream; // TO-DO: remove this import; use dfl.internal.dlib.
+   private import dfl.internal.stream; // TO-DO: remove this import; use dfl.internal.dlib.
 
    // Opens and creates with read and write access.
    // Warning: if file exists, it's truncated.
