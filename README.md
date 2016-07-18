@@ -48,9 +48,9 @@ See also _examples_ directory and [here](https://github.com/SeijiFujita/dfl-exam
 
 | Project                                          | Author        | Notes                                    | DUB |
 | -----------------------------                    | -------       | -------                                  | --- |
-| [dfl](http://wiki.dprogramming.com/Dfl/HomePage) | C. Miller     | Abandoned                                | no  |
+| [Original dfl project](http://wiki.dprogramming.com/Dfl/HomePage) | C. Miller     | Abandoned                                | no  |
 | [DFL](https://github.com/rahim14/DFL)            | Rahim Firouzi | With Entice Design                       | yes |
-| [dfl](https://github.com/Rayerd/dfl)             |               |                                          | no  |
+| [dfl](https://github.com/Rayerd/dfl)             | Rayerd        |                                          | no  |
 | [DFL2](https://github.com/FrankLIKE/dfl2)        | FrankLike     |                                          | yes |
 | [DGui](https://bitbucket.org/dgui/dgui)          | Antonio Trogu | Components can be positioned using Docks | yes |
 
