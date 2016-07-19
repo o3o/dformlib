@@ -19,7 +19,7 @@ import dfl.internal.utf;
 debug (APP_PRINT) {
    private import dfl.internal.clib;
 }
-version = DFL_NO_MENUS;
+//version = DFL_NO_MENUS;
 version (DFL_NO_MENUS) {
 } else {
    import dfl.menu;
